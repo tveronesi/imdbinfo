@@ -6,3 +6,10 @@
 
 ## v0.1.1
 - Initial release
+
+## v0.2.5
+- Add new feature to fetch movie ratings
+- Fix bug in movie search functionality
+- Update dependencies to latest versions
+- Improve error handling for network requests
+- Add support for fetching movie reviews
