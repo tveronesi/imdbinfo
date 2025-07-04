@@ -1,12 +1,14 @@
-from .models import MovieDetail, Person, MovieInfo
+from typing import Optional
+
+from .models import MovieDetail, Person, MovieInfo, SearchResult
 
 
-def parse_json_movie(raw_json) -> MovieDetail:
+def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data = {}
     mainColumnData = raw_json['props']['pageProps']['mainColumnData']
     aboveTheFoldData = raw_json['props']['pageProps']['aboveTheFoldData']
     if not mainColumnData:
-        return {"error": "No data found for the given IMDb ID"}
+        return None
 
     data['imdbId'] = mainColumnData['id']
     data['imdb_id'] = data['imdbId'].replace('tt', '') # movie id without 'tt'
@@ -110,11 +112,13 @@ def parse_json_movie(raw_json) -> MovieDetail:
     return movie
 
 
-def parse_json_search(raw_json):
-    res = {'titles': [MovieInfo.from_movie_info(m_info).model_dump() for m_info in
-                      raw_json['props']['pageProps']['titleResults']['results']],
-           'people': [
-                Person.from_search(person).model_dump() for person in raw_json['props']['pageProps']['nameResults']['results']
-           ]
-           }
+def parse_json_search(raw_json) ->SearchResult:
+    title =[]
+    for title_data in raw_json['props']['pageProps']['titleResults']['results']:
+        title.append(MovieInfo.from_movie_info(title_data))
+    people = []
+    for person_data in raw_json['props']['pageProps']['nameResults']['results']:
+        people.append(Person.from_search(person_data))
+
+    res = SearchResult(titles=title, people=people)
     return res

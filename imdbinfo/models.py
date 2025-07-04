@@ -96,3 +96,7 @@ class MovieInfo(BaseModel):
             kind=data.get('imageType',None),
 
         )
+
+class SearchResult(BaseModel):
+    titles: list[MovieInfo] = []
+    people: list[Person] = []
