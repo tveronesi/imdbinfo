@@ -41,9 +41,9 @@ print(f"Plot: {movie.plot}") # Plot: A computer hacker learns from mysterious re
 ``` 
 
 ## Documentation
-For detailed documentation, please refer to the [imdbinfo documentation](https://imdbinfo.readthedocs.io/en/latest/).
+For detailed documentation, it is straightforward and self-explanatory.
 ## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under GPL  v2.0 - see the [LICENSE](LICENSE) file for details.
 ## Contributing
 Contributions are welcome! Please read the [CONTRIBUTING](CONTRIBUTING.md) file for details on how to contribute to this project.
 ## Issues
