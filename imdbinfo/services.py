@@ -1,4 +1,3 @@
-# python
 from typing import Optional
 
 import requests
@@ -26,7 +25,7 @@ def get_movie(imdb_id: str)->MovieDetail:
 
 
 
-def search_title(title: str) ->SearchResult:
+def search_title(title: str) ->Optional[SearchResult]:
     """Search for a movie by title and return a list of titles and names."""
     url = f"https://www.imdb.com/find?q={title}&ref_=nv_sr_sm"
     resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})

@@ -1,11 +1,11 @@
-# python
+from typing import Optional, List, Dict, Tuple
 from pydantic import BaseModel
 
 class Person(BaseModel):
     name: str
     id: str
     url: str
-    job: str | None = None
+    job: Optional[str] = None
 
     @classmethod
     def from_directors(cls, data: dict):
@@ -35,53 +35,52 @@ class Person(BaseModel):
 
 
 class MovieDetail(BaseModel):
-    imdbId: str # movie id with 'tt'
-    imdb_id: str # movie id without 'tt'
+    imdbId: str
+    imdb_id: str
     title: str
-    kind: str | None = None
+    kind: Optional[str] = None
     url: str = ""
     cover_url: str
-    plot: str | None = None
-    release_date: str | None = None
-    languages: list[str] = []
-    certificates: dict[str, tuple[str, str]] = {}
-    directors: dict[str, dict] = {}
-    directors: list[Person] = []
-    cast: list[Person] = []
-    year: int | None = None
-    duration: int | None = None
-    country_codes: list[str] = []
-    rating: float | None = None
-    metacritic_rating: int | None = None
-    votes: int | None = None
-    trailers: list[str] = []
-    genres: list[str] = []
-    interests: list[str] = []
-    worldwide_gross: str | None = None
-    production_budget: str | None = None
-    storyline_keywords: list[str] = []
-    filming_locations: list[str] = []
-    sound_mixes: list[str] = []
-    processes: list[str] = []
-    printed_formats: list[str] = []
-    negative_formats: list[str] = []
-    laboratories: list[str] = []
-    colorations: list[str] = []
-    cameras: list[str] = []
-    aspect_ratios: list[tuple[str, str]] = []
-    summaries: list[str] = []
-    synopses: list[str] = []
-    production: list[str] = []
+    plot: Optional[str] = None
+    release_date: Optional[str] = None
+    languages: List[str] = []
+    certificates: Dict[str, Tuple[str, str]] = {}
+    directors: List[Person] = []
+    cast: List[Person] = []
+    year: Optional[int] = None
+    duration: Optional[int] = None
+    country_codes: List[str] = []
+    rating: Optional[float] = None
+    metacritic_rating: Optional[int] = None
+    votes: Optional[int] = None
+    trailers: List[str] = []
+    genres: List[str] = []
+    interests: List[str] = []
+    worldwide_gross: Optional[str] = None
+    production_budget: Optional[str] = None
+    storyline_keywords: List[str] = []
+    filming_locations: List[str] = []
+    sound_mixes: List[str] = []
+    processes: List[str] = []
+    printed_formats: List[str] = []
+    negative_formats: List[str] = []
+    laboratories: List[str] = []
+    colorations: List[str] = []
+    cameras: List[str] = []
+    aspect_ratios: List[Tuple[str, str]] = []
+    summaries: List[str] = []
+    synopses: List[str] = []
+    production: List[str] = []
 
 class MovieInfo(BaseModel):
 
     imdbId: str
     imdb_id: str
     title: str
-    cover_url: str | None = None
-    url: str | None = None
-    year: str | None = None
-    kind: str | None = None
+    cover_url: Optional[str] = None
+    url: Optional[str] = None
+    year: Optional[int] = None
+    kind: Optional[str] = None
 
 
     @classmethod
@@ -98,5 +97,5 @@ class MovieInfo(BaseModel):
         )
 
 class SearchResult(BaseModel):
-    titles: list[MovieInfo] = []
-    people: list[Person] = []
+    titles: List[MovieInfo] = []
+    people: List[Person] = []
