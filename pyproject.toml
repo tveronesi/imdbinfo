@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "imdbinfo"
+version = "0.1.0"
+description = "A Python service for querying IMDb data"
+readme = "README.md"
+license = { file = "LICENSE.txt" }
+authors = [
+    { name = "@tveronesi", email = "you@example.com" }
+]
+dependencies = [
+    "requests",
+    "lxml",
+    "pydantic"
+]
+
+[tool.setuptools]
+packages = ["imdbinfo"]
