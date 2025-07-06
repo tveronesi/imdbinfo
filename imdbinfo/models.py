@@ -98,4 +98,4 @@ class MovieInfo(BaseModel):
 
 class SearchResult(BaseModel):
     titles: List[MovieInfo] = []
-    people: List[Person] = []
+    names: List[Person] = []

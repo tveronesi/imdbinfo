@@ -120,5 +120,5 @@ def parse_json_search(raw_json) ->SearchResult:
     for person_data in raw_json['props']['pageProps']['nameResults']['results']:
         people.append(Person.from_search(person_data))
 
-    res = SearchResult(titles=title, people=people)
+    res = SearchResult(titles=title, names=people)
     return res
