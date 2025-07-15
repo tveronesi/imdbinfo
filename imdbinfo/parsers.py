@@ -10,8 +10,44 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     if not mainColumnData:
         return None
 
+    rules = [
+        {
+            "key": "imdbId",
+            "extractor": {
+                "path": "props.pageProps.aboveTheFoldData.id"
+            }
+        }, {
+            "key": "rating",
+            "extractor": {
+                "path": "props.pageProps.aboveTheFoldData.ratingsSummary.aggregateRating",
+                "transforms": [
+                    "decimal"
+                ]
+            }
+        },
+    {
+      "key": "runtime",
+      "extractor": {
+        "path": "props.pageProps.aboveTheFoldData.runtime.seconds",
+        "transforms": [
+          "div60"
+        ]
+      }
+    },
+    {
+      "key": "genres",
+      "extractor": {
+        "foreach": "props.pageProps.mainColumnData.genres.genres[*]",
+        "path": "text"
+      }
+    }
+    ]
+
+
+
+
     data['imdbId'] = mainColumnData['id']
-    data['imdb_id'] = data['imdbId'].replace('tt', '') # movie id without 'tt'
+    data['imdb_id'] = data['imdbId'].replace('tt', '')  # movie id without 'tt'
     data['url'] = f"https://www.imdb.com/title/{data['imdbId']}/"
     data['title'] = aboveTheFoldData['originalTitleText']['text']
     data['kind'] = mainColumnData['titleType']['id']
@@ -112,8 +148,8 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     return movie
 
 
-def parse_json_search(raw_json) ->SearchResult:
-    title =[]
+def parse_json_search(raw_json) -> SearchResult:
+    title = []
     for title_data in raw_json['props']['pageProps']['titleResults']['results']:
         title.append(MovieInfo.from_movie_info(title_data))
     people = []
