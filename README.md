@@ -54,7 +54,7 @@ print(movie.model_dump_json())
 
 ## NEW FEATURES
 
-Under movie.categories, you can now find additional information such as:
+Under `MovieDetail.categories` dictionary, you can find various categories of people involved in the movie production. The categories include:
 
 * director
 * writer
@@ -87,13 +87,17 @@ Under movie.categories, you can now find additional information such as:
 * transportation_department
 * miscellaneous
 
-Each category contains a list of people involved in that role, in the format Model `Person(name='Keanu Reeves', id='nm0000206', url='https://www.imdb.com/name/nm0000206', job='Cast')`.
+Each category contains a list of people involved in that role, in the format Model 
+
+    Person(name='Keanu Reeves', id='nm0000206', url='https://www.imdb.com/name/nm0000206', job='Cast')
 
 ## Deprecation Notice
 
 `MovieDetail.directors` and `MovieDetail.cast` have been deprecated in favor of the new categories structure: `MovieDetail.categories['director']` and `MovieDetail.categories['cast']` respectively.
 
-The old attribute `MovieDetail.directors` will be removed in a future release and the attribute `MovieDetail.cast` will be renamed into stars.
+Adding `MovieDetail.stars` as a new attribute to `MovieDetail` to replace the old `MovieDetail.cast` attribute.
+
+The old attribute `MovieDetail.directors` will be removed in a future release and the attribute `MovieDetail.cast` will be renamed into `MovieDetail.stars` .
 
 
 
