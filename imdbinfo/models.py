@@ -56,6 +56,7 @@ class MovieDetail(BaseModel):
     certificates: Dict[str, Tuple[str, str]] = {}
     directors: List[Person] = []
     cast: List[Person] = []
+    stars: List[Person] = []
     year: Optional[int] = None
     duration: Optional[int] = None
     country_codes: List[str] = []

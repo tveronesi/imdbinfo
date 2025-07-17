@@ -60,6 +60,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     for cast_member in cast_dump:
         c = Person.from_cast(cast_member)
         data['cast'].append(c)
+    data['stars'] = data['cast']  # TODO cast will be removed later as it will be full list in MovieDetail.categories['cast']
 
     filming_locations_dump = mainColumnData['filmingLocations']['edges']
     data['filming_locations'] = [location['node']['text'] for location in filming_locations_dump]
