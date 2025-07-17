@@ -85,17 +85,20 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         for cert in certificates if cert['node']['country']
     }
 
-    directors_dump = mainColumnData['directorsPageTitle'][0]['credits']
+    #TODO DEPRECATED: will be removed later
     data['directors'] = []
+    directors_dump = mainColumnData['directorsPageTitle'][0]['credits'] if mainColumnData['directorsPageTitle'] else []
     for director in directors_dump:
         d = Person.from_directors(director)
         data['directors'].append(d)
 
-    cast_dump = aboveTheFoldData['castPageTitle']['edges']
+    # TODO DEPRECATED: will be renamed into stars
     data['cast'] = []
+    cast_dump = aboveTheFoldData['castPageTitle']['edges'] if aboveTheFoldData['castPageTitle'] else []
     for cast_member in cast_dump:
         c = Person.from_cast(cast_member)
         data['cast'].append(c)
+    data['stars'] = data['cast']  # TODO cast will be removed later as it will be full list in MovieDetail.categories['cast']
 
     filming_locations_dump = mainColumnData['filmingLocations']['edges']
     data['filming_locations'] = [location['node']['text'] for location in filming_locations_dump]
@@ -140,8 +143,18 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data['aspect_ratios'] = [(ratio['aspectRatio'], (' '.join([atrb['text'] for atrb in ratio['attributes']]))) for
                              ratio in aspect_ratios_dump]
 
-    languages_dump = mainColumnData['spokenLanguages']['spokenLanguages']
+    languages_dump = mainColumnData['spokenLanguages']['spokenLanguages'] if mainColumnData['spokenLanguages'] else []
     data['languages'] = [lang['id'] for lang in languages_dump]
+
+    # categories
+    data['categories'] = {}
+    for category in mainColumnData['categories']:
+        data['categories'].setdefault(category['id'], [])
+        jobtitle = category['name']
+        for category_person in category['section']['items']:
+            category_person['jobTitle'] = jobtitle
+            person = Person.from_category(category_person)
+            data['categories'][category['id']].append(person)
 
     movie = MovieDetail.model_validate(data)
 

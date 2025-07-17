@@ -16,5 +16,10 @@
 
 ## v0.2.8
 - Fix bug in movie rating fetching
-- Improve performance of movie search
-- Update documentation for new features
+- Updated README with json response example
+
+## v0.3.0
+- Add support for movie categories in `MovieDetail.categories`
+- Added `MovieDetail.stars` to get the main cast of the movie, and deprecating `MovieDetail.cast` later
+- FIX: directorsPageTitle out of range
+- Updated README with new features and deprecations notice
