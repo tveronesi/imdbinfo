@@ -28,6 +28,98 @@ Matrix Revolutions (2003) - 0242653
 The Matrix Recalibrated (2004) - 0410519
 ``` 
 
+The search results : 
+
+``` python
+print(results.model_dump_json())
+```
+
+The search results output will look like this:
+``` json
+{
+  "titles": [
+    {
+      "imdbId": "tt0133093",
+      "imdb_id": "0133093",
+      "title": "Matrix",
+      "cover_url": "https://m.media-amazon.com/images/M/MV5BOWVlOTU2MzktN2Q0Ny00Y2M5LTkzY2QtNjBjOWRhZTQwMmQxXkEyXkFqcGc@._V1_.jpg",
+      "url": "https://www.imdb.com/title/tt0133093/",
+      "year": 1999,
+      "kind": "movie"
+    },
+    {
+      "imdbId": "tt0234215",
+      "imdb_id": "0234215",
+      "title": "Matrix Reloaded",
+      "cover_url": "https://m.media-amazon.com/images/M/MV5BMTMwNjM4NjAzOF5BMl5BanBnXkFtZTcwODI2MDEyMQ@@._V1_.jpg",
+      "url": "https://www.imdb.com/title/tt0234215/",
+      "year": 2003,
+      "kind": "movie"
+    },
+    {
+      "imdbId": "tt10838180",
+      "imdb_id": "10838180",
+      "title": "Matrix Resurrections",
+      "cover_url": "https://m.media-amazon.com/images/M/MV5BMDMyNDIzYzMtZTMyMy00NjUyLWI3Y2MtYzYzOGE1NzQ1MTBiXkEyXkFqcGc@._V1_.jpg",
+      "url": "https://www.imdb.com/title/tt10838180/",
+      "year": 2021,
+      "kind": "movie"
+    },
+    {
+      "imdbId": "tt0242653",
+      "imdb_id": "0242653",
+      "title": "Matrix Revolutions",
+      "cover_url": "https://m.media-amazon.com/images/M/MV5BZGFkNmFhMzUtZTQ4Yy00YjgxLWEwZjEtNjY3MjUwN2Y1ODk0XkEyXkFqcGc@._V1_.jpg",
+      "url": "https://www.imdb.com/title/tt0242653/",
+      "year": 2003,
+      "kind": "movie"
+    },
+    {
+      "imdbId": "tt0410519",
+      "imdb_id": "0410519",
+      "title": "The Matrix Recalibrated",
+      "cover_url": "https://m.media-amazon.com/images/M/MV5BZjU2Y2FmNjEtYTc5Ni00MmMyLTljOTktODdkNmQ0YTk1NjYwXkEyXkFqcGc@._V1_.jpg",
+      "url": "https://www.imdb.com/title/tt0410519/",
+      "year": 2004,
+      "kind": "video"
+    }
+  ],
+  "names": [
+    {
+      "name": "The Matrix",
+      "id": "nm4210667",
+      "url": "https://www.imdb.com/name/nm4210667",
+      "job": "Soundtrack"
+    },
+    {
+      "name": "Vasyl Lomachenko",
+      "id": "nm5263899",
+      "url": "https://www.imdb.com/name/nm5263899",
+      "job": "Actor"
+    },
+    {
+      "name": "Rooney Mara",
+      "id": "nm1913734",
+      "url": "https://www.imdb.com/name/nm1913734",
+      "job": "Actress"
+    },
+    {
+      "name": "Ye",
+      "id": "nm1577190",
+      "url": "https://www.imdb.com/name/nm1577190",
+      "job": "Soundtrack"
+    },
+    {
+      "name": "Etta James",
+      "id": "nm0416483",
+      "url": "https://www.imdb.com/name/nm0416483",
+      "job": "Actress"
+    }
+  ]
+}
+
+```
+
 The full details of the search results are :
 ``` python
 print(movie.model_dump_json())
