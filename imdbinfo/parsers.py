@@ -49,14 +49,14 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         for cert in certificates if cert['node']['country']
     }
 
-    directors_dump = mainColumnData['directorsPageTitle'][0]['credits']
     data['directors'] = []
+    directors_dump = mainColumnData['directorsPageTitle'][0]['credits'] if mainColumnData['directorsPageTitle'] else []
     for director in directors_dump:
         d = Person.from_directors(director)
         data['directors'].append(d)
 
-    cast_dump = aboveTheFoldData['castPageTitle']['edges']
     data['cast'] = []
+    cast_dump = aboveTheFoldData['castPageTitle']['edges'] if aboveTheFoldData['castPageTitle'] else []
     for cast_member in cast_dump:
         c = Person.from_cast(cast_member)
         data['cast'].append(c)
@@ -104,7 +104,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data['aspect_ratios'] = [(ratio['aspectRatio'], (' '.join([atrb['text'] for atrb in ratio['attributes']]))) for
                              ratio in aspect_ratios_dump]
 
-    languages_dump = mainColumnData['spokenLanguages']['spokenLanguages']
+    languages_dump = mainColumnData['spokenLanguages']['spokenLanguages'] if mainColumnData['spokenLanguages'] else []
     data['languages'] = [lang['id'] for lang in languages_dump]
 
     movie = MovieDetail.model_validate(data)
