@@ -1,4 +1,7 @@
+
+[![Build and Publish to PyPI](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml/badge.svg)](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml)
 # imdbinfo
+
 A Python package to fetch and manage IMDb movie information easily.
 
 ## Requirements
