@@ -107,6 +107,16 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     languages_dump = mainColumnData['spokenLanguages']['spokenLanguages'] if mainColumnData['spokenLanguages'] else []
     data['languages'] = [lang['id'] for lang in languages_dump]
 
+    # categories
+    data['categories'] = {}
+    for category in mainColumnData['categories']:
+        data['categories'].setdefault(category['id'], [])
+        jobtitle = category['name']
+        for category_person in category['section']['items']:
+            category_person['jobTitle'] = jobtitle
+            person = Person.from_category(category_person)
+            data['categories'][category['id']].append(person)
+
     movie = MovieDetail.model_validate(data)
 
     return movie

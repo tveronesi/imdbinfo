@@ -33,6 +33,15 @@ class Person(BaseModel):
             job=str(data['knownForJobCategory'])
         )
 
+    @classmethod
+    def from_category(cls, data: dict):
+        return cls(
+            name=data['rowTitle'],
+            id=data['id'],
+            url=f"https://www.imdb.com/name/{data['id']}",
+            job=str(data.get('jobTitle', ''))
+        )
+
 
 class MovieDetail(BaseModel):
     imdbId: str
@@ -71,6 +80,7 @@ class MovieDetail(BaseModel):
     summaries: List[str] = []
     synopses: List[str] = []
     production: List[str] = []
+    categories: Dict[str, List[Person]] = {}
 
 class MovieInfo(BaseModel):
 
