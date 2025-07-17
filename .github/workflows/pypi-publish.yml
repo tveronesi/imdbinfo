@@ -28,9 +28,10 @@ jobs:
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        #run: twine upload dist/*
-        run: twine upload --verbose --repository-url https://test.pypi.org/legacy/ dist/*
+          #TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*
+        #run: twine upload --verbose --repository-url https://test.pypi.org/legacy/ dist/*
 
       - name: Extract Changelog Entry
         id: changelog
