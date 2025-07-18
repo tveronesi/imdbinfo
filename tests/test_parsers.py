@@ -10,7 +10,7 @@ def load_sample(filename):
         return json.load(f)
 
 def test_parse_json_movie():
-    raw_json = load_sample("sample_response.json")
+    raw_json = load_sample("sample_resource.json")
     movie = parsers.parse_json_movie(raw_json)
     assert movie is not None
     assert hasattr(movie, "imdbId")
@@ -22,5 +22,6 @@ def test_parse_json_search():
     result = parsers.parse_json_search(raw_json)
     assert result is not None
     assert hasattr(result, "titles")
-    assert hasattr(result, "people")
+    assert hasattr(result, "names")
+
 
