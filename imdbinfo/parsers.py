@@ -20,7 +20,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data['cover_url'] = aboveTheFoldData['primaryImage']['url']
     data['plot'] = mainColumnData['plot']['plotText']['plainText'] if mainColumnData['plot'] else None
     release_date = mainColumnData['releaseDate']
-    data['year'] = aboveTheFoldData['releaseYear']['year']
+    data['year'] = aboveTheFoldData['releaseYear']['year'] if aboveTheFoldData['releaseYear'] else None
     data['duration'] = aboveTheFoldData['runtime']['seconds'] / 60 if aboveTheFoldData['runtime'] else None
     data['rating'] = mainColumnData['ratingsSummary']['aggregateRating']
     data['votes'] = mainColumnData['ratingsSummary']['voteCount']
@@ -64,10 +64,10 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         data['cast'].append(c)
     data['stars'] = data['cast']  # TODO cast will be removed later as it will be full list in MovieDetail.categories['cast']
 
-    filming_locations_dump = mainColumnData['filmingLocations']['edges']
+    filming_locations_dump = mainColumnData['filmingLocations']['edges'] if mainColumnData['filmingLocations'] else []
     data['filming_locations'] = [location['node']['text'] for location in filming_locations_dump]
 
-    country_codes_dump = mainColumnData['countriesDetails']['countries']
+    country_codes_dump = mainColumnData['countriesDetails']['countries'] if mainColumnData['countriesDetails'] else []
     data['country_codes'] = [country['id'] for country in country_codes_dump]
 
     storyline_keywords_dump = mainColumnData['storylineKeywords']['edges']
