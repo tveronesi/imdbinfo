@@ -49,7 +49,7 @@ class MovieDetail(BaseModel):
     title: str
     kind: Optional[str] = None
     url: str = ""
-    cover_url: str
+    cover_url: Optional[str] = None
     plot: Optional[str] = None
     release_date: Optional[str] = None
     languages: List[str] = []
