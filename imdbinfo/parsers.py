@@ -24,7 +24,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     )    
     data['plot'] = mainColumnData['plot']['plotText']['plainText'] if mainColumnData['plot'] else None
     release_date = mainColumnData['releaseDate']
-    data['year'] = aboveTheFoldData['releaseYear']['year'] if aboveTheFoldData['releaseYear'] else None
+    data['year'] = aboveTheFoldData['releaseYear']['year']
     data['duration'] = aboveTheFoldData['runtime']['seconds'] / 60 if aboveTheFoldData['runtime'] else None
     data['rating'] = mainColumnData['ratingsSummary']['aggregateRating']
     data['votes'] = mainColumnData['ratingsSummary']['voteCount']
@@ -46,14 +46,9 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
 
     interests = mainColumnData['interests']['edges']
     data['interests'] = [interest['node']['primaryText']['text'] for interest in interests]
-    
-    data['release_date'] = None
-    if release_date:
-        for component in ['year','month','day']:
-            if component in release_date.keys():
-                data['release_date'] = f"{release_date[component]}" if data['release_date'] else f"{data['release_date']}-{release_date[component]}"
-            else:
-                break
+
+    data[
+        'release_date'] = f"{release_date['year']}-{release_date['month']:02d}-{release_date['day']:02d}" if release_date else None
 
     certificates = mainColumnData['certificates']['edges']
     data['certificates'] = {
@@ -76,10 +71,10 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         data['cast'].append(c)
     data['stars'] = data['cast']  # TODO cast will be removed later as it will be full list in MovieDetail.categories['cast']
 
-    filming_locations_dump = mainColumnData['filmingLocations']['edges'] if mainColumnData['filmingLocations'] else []
+    filming_locations_dump = mainColumnData['filmingLocations']['edges']
     data['filming_locations'] = [location['node']['text'] for location in filming_locations_dump]
 
-    country_codes_dump = mainColumnData['countriesDetails']['countries'] if mainColumnData['countriesDetails'] else []
+    country_codes_dump = mainColumnData['countriesDetails']['countries']
     data['country_codes'] = [country['id'] for country in country_codes_dump]
 
     storyline_keywords_dump = mainColumnData['storylineKeywords']['edges']
