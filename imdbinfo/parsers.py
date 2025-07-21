@@ -39,8 +39,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     interests = mainColumnData['interests']['edges']
     data['interests'] = [interest['node']['primaryText']['text'] for interest in interests]
 
-    data[
-        'release_date'] = f"{release_date['year']}-{release_date['month']:02d}-{release_date['day']:02d}" if release_date else None
+    data['release_date'] = f"{release_date.get('year') or '1900'}-{release_date.get('month') or '01'}-{release_date.get('day') or '00'}" if release_date else None
 
     certificates = mainColumnData['certificates']['edges']
     data['certificates'] = {
