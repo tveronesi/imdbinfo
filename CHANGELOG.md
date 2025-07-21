@@ -23,3 +23,8 @@
 - Added `MovieDetail.stars` to get the main cast of the movie, and deprecating `MovieDetail.cast` later
 - FIX: directorsPageTitle out of range
 - Updated README with new features and deprecations notice
+
+## v0.3.1
+- Fix release date formatting to handle missing values gracefully
+- Update models.py to clarify year attribute handling for series
+- Refactor parsers.py to simplify data extraction and improve readability
