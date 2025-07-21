@@ -15,23 +15,15 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data['url'] = f"https://www.imdb.com/title/{data['imdbId']}/"
     data['title'] = aboveTheFoldData['originalTitleText']['text']
     data['kind'] = mainColumnData['titleType']['id']
-    data['metacritic_rating'] = mainColumnData['metacritic']['metascore']['score'] if mainColumnData[
-        'metacritic'] else None
-    data["cover_url"] = (
-        aboveTheFoldData["primaryImage"]["url"]
-        if aboveTheFoldData["primaryImage"]
-        else None
-    )    
+    data['metacritic_rating'] = mainColumnData['metacritic']['metascore']['score'] if mainColumnData['metacritic'] else None
+    data["cover_url"] = aboveTheFoldData["primaryImage"]["url"] if aboveTheFoldData["primaryImage"] else None
     data['plot'] = mainColumnData['plot']['plotText']['plainText'] if mainColumnData['plot'] else None
     release_date = mainColumnData['releaseDate']
-    data['year'] = aboveTheFoldData['releaseYear']['year']
+    data['year'] = aboveTheFoldData['releaseYear']['year'] if aboveTheFoldData['releaseYear'] else None
     data['duration'] = aboveTheFoldData['runtime']['seconds'] / 60 if aboveTheFoldData['runtime'] else None
     data['rating'] = mainColumnData['ratingsSummary']['aggregateRating']
     data['votes'] = mainColumnData['ratingsSummary']['voteCount']
-    if title_genre := mainColumnData["titleGenres"]:
-        for genre in title_genre["genres"]:
-            if genre_genre := genre["genre"]:
-                data["genres"] = genre_genre.get("text")
+    data['genres'] = [genre['genre']['text'] for genre in mainColumnData['titleGenres']['genres']]
     data[
         'worldwide_gross'] = f"{mainColumnData['worldwideGross']['total']['amount']} {mainColumnData['worldwideGross']['total']['currency']}" if \
         mainColumnData['worldwideGross'] else None
@@ -71,10 +63,10 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         data['cast'].append(c)
     data['stars'] = data['cast']  # TODO cast will be removed later as it will be full list in MovieDetail.categories['cast']
 
-    filming_locations_dump = mainColumnData['filmingLocations']['edges']
+    filming_locations_dump = mainColumnData['filmingLocations']['edges'] if mainColumnData['filmingLocations'] else []
     data['filming_locations'] = [location['node']['text'] for location in filming_locations_dump]
 
-    country_codes_dump = mainColumnData['countriesDetails']['countries']
+    country_codes_dump = mainColumnData['countriesDetails']['countries'] if mainColumnData['countriesDetails'] else []
     data['country_codes'] = [country['id'] for country in country_codes_dump]
 
     storyline_keywords_dump = mainColumnData['storylineKeywords']['edges']
@@ -135,6 +127,8 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
 def parse_json_search(raw_json) ->SearchResult:
     title =[]
     for title_data in raw_json['props']['pageProps']['titleResults']['results']:
+        if title_data.get('imageType','ND') != 'movie': # TODO only movies are supported for now
+            continue
         title.append(MovieInfo.from_movie_info(title_data))
     people = []
     for person_data in raw_json['props']['pageProps']['nameResults']['results']:
