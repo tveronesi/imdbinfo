@@ -90,7 +90,7 @@ class MovieInfo(BaseModel):
     title: str
     cover_url: Optional[str] = None
     url: Optional[str] = None
-    year: Optional[int] = None
+    year: Optional[int] = None # TODO series will have year as string 'from-to'. For now only movies are supported
     kind: Optional[str] = None
 
 
