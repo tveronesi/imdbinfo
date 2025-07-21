@@ -47,20 +47,11 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         for cert in certificates if cert['node']['country']
     }
 
-    #TODO DEPRECATED: will be removed later
-    data['directors'] = []
-    directors_dump = mainColumnData['directorsPageTitle'][0]['credits'] if mainColumnData['directorsPageTitle'] else []
-    for director in directors_dump:
-        d = Person.from_directors(director)
-        data['directors'].append(d)
-
-    # TODO DEPRECATED: will be renamed into stars
-    data['cast'] = []
-    cast_dump = aboveTheFoldData['castPageTitle']['edges'] if aboveTheFoldData['castPageTitle'] else []
-    for cast_member in cast_dump:
+    data['stars'] = []
+    stars_dump = aboveTheFoldData['castPageTitle']['edges'] if aboveTheFoldData['castPageTitle'] else []
+    for cast_member in stars_dump:
         c = Person.from_cast(cast_member)
-        data['cast'].append(c)
-    data['stars'] = data['cast']  # TODO cast will be removed later as it will be full list in MovieDetail.categories['cast']
+        data['stars'].append(c)
 
     filming_locations_dump = mainColumnData['filmingLocations']['edges'] if mainColumnData['filmingLocations'] else []
     data['filming_locations'] = [location['node']['text'] for location in filming_locations_dump]

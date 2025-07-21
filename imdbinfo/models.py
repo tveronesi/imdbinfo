@@ -54,8 +54,7 @@ class MovieDetail(BaseModel):
     release_date: Optional[str] = None
     languages: List[str] = []
     certificates: Dict[str, Tuple[str, str]] = {}
-    directors: List[Person] = []
-    cast: List[Person] = []
+    directors: List[Person] = [] # not used
     stars: List[Person] = []
     year: Optional[int] = None
     duration: Optional[int] = None
