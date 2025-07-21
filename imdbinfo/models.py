@@ -57,7 +57,7 @@ class MovieDetail(BaseModel):
     directors: List[Person] = []
     cast: List[Person] = []
     stars: List[Person] = []
-    year: Optional[str] = None
+    year: Optional[int] = None
     duration: Optional[int] = None
     country_codes: List[str] = []
     rating: Optional[float] = None
