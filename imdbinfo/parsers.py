@@ -17,14 +17,21 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data['kind'] = mainColumnData['titleType']['id']
     data['metacritic_rating'] = mainColumnData['metacritic']['metascore']['score'] if mainColumnData[
         'metacritic'] else None
-    data['cover_url'] = aboveTheFoldData['primaryImage']['url']
+    data["cover_url"] = (
+        aboveTheFoldData["primaryImage"]["url"]
+        if aboveTheFoldData["primaryImage"]
+        else None
+    )    
     data['plot'] = mainColumnData['plot']['plotText']['plainText'] if mainColumnData['plot'] else None
     release_date = mainColumnData['releaseDate']
     data['year'] = aboveTheFoldData['releaseYear']['year']
     data['duration'] = aboveTheFoldData['runtime']['seconds'] / 60 if aboveTheFoldData['runtime'] else None
     data['rating'] = mainColumnData['ratingsSummary']['aggregateRating']
     data['votes'] = mainColumnData['ratingsSummary']['voteCount']
-    data['genres'] = [genre['genre']['text'] for genre in mainColumnData['titleGenres']['genres']]
+    if title_genre := mainColumnData["titleGenres"]:
+        for genre in title_genre["genres"]:
+            if genre_genre := genre["genre"]:
+                data["genres"] = genre_genre.get("text")
     data[
         'worldwide_gross'] = f"{mainColumnData['worldwideGross']['total']['amount']} {mainColumnData['worldwideGross']['total']['currency']}" if \
         mainColumnData['worldwideGross'] else None
