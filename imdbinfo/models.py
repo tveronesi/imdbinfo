@@ -64,7 +64,7 @@ class MovieDetail(BaseModel):
     metacritic_rating: Optional[int] = None
     votes: Optional[int] = None
     trailers: List[str] = []
-    genres: List[str] = []
+    genres: Optional[List[str]] = None
     interests: List[str] = []
     worldwide_gross: Optional[str] = None
     production_budget: Optional[str] = None
