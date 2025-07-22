@@ -15,13 +15,14 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data['url'] = f"https://www.imdb.com/title/{data['imdbId']}/"
     data['title'] = aboveTheFoldData['originalTitleText']['text']
     data['kind'] = mainColumnData['titleType']['id']
-    data['metacritic_rating'] = mainColumnData['metacritic']['metascore']['score'] if mainColumnData[
-        'metacritic'] else None
+    meta = mainColumnData.get('metacritic')
+    data['metacritic_rating'] = meta['metascore']['score'] if meta else None
     data['cover_url'] = aboveTheFoldData['primaryImage']['url']
     data['plot'] = mainColumnData['plot']['plotText']['plainText'] if mainColumnData['plot'] else None
     release_date = mainColumnData['releaseDate']
     data['year'] = aboveTheFoldData['releaseYear']['year']
-    data['duration'] = aboveTheFoldData['runtime']['seconds'] / 60 if aboveTheFoldData['runtime'] else None
+    runtime = aboveTheFoldData.get('runtime')
+    data['duration'] = runtime['seconds'] // 60 if runtime else None
     data['rating'] = mainColumnData['ratingsSummary']['aggregateRating']
     data['votes'] = mainColumnData['ratingsSummary']['voteCount']
     data['genres'] = [genre['genre']['text'] for genre in mainColumnData['titleGenres']['genres']]

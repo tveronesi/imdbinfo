@@ -1,5 +1,5 @@
 from typing import Optional, List, Dict, Tuple
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class Person(BaseModel):
     name: str
@@ -52,36 +52,36 @@ class MovieDetail(BaseModel):
     cover_url: str
     plot: Optional[str] = None
     release_date: Optional[str] = None
-    languages: List[str] = []
-    certificates: Dict[str, Tuple[str, str]] = {}
-    directors: List[Person] = []
-    cast: List[Person] = []
-    stars: List[Person] = []
+    languages: List[str] = Field(default_factory=list)
+    certificates: Dict[str, Tuple[str, str]] = Field(default_factory=dict)
+    directors: List[Person] = Field(default_factory=list)
+    cast: List[Person] = Field(default_factory=list)
+    stars: List[Person] = Field(default_factory=list)
     year: Optional[int] = None
     duration: Optional[int] = None
-    country_codes: List[str] = []
+    country_codes: List[str] = Field(default_factory=list)
     rating: Optional[float] = None
     metacritic_rating: Optional[int] = None
     votes: Optional[int] = None
-    trailers: List[str] = []
-    genres: List[str] = []
-    interests: List[str] = []
+    trailers: List[str] = Field(default_factory=list)
+    genres: List[str] = Field(default_factory=list)
+    interests: List[str] = Field(default_factory=list)
     worldwide_gross: Optional[str] = None
     production_budget: Optional[str] = None
-    storyline_keywords: List[str] = []
-    filming_locations: List[str] = []
-    sound_mixes: List[str] = []
-    processes: List[str] = []
-    printed_formats: List[str] = []
-    negative_formats: List[str] = []
-    laboratories: List[str] = []
-    colorations: List[str] = []
-    cameras: List[str] = []
-    aspect_ratios: List[Tuple[str, str]] = []
-    summaries: List[str] = []
-    synopses: List[str] = []
-    production: List[str] = []
-    categories: Dict[str, List[Person]] = {}
+    storyline_keywords: List[str] = Field(default_factory=list)
+    filming_locations: List[str] = Field(default_factory=list)
+    sound_mixes: List[str] = Field(default_factory=list)
+    processes: List[str] = Field(default_factory=list)
+    printed_formats: List[str] = Field(default_factory=list)
+    negative_formats: List[str] = Field(default_factory=list)
+    laboratories: List[str] = Field(default_factory=list)
+    colorations: List[str] = Field(default_factory=list)
+    cameras: List[str] = Field(default_factory=list)
+    aspect_ratios: List[Tuple[str, str]] = Field(default_factory=list)
+    summaries: List[str] = Field(default_factory=list)
+    synopses: List[str] = Field(default_factory=list)
+    production: List[str] = Field(default_factory=list)
+    categories: Dict[str, List[Person]] = Field(default_factory=dict)
 
 class MovieInfo(BaseModel):
 
@@ -108,5 +108,5 @@ class MovieInfo(BaseModel):
         )
 
 class SearchResult(BaseModel):
-    titles: List[MovieInfo] = []
-    names: List[Person] = []
+    titles: List[MovieInfo] = Field(default_factory=list)
+    names: List[Person] = Field(default_factory=list)
