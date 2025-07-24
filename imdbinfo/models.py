@@ -42,6 +42,26 @@ class Person(BaseModel):
             job=str(data.get('jobTitle', ''))
         )
 
+class CastMember(Person):
+    characters: List[str] = []
+    picture_url: Optional[str] = None
+
+    @classmethod
+    def from_cast(cls, data: dict):
+        return cls(
+            name=data['rowTitle'],
+            id=data['id'],
+            url=f"https://www.imdb.com/name/{data['id']}",
+            job='Cast',
+            characters=data.get('characters',[] ),
+            picture_url=data.get('imageProps', {}).get('imageModel',{}).get('url', None)
+        )
+
+    def __repr__(self):
+        return f"{self.name} ({', '.join(self.characters)})"
+
+
+
 
 class MovieDetail(BaseModel):
     imdbId: str

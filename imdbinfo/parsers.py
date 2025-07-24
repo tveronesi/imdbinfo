@@ -1,6 +1,6 @@
 from typing import Optional
 
-from .models import MovieDetail, Person, MovieInfo, SearchResult
+from .models import MovieDetail, Person, MovieInfo, SearchResult, CastMember
 
 
 def parse_json_movie(raw_json) -> Optional[MovieDetail]:
@@ -104,9 +104,15 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     for category in mainColumnData['categories']:
         data['categories'].setdefault(category['id'], [])
         jobtitle = category['name']
+        category_id  = category['id']
         for category_person in category['section']['items']:
+            if category_id == 'cast':
+                # cast is a special case, it has character and order
+                person = CastMember.from_cast(category_person)
+            else:
+                person = Person.from_category(category_person)
             category_person['jobTitle'] = jobtitle
-            person = Person.from_category(category_person)
+            person = person
             data['categories'][category['id']].append(person)
 
     movie = MovieDetail.model_validate(data)
