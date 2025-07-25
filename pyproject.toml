@@ -15,7 +15,8 @@ authors = [
 dependencies = [
     "requests",
     "lxml",
-    "pydantic"
+    "pydantic",
+    "jmespath"
 ]
 
 keywords = [

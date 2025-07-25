@@ -1,5 +1,5 @@
-from typing import Optional, List, Dict, Tuple
-from pydantic import BaseModel
+from typing import Optional, List, Dict, Tuple, Union
+from pydantic import BaseModel, field_validator
 
 class Person(BaseModel):
     name: str
@@ -42,6 +42,9 @@ class Person(BaseModel):
             job=str(data.get('jobTitle', ''))
         )
 
+    def __repr__(self):
+        return f"{self.name} ({self.job})"
+
 class CastMember(Person):
     characters: List[str] = []
     picture_url: Optional[str] = None
@@ -60,9 +63,6 @@ class CastMember(Person):
     def __repr__(self):
         return f"{self.name} ({', '.join(self.characters)})"
 
-
-
-
 class MovieDetail(BaseModel):
     imdbId: str
     imdb_id: str
@@ -74,7 +74,7 @@ class MovieDetail(BaseModel):
     release_date: Optional[str] = None
     languages: List[str] = []
     certificates: Dict[str, Tuple[str, str]] = {}
-    directors: List[Person] = [] # not used
+    directors: List[Person] = []
     stars: List[Person] = []
     year: Optional[int] = None
     duration: Optional[int] = None
@@ -96,11 +96,18 @@ class MovieDetail(BaseModel):
     laboratories: List[str] = []
     colorations: List[str] = []
     cameras: List[str] = []
-    aspect_ratios: List[Tuple[str, str]] = []
+    aspect_ratios: List[Tuple[Optional[str], Optional[str]]] = []
     summaries: List[str] = []
     synopses: List[str] = []
     production: List[str] = []
-    categories: Dict[str, List[Person]] = {}
+    categories: Dict[str, List[Union[Person, CastMember]]] = {}
+
+    @field_validator('languages', 'country_codes', mode='before')
+    def none_is_list(cls, value):
+        if value is None:
+            return []
+        return value
+
 
 class MovieInfo(BaseModel):
 
