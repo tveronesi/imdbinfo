@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "imdbinfo"
-version = "0.3.0"
+version = "0.3.2"
 description = "A Python service for querying IMDb data"
 readme = "README.md"
 license = { file = "LICENSE.txt" }
@@ -15,7 +15,8 @@ authors = [
 dependencies = [
     "requests",
     "lxml",
-    "pydantic"
+    "pydantic",
+    "jmespath"
 ]
 
 keywords = [

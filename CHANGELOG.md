@@ -23,3 +23,16 @@
 - Added `MovieDetail.stars` to get the main cast of the movie, and deprecating `MovieDetail.cast` later
 - FIX: directorsPageTitle out of range
 - Updated README with new features and deprecations notice
+
+## v0.3.1
+- Fix release date formatting to handle missing values gracefully
+- Update models.py to clarify year attribute handling for series
+- Refactor parsers.py to simplify data extraction and improve readability
+
+## v0.3.2
+- Using jmespath to parse json response 
+- removing MovieDetail.cast now using MovieDetail.stars instead
+- MovieDetail.directors, kept for backward compatibility 
+- MovieDetail.categories['directors'] as List[Person] for directors with additional information
+- MovieDetail.categories['cast'] for characters as List[CastMember] adding information about characters image, url and Role
+- Some fixes in parsers and models to improve type hints and code clarity

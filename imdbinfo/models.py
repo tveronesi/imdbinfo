@@ -1,5 +1,5 @@
-from typing import Optional, List, Dict, Tuple
-from pydantic import BaseModel
+from typing import Optional, List, Dict, Tuple, Union
+from pydantic import BaseModel, field_validator
 
 class Person(BaseModel):
     name: str
@@ -42,6 +42,26 @@ class Person(BaseModel):
             job=str(data.get('jobTitle', ''))
         )
 
+    def __repr__(self):
+        return f"{self.name} ({self.job})"
+
+class CastMember(Person):
+    characters: List[str] = []
+    picture_url: Optional[str] = None
+
+    @classmethod
+    def from_cast(cls, data: dict):
+        return cls(
+            name=data['rowTitle'],
+            id=data['id'],
+            url=f"https://www.imdb.com/name/{data['id']}",
+            job='Cast',
+            characters=data.get('characters',[] ),
+            picture_url=data.get('imageProps', {}).get('imageModel',{}).get('url', None)
+        )
+
+    def __repr__(self):
+        return f"{self.name} ({', '.join(self.characters)})"
 
 class MovieDetail(BaseModel):
     imdbId: str
@@ -49,13 +69,12 @@ class MovieDetail(BaseModel):
     title: str
     kind: Optional[str] = None
     url: str = ""
-    cover_url: str
+    cover_url: Optional[str] = None
     plot: Optional[str] = None
     release_date: Optional[str] = None
     languages: List[str] = []
     certificates: Dict[str, Tuple[str, str]] = {}
     directors: List[Person] = []
-    cast: List[Person] = []
     stars: List[Person] = []
     year: Optional[int] = None
     duration: Optional[int] = None
@@ -64,7 +83,7 @@ class MovieDetail(BaseModel):
     metacritic_rating: Optional[int] = None
     votes: Optional[int] = None
     trailers: List[str] = []
-    genres: List[str] = []
+    genres:List[str] = []
     interests: List[str] = []
     worldwide_gross: Optional[str] = None
     production_budget: Optional[str] = None
@@ -77,11 +96,18 @@ class MovieDetail(BaseModel):
     laboratories: List[str] = []
     colorations: List[str] = []
     cameras: List[str] = []
-    aspect_ratios: List[Tuple[str, str]] = []
+    aspect_ratios: List[Tuple[Optional[str], Optional[str]]] = []
     summaries: List[str] = []
     synopses: List[str] = []
     production: List[str] = []
-    categories: Dict[str, List[Person]] = {}
+    categories: Dict[str, List[Union[Person, CastMember]]] = {}
+
+    @field_validator('languages', 'country_codes','genres', mode='before')
+    def none_is_list(cls, value):
+        if value is None:
+            return []
+        return value
+
 
 class MovieInfo(BaseModel):
 
@@ -90,7 +116,7 @@ class MovieInfo(BaseModel):
     title: str
     cover_url: Optional[str] = None
     url: Optional[str] = None
-    year: Optional[int] = None
+    year: Optional[int] = None # TODO series will have year as string 'from-to'. For now only movies are supported
     kind: Optional[str] = None
 
 
