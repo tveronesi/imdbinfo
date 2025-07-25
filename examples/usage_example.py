@@ -1,3 +1,5 @@
+import json
+
 from imdbinfo.services import search_title, get_movie
 
 #Example 1: Search for a movie by title
@@ -13,3 +15,4 @@ print(f"Valutazione: {movie.rating}")
 print(f"Generi: {', '.join(movie.genres)}")
 print(f"Trama: {movie.plot}")
 
+print(json.dumps(movie.model_dump()))
