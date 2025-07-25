@@ -83,7 +83,7 @@ class MovieDetail(BaseModel):
     metacritic_rating: Optional[int] = None
     votes: Optional[int] = None
     trailers: List[str] = []
-    genres: Optional[List[str]] = None
+    genres:List[str] = []
     interests: List[str] = []
     worldwide_gross: Optional[str] = None
     production_budget: Optional[str] = None
@@ -102,7 +102,7 @@ class MovieDetail(BaseModel):
     production: List[str] = []
     categories: Dict[str, List[Union[Person, CastMember]]] = {}
 
-    @field_validator('languages', 'country_codes', mode='before')
+    @field_validator('languages', 'country_codes','genres', mode='before')
     def none_is_list(cls, value):
         if value is None:
             return []
