@@ -9,7 +9,7 @@ TITLE_URL = "https://www.imdb.com/title/"
 
 def pjmespatch(query, data, post_process=None, *args, **kwargs):
     result = jmespath.search(query, data)
-    if post_process and result is not None:
+    if post_process :
         return post_process(result, *args, **kwargs)
     return result
 
@@ -18,6 +18,11 @@ def _none_to_string_in_list(result):
      given a list of lists , if a None is found replace with '' recursively
     """
     return [[str(item) if item is not None else '' for item in sublist] for sublist in result]
+
+def _to_directors(result):
+    if result is None:
+        return []
+    return [Person.from_directors(a) for a in result if a.get('name') and a.get('name').get('id')]
 
 def _join(result, separator=' '):
     if result is None:
@@ -57,7 +62,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data['interests'] = pjmespatch('props.pageProps.mainColumnData.interests.edges[].node.primaryText.text', raw_json)
     data['certificates'] = pjmespatch('props.pageProps.mainColumnData.certificates.edges[].node.[country.id,country.text,rating]', raw_json, _certificates_to_dict)
     data['stars'] = pjmespatch('props.pageProps.aboveTheFoldData.castPageTitle.edges[]', raw_json, lambda x: [Person.from_cast(a) for a in x])
-    data['directors'] = pjmespatch('props.pageProps.mainColumnData.directorsPageTitle[0].credits[]', raw_json, lambda x: [Person.from_directors(a) for a in x])
+    data['directors'] = pjmespatch('props.pageProps.mainColumnData.directorsPageTitle[0].credits[]', raw_json, _to_directors )
     data['filming_locations'] = pjmespatch('props.pageProps.mainColumnData.filmingLocations.edges[].node.text', raw_json)
     data['country_codes'] = pjmespatch('props.pageProps.mainColumnData.countriesDetails.countries[].id', raw_json)
     data['storyline_keywords'] = pjmespatch('props.pageProps.mainColumnData.storylineKeywords.edges[].node.text', raw_json)
