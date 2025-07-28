@@ -120,13 +120,6 @@ def parse_json_person_detail(raw_json):
     data['id'] = pjmespatch('props.pageProps.mainColumnData.id', raw_json).replace('nm', '')
     data['name'] = pjmespatch('props.pageProps.mainColumnData.nameText.text', raw_json)
     data['url'] = f"https://www.imdb.com/name/nm{data['id']}/"
-    data['job'] = pjmespatch('props.pageProps.mainColumnData.primaryProfessionText.text', raw_json)
-    data['cover_url'] = pjmespatch('props.pageProps.mainColumnData.primaryImage.url', raw_json)
-    data['bio'] = pjmespatch('props.pageProps.mainColumnData.biography.plainText', raw_json)
-    data['birth_date'] = pjmespatch('props.pageProps.mainColumnData.birthDate.[year,month,day]', raw_json, _join, separator='-')
-    data['death_date'] = pjmespatch('props.pageProps.mainColumnData.deathDate.[year,month,day]', raw_json, _join, separator='-')
-    data['birth_place'] = pjmespatch('props.pageProps.mainColumnData.birthPlace.text', raw_json)
-    data['awards'] = pjmespatch('props.pageProps.mainColumnData.awards.edges[].node.text', raw_json)
 
     person = PersonDetail.model_validate(data)
     return person

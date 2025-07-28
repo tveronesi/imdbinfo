@@ -142,4 +142,3 @@ class PersonDetail(BaseModel):
     id: str
     name: str
     url: str
-    pass
