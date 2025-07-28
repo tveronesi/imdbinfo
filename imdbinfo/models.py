@@ -136,3 +136,10 @@ class MovieInfo(BaseModel):
 class SearchResult(BaseModel):
     titles: List[MovieInfo] = []
     names: List[Person] = []
+
+
+class PersonDetail(BaseModel):
+    id: str
+    name: str
+    url: str
+    pass
