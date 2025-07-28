@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Tuple, Union
+from typing import Optional, List, Dict, Tuple, Union, Any, Callable
 from pydantic import BaseModel, field_validator
 
 class Person(BaseModel):
@@ -139,6 +139,32 @@ class SearchResult(BaseModel):
 
 
 class PersonDetail(BaseModel):
+    """
+    data['bio'] = pjmespatch('props.pageProps.aboveTheFold.bio.text.plainText', raw_json)
+    data['height'] = pjmespatch('props.pageProps.mainColumnData.height.displayableProperty.value.plainText', raw_json)
+    data['primary_profession'] = pjmespatch('props.pageProps.aboveTheFold.primaryProfessions[].category.text', raw_json)
+    data['birth_date'] = pjmespatch('props.pageProps.aboveTheFold.birthDate.date', raw_json)
+    data['birth_place'] = pjmespatch('props.pageProps.mainColumnData.birthLocation.text', raw_json)
+    data['death_date'] = pjmespatch('props.pageProps.aboveTheFold.deathDate.date', raw_json)
+    data['death_place'] = pjmespatch('props.pageProps.mainColumnData.deathLocation.text', raw_json)
+    data['jobs'] = pjmespatch('props.pageProps.mainColumnData.jobs[].category.text', raw_json)
+    """
+    imdbId: str
     id: str
     name: str
     url: str
+    knownfor: List[str] = []
+    image_url: Optional[str] = None
+    bio: Optional[str] = None
+    height: Optional[str] = None
+    primary_profession: List[str] = []
+    birth_date: Optional[str] = None
+    birth_place: Optional[str] = None
+    death_date: Optional[str] = None
+    death_place: Optional[str] = None
+    jobs: List[str] = []
+
+
+    def __repr__(self):
+        return f"{self.name} ({', '.join(self.knownfor)})"
+

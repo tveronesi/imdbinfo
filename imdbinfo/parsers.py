@@ -117,9 +117,22 @@ def parse_json_search(raw_json) ->SearchResult:
 def parse_json_person_detail(raw_json):
 
     data = {}
+    data['imdbId'] = pjmespatch('props.pageProps.aboveTheFold.id', raw_json)  # mainColumnData['id']
     data['id'] = pjmespatch('props.pageProps.mainColumnData.id', raw_json).replace('nm', '')
-    data['name'] = pjmespatch('props.pageProps.mainColumnData.nameText.text', raw_json)
-    data['url'] = f"https://www.imdb.com/name/nm{data['id']}/"
+    data['name'] = pjmespatch('props.pageProps.aboveTheFold.nameText.text', raw_json)
+    data['url'] = f"https://www.imdb.com/name/{data['imdbId']}/"
+    data['knownfor'] =pjmespatch('props.pageProps.aboveTheFold.knownFor.edges[].node.title.titleText.text', raw_json)
+    data['knownfor2']  = pjmespatch('props.pageProps.mainColumnData.knownForFeature.edges[].node.[title.id,title.titleText.text,credit.characters[].name]', raw_json)
+    data['image_url'] = pjmespatch('props.pageProps.aboveTheFold.primaryImage.url', raw_json)
+    data['bio'] = pjmespatch('props.pageProps.aboveTheFold.bio.text.plainText', raw_json)
+    data['height'] = pjmespatch('props.pageProps.mainColumnData.height.displayableProperty.value.plainText', raw_json)
+    data['primary_profession'] = pjmespatch('props.pageProps.aboveTheFold.primaryProfessions[].category.text', raw_json)
+    data['birth_date'] = pjmespatch('props.pageProps.aboveTheFold.birthDate.date', raw_json)
+    data['birth_place'] = pjmespatch('props.pageProps.mainColumnData.birthLocation.text', raw_json)
+    data['death_date'] = pjmespatch('props.pageProps.aboveTheFold.deathDate.date', raw_json)
+    data['death_place'] = pjmespatch('props.pageProps.mainColumnData.deathLocation.text', raw_json)
+    data['jobs'] = pjmespatch('props.pageProps.mainColumnData.jobs[].category.text', raw_json)
 
+    #data['credits'] =
     person = PersonDetail.model_validate(data)
     return person
