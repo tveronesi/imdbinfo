@@ -1,11 +1,14 @@
 from typing import Optional
+import logging
 
 import jmespath
 
-from .models import MovieDetail, Person, MovieInfo, SearchResult, CastMember
+from .models import MovieDetail, Person, MovieInfo, SearchResult, CastMember, PersonDetail
 
 VIDEO_URL = "https://www.imdb.com/video/"
 TITLE_URL = "https://www.imdb.com/title/"
+
+logger = logging.getLogger(__name__)
 
 def pjmespatch(query, data, post_process=None, *args, **kwargs):
     result = jmespath.search(query, data)
@@ -35,6 +38,36 @@ def _certificates_to_dict(result):
     """
     return {item[0]: (item[1], item[2]) for item in result if item[0] and item[1] and item[2]}
 
+def _feed_credits(result) -> dict:
+    """feed credits from the page 'name' to the PersonDetail model"""
+
+    res = {}
+    for itemCast in result:
+        # ['writer', 'tt27665778', 'Horizon: An American Saga - Chapter 2', 'Movie', 'https://m.media-amazon.com/images/M/MV5BMDg1OWI3NTYtY2IwMy00NmQ4LTk5YWUtZmViNmU5YTFkNGU5XkEyXkFqcGc@._V1_.jpg', 2024, None]
+        category = itemCast[0]
+        imdbId = itemCast[1]
+        titleOriginal = itemCast[2]
+        type = itemCast[3]
+        imageUrl = itemCast[4]
+        year = itemCast[5]
+        genres = ','.join(itemCast[6] or [])
+
+        res.setdefault(category, [])
+        res[category].append(
+            MovieInfo(
+                id=imdbId.replace('tt', ''),
+                imdbId=imdbId,
+                imdb_id=imdbId.replace('tt', ''),
+                title=titleOriginal,
+                kind=type,
+                cover_url=imageUrl,
+                url=f"{TITLE_URL}{imdbId}/",
+                year=year,
+
+            )
+        )
+    return res
+
 
 def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data = {}
@@ -44,6 +77,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
 
     data['imdbId'] = pjmespatch('props.pageProps.mainColumnData.id', raw_json) # mainColumnData['id']
     data['imdb_id'] = data['imdbId'].replace('tt', '') # movie id without 'tt'
+    data['id'] = data['imdb_id']  # same as imdb_id
     data['url'] = f"{TITLE_URL}{data['imdbId']}/"
     data['title'] =  pjmespatch('props.pageProps.aboveTheFoldData.originalTitleText.text', raw_json)
     data['kind'] = pjmespatch('props.pageProps.mainColumnData.titleType.id',raw_json )
@@ -105,10 +139,36 @@ def parse_json_search(raw_json) ->SearchResult:
     for title_data in pjmespatch('props.pageProps.titleResults.results[]', raw_json):
         if title_data.get('imageType','ND') != 'movie': # TODO only movies are supported for now
             continue
-        title.append(MovieInfo.from_movie_info(title_data))
+        title.append(MovieInfo.from_movie_search(title_data))
     people = []
     for person_data in pjmespatch('props.pageProps.nameResults.results[]', raw_json):
         people.append(Person.from_search(person_data))
 
     res = SearchResult(titles=title, names=people)
     return res
+
+
+def parse_json_person_detail(raw_json)-> PersonDetail:
+
+    data = dict()
+    data['imdbId'] = pjmespatch('props.pageProps.aboveTheFold.id', raw_json)  # mainColumnData['id']
+    data['id'] = pjmespatch('props.pageProps.mainColumnData.id', raw_json).replace('nm', '')
+    data['imdb_id'] = data['id']  # same as imdb_id
+    data['name'] = pjmespatch('props.pageProps.aboveTheFold.nameText.text', raw_json)
+    data['url'] = f"https://www.imdb.com/name/{data['imdbId']}/"
+    data['knownfor'] =pjmespatch('props.pageProps.aboveTheFold.knownFor.edges[].node.title.titleText.text', raw_json)
+    data['knownfor2']  = pjmespatch('props.pageProps.mainColumnData.knownForFeature.edges[].node.[title.id,title.titleText.text,credit.characters[].name]', raw_json)
+    data['image_url'] = pjmespatch('props.pageProps.aboveTheFold.primaryImage.url', raw_json)
+    data['bio'] = pjmespatch('props.pageProps.aboveTheFold.bio.text.plainText', raw_json)
+    data['height'] = pjmespatch('props.pageProps.mainColumnData.height.displayableProperty.value.plainText', raw_json)
+    data['primary_profession'] = pjmespatch('props.pageProps.aboveTheFold.primaryProfessions[].category.text', raw_json)
+    data['birth_date'] = pjmespatch('props.pageProps.aboveTheFold.birthDate.date', raw_json)
+    data['birth_place'] = pjmespatch('props.pageProps.mainColumnData.birthLocation.text', raw_json)
+    data['death_date'] = pjmespatch('props.pageProps.aboveTheFold.deathDate.date', raw_json)
+    data['death_place'] = pjmespatch('props.pageProps.mainColumnData.deathLocation.text', raw_json)
+    data['jobs'] = pjmespatch('props.pageProps.mainColumnData.jobs[].category.text', raw_json)
+    data['credits'] = pjmespatch('props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.text,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]', raw_json, _feed_credits)
+    data['unreleased_credits'] = pjmespatch('props.pageProps.mainColumnData.unreleasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.text,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]', raw_json, _feed_credits)
+
+    person = PersonDetail.model_validate(data)
+    return person
