@@ -1,5 +1,5 @@
 from typing import Optional
-
+import logging
 import requests
 import json
 from lxml import html
@@ -7,6 +7,7 @@ from lxml import html
 from .models import SearchResult, MovieDetail, PersonDetail
 from .parsers import parse_json_movie, parse_json_search, parse_json_person_detail
 
+logger = logging.getLogger(__name__)
 
 def get_movie(imdb_id: str)->MovieDetail:
     """Fetch movie details from IMDb using the provided IMDb ID without 'tt' as string, preserve 00
@@ -41,7 +42,7 @@ def search_title(title: str) ->Optional[SearchResult]:
 
 
 
-def get_person_detail(person_id: str) -> Optional['PersonDetail']:
+def get_name(person_id: str) -> Optional['PersonDetail']:
     """Fetch person details from IMDb using the provided IMDb ID."""
     #https://www.imdb.com/name/nm0000206/
     url = f"https://www.imdb.com/name/nm{person_id}/"
@@ -54,3 +55,11 @@ def get_person_detail(person_id: str) -> Optional['PersonDetail']:
         raise Exception("No script found with id '__NEXT_DATA__'")
     raw_json = json.loads(script[0])
     return parse_json_person_detail(raw_json)
+
+def get_person_detail(person_id: str) -> Optional['PersonDetail']:
+    """
+    #deprecating kept for backward compatibility
+    Use get_name instead.
+    """
+    logger.warning("get_person_detail is deprecated, use get_name instead.")
+    return get_name(person_id)
