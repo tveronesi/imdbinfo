@@ -36,3 +36,7 @@
 - MovieDetail.categories['directors'] as List[Person] for directors with additional information
 - MovieDetail.categories['cast'] for characters as List[CastMember] adding information about characters image, url and Role
 - Some fixes in parsers and models to improve type hints and code clarity
+
+## v0.3.3
+- New get_name function to fetch person details by IMDb ID.
+- Fixed some bugs pointed out in issues.
