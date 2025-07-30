@@ -1,5 +1,6 @@
 from imdbinfo.services import search_title, get_name, get_movie
-
+import logging
+logging.basicConfig(level=logging.INFO)
 
 # Example 1: Search for a person by name
 person_results = search_title("Mary")
