@@ -10,7 +10,7 @@ description = "A Python service for querying IMDb data"
 readme = "README.md"
 license = { file = "LICENSE.txt" }
 authors = [
-    { name = "@tveronesi", email = "you@example.com" }
+    { name = "@tveronesi", email = "tveronesi+imdbinfo@gmail.com" }
 ]
 dependencies = [
     "requests",
