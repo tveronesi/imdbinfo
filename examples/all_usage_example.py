@@ -1,5 +1,8 @@
 from imdbinfo.services import search_title, get_movie
 
+import logging
+logging.basicConfig(level=logging.INFO)
+
 list_q = "France to find his estate confiscated by governor Narbonne, for back taxes, and resold to Katrina, a Dutch Countess. Katrina offers to return Pierre's property if he will help her get possession".split(" ")
 #Example 1: Search for a movie by title
 
