@@ -56,7 +56,8 @@ For more examples see the [examples](examples/) folder.
 
 ## License
 
-imdbinfo is released under the GPL v2.0. See the [LICENSE](LICENSE) file for details.
+imdbinfo is released under the MIT License.
+See the [LICENSE](LICENSE) file for details.
 
 ## Contributing
 
