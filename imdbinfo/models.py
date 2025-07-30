@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Tuple, Union, Any, Callable
+from typing import Optional, List, Dict, Tuple, Union
 from pydantic import BaseModel, field_validator
 import logging
 
@@ -157,11 +157,13 @@ class MovieInfo(BaseModel):
     cover_url: Optional[str] = None
     url: Optional[str] = None
     year: Optional[int] = None # TODO series will have year as string 'from-to'. For now only movies are supported
-    kind: Optional[str] = None
+    kind: Optional[str] = None # e.g. 'movie', 'series', 'episode', 'video game', etc.
 
 
     @classmethod
     def from_movie_search(cls, data:dict):
+        year = data.get('titleReleaseText')
+        year = year.split('–')[0] or None
         return cls(
             imdbId=data['id'],
             imdb_id=str(data['id'].replace('tt', '')),
@@ -169,7 +171,7 @@ class MovieInfo(BaseModel):
             title=data['titleNameText'],
             cover_url=data.get('titlePosterImageModel', {}).get('url', None),
             url = f"https://www.imdb.com/title/{data['id']}/",
-            year=data.get('titleReleaseText',None),
+            year=year,
             kind=data.get('imageType',None),
 
         )
