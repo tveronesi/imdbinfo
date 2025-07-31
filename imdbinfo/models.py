@@ -60,7 +60,7 @@ class Person(BaseModel):
             job=str(data.get('jobTitle', ''))
         )
 
-    def __repr__(self):
+    def __str__(self):
         return f"{self.name} ({self.job})"
 
 class CastMember(Person):
@@ -84,8 +84,9 @@ class CastMember(Person):
             picture_url=data.get('imageProps', {}).get('imageModel',{}).get('url', None)
         )
 
-    def __repr__(self):
+    def __str__(self):
         return f"{self.name} ({', '.join(self.characters)})"
+
 
 class MovieDetail(BaseModel):
     """MovieDetail model for detailed information about a movie.
@@ -226,6 +227,6 @@ class PersonDetail(BaseModel):
     unreleased_credits: Dict[str, List[MovieInfo]] = {}
 
 
-    def __repr__(self):
+    def __str__(self):
         return f"{self.name} ({', '.join(self.knownfor)})"
 

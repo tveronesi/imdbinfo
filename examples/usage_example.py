@@ -1,8 +1,7 @@
 from imdbinfo.services import search_title, get_movie
 
-# config logs to DEBUG level
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 
 #Example 1: Search for a movie by title
 results = search_title("The Matrix")
