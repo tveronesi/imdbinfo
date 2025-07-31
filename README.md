@@ -65,3 +65,5 @@ See the [LICENSE](LICENSE) file for details.
 Contributions are welcome! Open an issue or pull request on GitHub.
 
 If you find this project useful, please consider giving it a ⭐ on GitHub!
+
+Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
