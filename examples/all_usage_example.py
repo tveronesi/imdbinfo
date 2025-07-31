@@ -1,7 +1,7 @@
-from imdbinfo.services import search_title, get_movie
+from imdbinfo.services import search_title, get_movie, get_name
 
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 
 list_q = "France to find his estate confiscated by governor Narbonne, for back taxes, and resold to Katrina, a Dutch Countess. Katrina offers to return Pierre's property if he will help her get possession".split(" ")
 #Example 1: Search for a movie by title
@@ -14,10 +14,15 @@ for word in list_q:
             print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
             movie = get_movie(movie.imdb_id)
             print(f"  Valutazione: {movie.rating}")
+            for director in movie.directors:
+                print(f"  Director: {director.name}")
+            for c in movie.categories['cast'][:3]:  # Limit to first 3 cast members for brevity
+                #print(c)
+                person = get_name(c.imdb_id)
+                print(f"  Cast: {person.name} - {' ° '.join(person.primary_profession[:2])} - {person.url}")
             # DONE
             print("----------------------------------------------")
 
-# Example 2: Get detailed information about a specific movie by IMDb ID
 
 
 
