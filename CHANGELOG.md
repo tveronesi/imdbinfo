@@ -40,3 +40,10 @@
 ## v0.3.3
 - New get_name function to fetch person details by IMDb ID.
 - Fixed some bugs pointed out in issues.
+
+## v0.3.4
+- Added new test cases to increase coverage
+- Improved example scripts for better usability
+- Updated logging levels for enhanced traceability
+- Improved string representation of models (__str__ and __repr__)
+- Various code fixes and optimizations for quality and functionality
