@@ -3,7 +3,7 @@ import os
 import pytest
 from imdbinfo import parsers
 
-SAMPLE_DIR = os.path.join(os.path.dirname(__file__), "..", "sample_json_source")
+SAMPLE_DIR = os.path.join(os.path.dirname(__file__), "sample_json_source")
 
 def load_sample(filename):
     with open(os.path.join(SAMPLE_DIR, filename), encoding="utf-8") as f:
@@ -23,5 +23,13 @@ def test_parse_json_search():
     assert result is not None
     assert hasattr(result, "titles")
     assert hasattr(result, "names")
+
+
+def test_parse_json_person_detail():
+    raw_json = load_sample("sample_person.json")
+    person = parsers.parse_json_person_detail(raw_json)
+    assert person is not None
+    assert person.name == "Kevin Costner"
+    assert "The Postman" in person.knownfor
 
 
