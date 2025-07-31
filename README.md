@@ -1,6 +1,8 @@
 [![Build Status](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml/badge.svg)](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml)
 [![PyPI Version](https://img.shields.io/pypi/v/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
+![PyPI - Daily Downloads](https://img.shields.io/pypi/dm/your-package-name?label=PyPI%20downloads&logo=pypi)
+
 
 <p align="center">
   <img src="https://img.shields.io/badge/IMDb-INFO-yellow?style=for-the-badge&logo=imdb&logoColor=black" alt="IMDb Info"/>
@@ -64,3 +66,5 @@ See the [LICENSE](LICENSE) file for details.
 Contributions are welcome! Open an issue or pull request on GitHub.
 
 If you find this project useful, please consider giving it a ⭐ on GitHub!
+
+Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
