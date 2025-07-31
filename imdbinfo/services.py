@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 def get_movie(imdb_id: str) -> MovieDetail:
     """Fetch movie details from IMDb using the provided IMDb ID without 'tt' as string, preserve 00
     padding."""
+    imdb_id = imdb_id.replace('tt', '')
     url = f"https://www.imdb.com/title/tt{imdb_id}/reference"
     logger.info("Fetching movie %s", imdb_id)
     resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
