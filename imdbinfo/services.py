@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def get_movie(imdb_id: str)->MovieDetail:
     """Fetch movie details from IMDb using the provided IMDb ID as string,
     preserve the 'tt' prefix or not, it will be stripped in the function.
-    padding."""
+    """
     imdb_id = imdb_id.lstrip('tt')
     url = f"https://www.imdb.com/title/tt{imdb_id}/reference"
     logger.info("Fetching movie %s", imdb_id)
@@ -29,7 +29,6 @@ def get_movie(imdb_id: str)->MovieDetail:
     movie = parse_json_movie(raw_json)
     logger.debug("Fetched movie %s", imdb_id)
     return movie
-
 
 def search_title(title: str) -> Optional[SearchResult]:
     """Search for a movie by title and return a list of titles and names."""
@@ -50,14 +49,14 @@ def search_title(title: str) -> Optional[SearchResult]:
     logger.debug("Search for '%s' returned %s titles", title, len(result.titles))
     return result
 
-
-
+  
 def get_name(person_id: str) -> Optional['PersonDetail']:
     """Fetch person details from IMDb using the provided IMDb ID.
     Preserve the 'nm' prefix or not, it will be stripped in the function.
     """
     #https://www.imdb.com/name/nm0000206/
     person_id = person_id.lstrip('nm')
+
     url = f"https://www.imdb.com/name/nm{person_id}/"
     logger.info("Fetching person %s", person_id)
     resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
