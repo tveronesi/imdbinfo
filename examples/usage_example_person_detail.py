@@ -1,6 +1,7 @@
 from imdbinfo.services import search_title, get_name, get_movie
+
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 
 # Example 1: Search for a person by name
 person_results = search_title("Mary")
@@ -17,7 +18,7 @@ for p in person_results.names:
         print(f"Birth Place: {person.birth_place}")
         print(f"Death Date: {person.death_date}")
         print(f"Death Place: {person.death_place}")
-        print(f"Bio: {person.bio}")
+        print(f"Bio: {person.bio[:100]}...")  # Print first 100 characters of bio
         print(f"Height: {person.height}")
         print(f"Primary Profession: {', '.join(person.primary_profession)}")
         print(f"Image URL: {person.image_url}")
@@ -37,7 +38,7 @@ for p in movie.categories['cast']:
         print(f"Birth Place: {person.birth_place}")
         print(f"Death Date: {person.death_date}")
         print(f"Death Place: {person.death_place}")
-        print(f"Bio: {person.bio}")
+        print(f"Bio: {person.bio[:100]}...")  # Print first 100 characters of bio
         print(f"Height: {person.height}")
         print(f"Primary Profession: {', '.join(person.primary_profession)}")
         print(f"Image URL: {person.image_url}")

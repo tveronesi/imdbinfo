@@ -37,11 +37,11 @@ for movie in results.titles:
     print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
 
 # Get movie details
-movie = get_movie("0133093")
+movie = get_movie("0133093") # or 'tt0133093'
 print(movie.title, movie.year, movie.rating)
 
 # Get person details
-person = get_name("nm0000206")
+person = get_name("nm0000206")# or '0000206' 
 print(person.name, person.birth_date)
 ```
 
