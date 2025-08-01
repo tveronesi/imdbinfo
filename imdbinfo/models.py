@@ -164,7 +164,7 @@ class MovieInfo(BaseModel):
     @classmethod
     def from_movie_search(cls, data:dict):
         year = data.get('titleReleaseText')
-        year = year.split('–')[0] or None
+        year = year.split('–')[0]  if year else None
         return cls(
             imdbId=data['id'],
             imdb_id=str(data['id'].replace('tt', '')),
