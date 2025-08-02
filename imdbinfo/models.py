@@ -70,6 +70,7 @@ class CastMember(Person):
     """
     characters: List[str] = []
     picture_url: Optional[str] = None
+    attributes: Optional[str] = None  # e.g. '(as John Doe)'
 
     @classmethod
     def from_cast(cls, data: dict):
@@ -81,7 +82,8 @@ class CastMember(Person):
             url=f"https://www.imdb.com/name/{data['id']}",
             job='Cast',
             characters=data.get('characters',[] ),
-            picture_url=data.get('imageProps', {}).get('imageModel',{}).get('url', None)
+            picture_url=data.get('imageProps', {}).get('imageModel',{}).get('url', None),
+            attributes=data.get('attributes', '')
         )
 
     def __str__(self):
