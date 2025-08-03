@@ -88,6 +88,8 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data["id"] = data["imdb_id"]  # same as imdb_id
     data["url"] = f"{TITLE_URL}{data['imdbId']}/"
     data["title"] = pjmespatch("props.pageProps.aboveTheFoldData.originalTitleText.text", raw_json)
+    data["title_localized"] = pjmespatch("props.pageProps.aboveTheFoldData.titleText.text", raw_json)
+    data["title_akas"] = pjmespatch("props.pageProps.mainColumnData.akas.edges[].node.text", raw_json)
     data["kind"] = pjmespatch("props.pageProps.mainColumnData.titleType.id", raw_json)
     data["metacritic_rating"] = pjmespatch("props.pageProps.mainColumnData.metacritic.metascore.score", raw_json)
     data["cover_url"] = pjmespatch("props.pageProps.aboveTheFoldData.primaryImage.url", raw_json)

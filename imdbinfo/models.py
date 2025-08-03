@@ -103,6 +103,8 @@ class MovieDetail(BaseModel):
     imdb_id: str # id without 'tt' prefix, e.g. '0133093'
     imdbId: str # id with 'tt' prefix, e.g. 'tt0133093'
     title: str
+    title_localized: Optional[str] = None
+    title_akas: List[str] = []
     kind: Optional[str] = None
     url: str = ""
     cover_url: Optional[str] = None
