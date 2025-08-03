@@ -49,11 +49,11 @@ def _certificates_to_dict(result):
     res = {}
     for item in result:
         country_code, country_name, rating_value, regions = item
-        rating = f"{rating_value} " + " ".join(regions)
+        rating = f"{rating_value} " + ", ".join(regions)
         if country_code not in res:
             res[country_code] = [country_name, rating]
         else:
-            res[country_code][1] += "° " + rating
+            res[country_code][1] += " ° " + rating
     return res
 
 def _feed_credits(result) -> dict:
