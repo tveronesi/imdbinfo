@@ -53,7 +53,7 @@ def _certificates_to_dict(result):
         if country_code not in res:
             res[country_code] = [country_name, rating]
         else:
-            res[country_code][1] += " ° " + rating
+            res[country_code][1] += " :: " + rating
     return res
 
 def _feed_credits(result) -> dict:
