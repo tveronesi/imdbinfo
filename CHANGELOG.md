@@ -47,3 +47,14 @@
 - Updated logging levels for enhanced traceability
 - Improved string representation of models (__str__ and __repr__)
 - Various code fixes and optimizations for quality and functionality
+
+## v0.3.5
+- Added support for localized titles (`title_localized`) and alternate titles (`title_akas`) in the `MovieDetail` model and parsing logic.
+- Improved the `CastMember` model with new attributes, including additional cast details (`attributes`).
+- Enhanced certificate parsing to handle region-specific ratings and consolidate them into a structured format.
+- Overhauled documentation in `docs/index.md` with detailed instructions, usage examples, and project highlights.
+- Updated the PyPI downloads badge in `README.md` using `pepy.tech`.
+- Enhanced the test suite for `parse_json_movie` to validate the new certificate parsing and compatibility with updated models.
+- Added the `jekyll-theme-cayman` theme for documentation in `docs/_config.yml`.
+- Updated `pyproject.toml` with the package homepage URL.
+- Added a step in the GitHub Actions workflow (`pypi-publish.yml`) to install dependencies before running tests.
