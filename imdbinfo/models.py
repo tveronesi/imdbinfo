@@ -70,6 +70,7 @@ class CastMember(Person):
     """
     characters: List[str] = []
     picture_url: Optional[str] = None
+    attributes: Optional[str] = None  # e.g. '(as John Doe)'
 
     @classmethod
     def from_cast(cls, data: dict):
@@ -81,7 +82,8 @@ class CastMember(Person):
             url=f"https://www.imdb.com/name/{data['id']}",
             job='Cast',
             characters=data.get('characters',[] ),
-            picture_url=data.get('imageProps', {}).get('imageModel',{}).get('url', None)
+            picture_url=data.get('imageProps', {}).get('imageModel',{}).get('url', None),
+            attributes=data.get('attributes', '')
         )
 
     def __str__(self):
@@ -101,6 +103,8 @@ class MovieDetail(BaseModel):
     imdb_id: str # id without 'tt' prefix, e.g. '0133093'
     imdbId: str # id with 'tt' prefix, e.g. 'tt0133093'
     title: str
+    title_localized: Optional[str] = None
+    title_akas: List[str] = []
     kind: Optional[str] = None
     url: str = ""
     cover_url: Optional[str] = None
@@ -164,7 +168,7 @@ class MovieInfo(BaseModel):
     @classmethod
     def from_movie_search(cls, data:dict):
         year = data.get('titleReleaseText')
-        year = year.split('–')[0] or None
+        year = year.split('–')[0]  if year else None
         return cls(
             imdbId=data['id'],
             imdb_id=str(data['id'].replace('tt', '')),

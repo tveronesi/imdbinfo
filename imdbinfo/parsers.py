@@ -42,8 +42,19 @@ def _certificates_to_dict(result):
     """
     given a list of lists, convert it to a dict with country id as key and (country text, rating) as value
     """
-    return {item[0]: (item[1], item[2]) for item in result if item[0] and item[1] and item[2]}
-
+    #['CA', 'Canada', '14', ['New Brunswick', 'Nova Scotia', 'Prince Edward Island']]
+    #['CA', 'Canada', '16', ['Manitoba']]
+    if result is None:
+        return {}
+    res = {}
+    for item in result:
+        country_code, country_name, rating_value, regions = item
+        rating = f"{rating_value} " + ", ".join(regions)
+        if country_code not in res:
+            res[country_code] = [country_name, rating]
+        else:
+            res[country_code][1] += " :: " + rating
+    return res
 
 def _feed_credits(result) -> dict:
     """feed credits from the page 'name' to the PersonDetail model"""
@@ -88,6 +99,8 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data["id"] = data["imdb_id"]  # same as imdb_id
     data["url"] = f"{TITLE_URL}{data['imdbId']}/"
     data["title"] = pjmespatch("props.pageProps.aboveTheFoldData.originalTitleText.text", raw_json)
+    data["title_localized"] = pjmespatch("props.pageProps.aboveTheFoldData.titleText.text", raw_json)
+    data["title_akas"] = pjmespatch("props.pageProps.mainColumnData.akas.edges[].node.text", raw_json)
     data["kind"] = pjmespatch("props.pageProps.mainColumnData.titleType.id", raw_json)
     data["metacritic_rating"] = pjmespatch("props.pageProps.mainColumnData.metacritic.metascore.score", raw_json)
     data["cover_url"] = pjmespatch("props.pageProps.aboveTheFoldData.primaryImage.url", raw_json)
@@ -115,7 +128,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     )
     data["interests"] = pjmespatch("props.pageProps.mainColumnData.interests.edges[].node.primaryText.text", raw_json)
     data["certificates"] = pjmespatch(
-        "props.pageProps.mainColumnData.certificates.edges[].node.[country.id,country.text,rating]",
+        "props.pageProps.mainColumnData.certificates.edges[].node.[country.id,country.text,rating,attributes[].text]",
         raw_json,
         _certificates_to_dict,
     )

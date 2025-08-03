@@ -46,7 +46,7 @@ def test_parse_json_movie():
 
     # Certificates
     assert "US" in movie.certificates
-    assert movie.certificates["US"][1] == "R"
+    assert movie.certificates["US"][1] == "TV-14  :: R certificate #36569"
 
     # Trailers
     assert len(movie.trailers) >= 2

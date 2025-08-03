@@ -19,6 +19,8 @@ dependencies = [
     "jmespath"
 ]
 
+urls = {Homepage = "https://tveronesi.github.io/imdbinfo/"}
+
 keywords = [
     "imdb",
     "movie",
