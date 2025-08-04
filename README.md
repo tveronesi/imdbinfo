@@ -1,7 +1,7 @@
 [![Build Status](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml/badge.svg)](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml)
 [![PyPI Version](https://img.shields.io/pypi/v/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
-[![PyPI Downloads](https://static.pepy.tech/badge/imdbinfo)](https://pepy.tech/projects/imdbinfo)
+[![PyPI Downloads](https://static.pepy.tech/badge/imdbinfo/week)](https://pepy.tech/projects/imdbinfo)
 
 [//]: # (![PyPI - Daily Downloads]&#40;https://img.shields.io/pypi/dm/your-package-name?label=PyPI%20downloads&logo=pypi&#41;)
 
@@ -43,6 +43,8 @@ print(person.name, person.birth_date)
 ```
 
 For more examples see the [examples](examples/) folder.
+
+If you want a ready to use quick and dirty API based on this package check out [qdMovieAPI](https://github.com/tveronesi/qdMovieAPI)
 
 ## Why choose imdbinfo?
 
