@@ -17,4 +17,6 @@ print(f"Anno: {movie.year}")
 print(f"Valutazione: {movie.rating}")
 print(f"Generi: {', '.join(movie.genres)}")
 print(f"Trama: {movie.plot}")
+# certificates
+print(f"Certificazioni: {', '.join(movie.certificates)}")
 
