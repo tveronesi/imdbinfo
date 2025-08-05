@@ -226,6 +226,7 @@ class PersonDetail(BaseModel):
     birth_place: Optional[str] = None
     death_date: Optional[str] = None
     death_place: Optional[str] = None
+    death_reason: Optional[str] = None
     jobs: List[str] = []
     credits: Dict[str, List[MovieInfo]] = {}
     unreleased_credits: Dict[str, List[MovieInfo]] = {}

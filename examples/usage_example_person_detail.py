@@ -18,6 +18,7 @@ for p in person_results.names:
         print(f"Birth Place: {person.birth_place}")
         print(f"Death Date: {person.death_date}")
         print(f"Death Place: {person.death_place}")
+        print(f"Death Reason: {person.death_reason}")
         print(f"Bio: {person.bio[:100]}...")  # Print first 100 characters of bio
         print(f"Height: {person.height}")
         print(f"Primary Profession: {', '.join(person.primary_profession)}")
@@ -38,6 +39,7 @@ for p in movie.categories['cast']:
         print(f"Birth Place: {person.birth_place}")
         print(f"Death Date: {person.death_date}")
         print(f"Death Place: {person.death_place}")
+        print(f"Death Reason: {person.death_reason}")
         print(f"Bio: {person.bio[:100]}...")  # Print first 100 characters of bio
         print(f"Height: {person.height}")
         print(f"Primary Profession: {', '.join(person.primary_profession)}")
