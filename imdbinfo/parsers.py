@@ -238,6 +238,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
     data["birth_place"] = pjmespatch("props.pageProps.mainColumnData.birthLocation.text", raw_json)
     data["death_date"] = pjmespatch("props.pageProps.aboveTheFold.deathDate.date", raw_json)
     data["death_place"] = pjmespatch("props.pageProps.mainColumnData.deathLocation.text", raw_json)
+    data["death_reason"] = pjmespatch("props.pageProps.mainColumnData.deathReason.text", raw_json)
     data["jobs"] = pjmespatch("props.pageProps.mainColumnData.jobs[].category.text", raw_json)
     data["credits"] = pjmespatch(
         "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.text,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
