@@ -55,6 +55,9 @@ If you want a ready to use quick and dirty API based on this package check out [
 - No external dependencies or API keys required
 - Ideal for quick scripts and data analysis
 
+## Disclaimer
+This project and its authors are not affiliated in any way with IMDb Inc. or its affiliates. The data provided by this package is sourced from IMDb and is subject to their terms of use. For more information, please refer to the [DISCLAIMER](DISCLAIMER.txt) file.
+
 ## License
 
 imdbinfo is released under the MIT License.
