@@ -7,13 +7,19 @@
 
 # imdbinfo
 
-**Your personal gateway to IMDb data**. Search for movies and people and get structured information in seconds.
+**Your personal gateway to IMDb data**. Search for movies, series and people and get structured information in seconds.
 
 ## Features
 
-- 🔍 **Search movies and people** by name or title
+- 🔍 **Search movies,series, miniseries and people** by name or title
 - 🎬 **Detailed movie info** including cast, crew, ratings and more
 - 👥 **Detailed person info** with biography, filmography and images
+- 📺 **TV series and miniseries** support with seasons and episodes
+- 📅 **Release dates** and **box office** information
+- 🌍 **International titles** and **alternate titles**
+- 📸 **Poster images** and **backdrops**
+- 📊 **Ratings** from IMDb and other sources
+- 🗂️ **Full filmography** for actors, directors and writers
 - 📝 **Typed Pydantic models** for predictable responses
 - ✅ **No API keys required**
 
@@ -26,7 +32,7 @@ pip install imdbinfo
 ## Quick Start
 
 ```python
-from imdbinfo.services import search_title, get_movie, get_name
+from imdbinfo.services import search_title, get_movie, get_name, get_episodes
 
 # Search for a title
 results = search_title("The Matrix")
@@ -40,11 +46,22 @@ print(movie.title, movie.year, movie.rating)
 # Get person details
 person = get_name("nm0000206")# or '0000206' 
 print(person.name, person.birth_date)
+
+# Get a TV series with seasons and episodes
+tv_series = get_movie("tt0944947")  # Game of Thrones
+print(tv_series.title, tv_series.info_series)
+game_of_thrones_episodes = get_episodes(tv_series.imdb_id)
+for episode in game_of_thrones_episodes:
+    print(f"{episode.season}x{episode.episode} - {episode.title} ({episode.year})")
+
+# get a single episode as a Movie object
+episode = get_movie("tt1480055")
+print(f"Episode:{episode.info_episode}")
 ```
 
 For more examples see the [examples](examples/) folder.
 
-If you want a ready to use quick and dirty API based on this package check out [qdMovieAPI](https://github.com/tveronesi/qdMovieAPI)
+> 💡 **Looking for a ready-to-use API based on this package? Check out [qdMovieAPI](https://github.com/tveronesi/qdMovieAPI) — a fast and simple way to access IMDb data via REST!**
 
 ## Why choose imdbinfo?
 
