@@ -78,3 +78,24 @@ def get_name(person_id: str) -> Optional['PersonDetail']:
     t1 = time()
     logger.debug("Parsed person %s in %.2f seconds", person_id, t1 - t0)
     return person
+
+def get_episodes(imdb_id: str):
+    movieid = imdb_id.lstrip('tt')
+
+    url = f"https://www.imdb.com/title/tt{movieid}/episodes"
+    logger.info("Fetching episodes for movie %s", imdb_id)
+    resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+    if resp.status_code != 200:
+        logger.error("Error fetching %s: %s", url, resp.status_code)
+        raise Exception(f"Error fetching {url}")
+    tree = html.fromstring(resp.content)
+    script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
+    if not script:
+        logger.error("No script found with id '__NEXT_DATA__'")
+        raise Exception("No script found with id '__NEXT_DATA__'")
+    raw_json = json.loads(script[0])
+    # props.pageProps.contentData.section.episodes
+    # props.pageProps.contentData.data.title.episodes.topTenEpisodes
+    # props.pageProps.contentData.data.title.episodes.topRated.edges[0].node.ratingsSummary.aggregateRating
+    # props.pageProps.contentData.data.title.episodes.totalEpisodes.total
+    pass
