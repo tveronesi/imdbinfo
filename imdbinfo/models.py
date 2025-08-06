@@ -115,6 +115,7 @@ class MovieDetail(BaseModel):
     directors: List[Person] = []
     stars: List[Person] = []
     year: Optional[int] = None
+    year_end: Optional[int] = None
     duration: Optional[int] = None
     country_codes: List[str] = []
     rating: Optional[float] = None
@@ -139,6 +140,8 @@ class MovieDetail(BaseModel):
     synopses: List[str] = []
     production: List[str] = []
     categories: Dict[str, List[Union[Person, CastMember]]] = {}
+    info_series : Optional['SeriesInfo'] = None # e.g. SeriesInfo(display_years=['2013', '2014', '2015'], display_seasons=['1', '2', '3'])
+    info_episode : Optional['EpisodeInfo'] = None # e.g. SeriesInfo(display_year
 
     @field_validator('languages', 'country_codes','genres', mode='before')
     def none_is_list(cls, value):
@@ -182,8 +185,8 @@ class MovieInfo(BaseModel):
         )
 
     @classmethod
-    def from_cast(self, data: dict):
-        return self(
+    def from_cast(cls, data: dict):
+        return cls(
             id=str(data['id'].replace('tt', '')),
             imdb_id=str(data['id'].replace('tt', '')),
             imdbId=data['id'],
@@ -235,3 +238,26 @@ class PersonDetail(BaseModel):
     def __str__(self):
         return f"{self.name} ({', '.join(self.knownfor)})"
 
+
+class SeriesInfo(BaseModel):
+    display_years : List[str] = []  # e.g. ['2013', '2014', '2015']
+    display_seasons : List[str] = []  # e.g. ['1', '2', '3']
+
+    def __str__(self):
+        return f"Years: {self.display_years[-1]}-{self.display_years[0] or 'still' }, Seasons: {len(self.display_seasons)}"
+
+
+class EpisodeInfo(BaseModel):
+    season_n: Optional[int] = None
+    episode_n: Optional[int] = None
+    series_imdbId: Optional[str] = None
+    series_title: Optional[str] = None
+    series_title_localized: Optional[str] = None
+    next_episode_imdbId: Optional[str] = None
+    previous_episode_imdbId: Optional[str] = None
+
+    def __str__(self):
+        # print in S01E01 format
+        season_str = f"S{self.season_n:02d}" if self.season_n is not None else "S??"
+        episode_str = f"E{self.episode_n:02d}" if self.episode_n is not None else "E??"
+        return f"{season_str}{episode_str} - {self.series_title} ({self.series_imdbId})"
