@@ -3,8 +3,7 @@ import json
 from lxml import html
 import re
 
-IMDB_URL = "https://www.imdb.com/title/tt0133093/technical"
-IMDB_URL = "https://www.imdb.com/title/tt1628065/reference"
+IMDB_URL = "https://www.imdb.com/title/tt0133093/soundtrack"
 
 def url_to_filename(url):
     # Remove the full 'https://www.imdb.com/' prefix
