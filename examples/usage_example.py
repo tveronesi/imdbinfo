@@ -9,7 +9,7 @@ for movie in results.titles:
     print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
 
 # Example 2: Get detailed information about a specific movie by IMDb ID
-movie = get_movie("0133093")
+movie = get_movie("tt1628065")
 print(f"Titolo: {movie.title}")
 print(f"Title Localized: {movie.title_localized}")
 print("title_akas:", " ".join(movie.title_akas))
