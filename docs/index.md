@@ -4,6 +4,8 @@ Have you ever needed to grab movie or actor details from IMDb, but didn’t want
 
 That’s exactly why I built [`imdbinfo`](https://github.com/tveronesi/imdbinfo) — a lightweight, easy-to-use Python package to search and fetch structured IMDb data, **with no API keys required**.
 
+[![PyPI Downloads](https://static.pepy.tech/badge/imdbinfo)](https://pepy.tech/projects/imdbinfo)
+
 ---
 
 ## 🚀 What is imdbinfo?
