@@ -243,6 +243,12 @@ class SeriesInfo(BaseModel):
     display_years : List[str] = []  # e.g. ['2013', '2014', '2015']
     display_seasons : List[str] = []  # e.g. ['1', '2', '3']
 
+    @field_validator('display_years', mode='before')
+    def filter_years(cls, value):
+        if value is None:
+            return []
+        return [str(y) for y in value if isinstance(y, str) and len(y) == 4 and y.isdigit()]
+
     def __str__(self):
         return f"Years: {self.display_years[-1]}-{self.display_years[0] or 'still' }, Seasons: {len(self.display_seasons)}"
 
