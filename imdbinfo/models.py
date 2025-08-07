@@ -285,6 +285,4 @@ class EpisodeInfo(BaseModel):
         return f"{self.series_title} - {season_str}{episode_str} ({self.series_imdbId})"
 
 
-class Episode(BaseModel):
-    pass
 

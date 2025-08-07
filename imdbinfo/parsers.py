@@ -3,8 +3,7 @@ import logging
 
 import jmespath
 
-from .models import MovieDetail, Person, MovieInfo, SearchResult, CastMember, PersonDetail, SeriesInfo, EpisodeInfo, \
-    Episode
+from .models import MovieDetail, Person, MovieInfo, SearchResult, CastMember, PersonDetail, SeriesInfo, EpisodeInfo
 
 VIDEO_URL = "https://www.imdb.com/video/"
 TITLE_URL = "https://www.imdb.com/title/"
@@ -279,13 +278,13 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
     return person
 
 
-def parse_json_episodes(raw_json) -> List[Episode]:
+def parse_json_episodes(raw_json) -> List[dict]:
     # props.pageProps.contentData.section.episodes
     # props.pageProps.contentData.data.title.episodes.topTenEpisodes
     # props.pageProps.contentData.data.title.episodes.topRated.edges[0].node.ratingsSummary.aggregateRating
     # props.pageProps.contentData.data.title.episodes.totalEpisodes.total
     logger.debug("Parsing episodes JSON")
-    episodes = []
-    for episode_data in pjmespatch("props.pageProps.episodes.edges[]", raw_json):
-        episodes.append(Episode.from_episode(episode_data))
-    return episodes
+    season_episodes = []
+    for episode_data in pjmespatch("props.pageProps.contentData.section.episodes.items", raw_json):
+        season_episodes.append(episode_data)
+    return season_episodes
