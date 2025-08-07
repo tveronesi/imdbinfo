@@ -275,8 +275,6 @@ class EpisodeInfo(BaseModel):
     series_imdbId: Optional[str] = None
     series_title: Optional[str] = None
     series_title_localized: Optional[str] = None
-    next_episode_imdbId: Optional[str] = None
-    previous_episode_imdbId: Optional[str] = None
 
     def __str__(self):
         # print in S01E01 format
