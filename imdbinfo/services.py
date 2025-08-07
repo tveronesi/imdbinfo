@@ -5,7 +5,6 @@ import requests
 import json
 from lxml import html
 
-from examples.usage_example import movies_list
 from .models import SearchResult, MovieDetail, EpisodesList, PersonDetail
 from .parsers import parse_json_movie, parse_json_search, parse_json_person_detail, parse_json_episodes
 
