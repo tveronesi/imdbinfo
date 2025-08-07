@@ -6,7 +6,7 @@ import json
 from lxml import html
 
 from .models import SearchResult, MovieDetail
-from .parsers import parse_json_movie, parse_json_search, parse_json_person_detail
+from .parsers import parse_json_movie, parse_json_search, parse_json_person_detail, parse_json_episodes
 
 logger = logging.getLogger(__name__)
 
@@ -94,8 +94,6 @@ def get_episodes(imdb_id: str):
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
     raw_json = json.loads(script[0])
-    # props.pageProps.contentData.section.episodes
-    # props.pageProps.contentData.data.title.episodes.topTenEpisodes
-    # props.pageProps.contentData.data.title.episodes.topRated.edges[0].node.ratingsSummary.aggregateRating
-    # props.pageProps.contentData.data.title.episodes.totalEpisodes.total
-    pass
+    episodes = parse_json_episodes(raw_json)
+    logger.debug("Fetched %d episodes for movie %s", len(episodes), imdb_id)
+    return episodes

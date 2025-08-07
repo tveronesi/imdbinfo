@@ -283,3 +283,8 @@ class EpisodeInfo(BaseModel):
         season_str = f"S{self.season_n:02d}" if self.season_n is not None else "S??"
         episode_str = f"E{self.episode_n:02d}" if self.episode_n is not None else "E??"
         return f"{self.series_title} - {season_str}{episode_str} ({self.series_imdbId})"
+
+
+class Episode(BaseModel):
+    pass
+
