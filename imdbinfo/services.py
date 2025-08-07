@@ -5,7 +5,7 @@ import requests
 import json
 from lxml import html
 
-from .models import SearchResult, MovieDetail
+from .models import SearchResult, MovieDetail, EpisodesList, PersonDetail
 from .parsers import parse_json_movie, parse_json_search, parse_json_person_detail, parse_json_episodes
 
 logger = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ def search_title(title: str) -> Optional[SearchResult]:
     return result
 
   
-def get_name(person_id: str) -> Optional['PersonDetail']:
+def get_name(person_id: str) -> Optional[PersonDetail]:
     """Fetch person details from IMDb using the provided IMDb ID.
     Preserve the 'nm' prefix or not, it will be stripped in the function.
     """
@@ -79,7 +79,7 @@ def get_name(person_id: str) -> Optional['PersonDetail']:
     logger.debug("Parsed person %s in %.2f seconds", person_id, t1 - t0)
     return person
 
-def get_episodes(imdb_id: str, season: Optional[int] = None) -> list:
+def get_episodes(imdb_id: str, season: Optional[int] = None) -> EpisodesList:
     """Fetch episodes for a movie or series using the provided IMDb ID."""
     season = season if season is not None else 1
     movieid = imdb_id.lstrip('tt')
@@ -97,5 +97,5 @@ def get_episodes(imdb_id: str, season: Optional[int] = None) -> list:
         raise Exception("No script found with id '__NEXT_DATA__'")
     raw_json = json.loads(script[0])
     episodes = parse_json_episodes(raw_json)
-    logger.debug("Fetched %d episodes for movie %s", len(episodes), imdb_id)
+    logger.debug("Fetched %d episodes for movie %s", len(episodes.episodes), imdb_id)
     return episodes
