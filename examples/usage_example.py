@@ -4,11 +4,12 @@ import logging
 logging.basicConfig(level=logging.WARNING)
 
 #Example 1: Search title/name and print the results
-results = search_title("The Matrix")
-print("Search Results for 'The Matrix' in titles:")
+title_query = "little house on the prairie"
+results = search_title(title_query)
+print(f"Search Results for {title_query} in titles:")
 for movie in results.titles:
     print(f"Found a movie: {movie.title} ({movie.year}) - {movie.imdbId} of kind {movie.kind}")
-print("Search Results for 'The Matrix' in names:")
+print(f"Search Results for '{title_query}' in names:")
 for name in results.names:
     print(f"Name: {name.name} - {name.imdbId}")
 
@@ -28,6 +29,20 @@ movies_list = [
 
 for imdb_id in movies_list:
     movie = get_movie(imdb_id)
+    if movie.is_series():
+        print(f"#########################################################################")
+        print(f"##### this is a SERIES: extra info available in movie.info_series  #####")
+        print(f"#########################################################################")
+        print(f"Series: {movie.info_series or 'N/A'}")
+    elif movie.is_episode():
+        print(f"##########################################################################")
+        print(f"##### this is an EPISODE: extra info available in movie.info_episode #####")
+        print(f"##########################################################################")
+        print(f"Episode: {movie.info_episode or 'N/A'}")
+    else:
+        print(f"##########################################################################")
+        print(f"##################################### MOVIE ##############################")
+        print(f"##########################################################################")
     print(f"Movie Title: {movie.title} ({movie.year}) - {movie.imdbId}")
     print(f"Kind: {movie.kind}")
     print(f"URL: {movie.url}")
@@ -39,9 +54,6 @@ for imdb_id in movies_list:
     for director in movie.directors:
         print(f"  - {director.name} ({director.imdbId})")
     print("Cast:")
-    for cast_member in movie.categories['cast'][:3]:  # Limit to first 3 cast members for brevity
+    for cast_member in movie.categories['cast'][:3]:  # Limit to the first 3 cast members for brevity
         print(f"  - {cast_member.name} ({cast_member.imdbId})")
-    print("SERIES INFO IF AVAILABLE:")
-    print(f"Series: {movie.info_series or 'N/A'}")
-    print(f"Episode: {movie.info_episode or 'N/A'}")
     print("----------------------------------------------")
