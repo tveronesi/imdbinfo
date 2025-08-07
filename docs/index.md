@@ -1,4 +1,5 @@
-# 🎬 imdbinfo – A Simple Python Tool to Fetch IMDb Movie & Actor Data (No API Keys Needed)
+# 🎬 imdbinfo – A Simple Python Tool to Fetch IMDb 
+### Movie Series Episodes & Actor Data (No API Keys Needed)
 
 [![PyPI Downloads](https://static.pepy.tech/badge/imdbinfo)](https://pepy.tech/projects/imdbinfo) 
 [![Build Status](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml/badge.svg)](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml)
