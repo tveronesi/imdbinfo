@@ -79,9 +79,9 @@ def get_name(person_id: str) -> Optional['PersonDetail']:
     logger.debug("Parsed person %s in %.2f seconds", person_id, t1 - t0)
     return person
 
-def get_episodes(imdb_id: str, sesson: Optional[int] = None) -> list:
+def get_episodes(imdb_id: str, season: Optional[int] = None) -> list:
     """Fetch episodes for a movie or series using the provided IMDb ID."""
-    season = sesson if sesson is not None else 1
+    season = season if season is not None else 1
     movieid = imdb_id.lstrip('tt')
 
     url = f"https://www.imdb.com/title/tt{movieid}/episodes/?season={season}"
