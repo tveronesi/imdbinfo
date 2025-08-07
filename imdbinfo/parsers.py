@@ -3,7 +3,8 @@ import logging
 
 import jmespath
 
-from .models import MovieDetail, Person, MovieInfo, SearchResult, CastMember, PersonDetail, SeriesInfo, EpisodeInfo
+from .models import MovieDetail, Person, MovieInfo, SearchResult, CastMember, PersonDetail, SeriesInfo, EpisodeInfo, \
+    EpisodeData, EpisodesList
 
 VIDEO_URL = "https://www.imdb.com/video/"
 TITLE_URL = "https://www.imdb.com/title/"
@@ -85,6 +86,19 @@ def _feed_credits(result) -> dict:
         )
     return res
 
+def _dict_votes_(result):
+    """
+    given a list of lists, convert it to a dict with imdbId as key and (rating, votes) as value
+    """
+    if result is None:
+        return []
+    res = []
+    for item in result:
+        imdbId = item[0] # 'tt1234567'
+        rating = item[1] # rating value, e.g. 8.5
+        votes = item[2] # votes count, e.g. 123456
+        res.append( {"imdbId": imdbId , "rating": rating, "votes": votes} )
+    return res
 
 def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     logger.debug("Parsing movie JSON")
@@ -276,13 +290,22 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
     return person
 
 
-def parse_json_episodes(raw_json) -> List[dict]:
-    # props.pageProps.contentData.section.episodes
-    # props.pageProps.contentData.data.title.episodes.topTenEpisodes
-    # props.pageProps.contentData.data.title.episodes.topRated.edges[0].node.ratingsSummary.aggregateRating
-    # props.pageProps.contentData.data.title.episodes.totalEpisodes.total
+def parse_json_episodes(raw_json) -> EpisodesList:
+
+    top_rated_episode = pjmespatch("props.pageProps.contentData.data.title.episodes.topRated.edges[0].node.ratingsSummary.aggregateRating",raw_json)
+    total_series_episodes = pjmespatch("props.pageProps.contentData.data.title.episodes.totalEpisodes.total", raw_json)
+    total_series_seasons = len(pjmespatch("props.pageProps.contentData.data.title.episodes.seasons", raw_json))
+    top_ten_episodes =pjmespatch("props.pageProps.contentData.data.title.episodes.topTenEpisodes.edges[].[node.id,node.ratingsSummary.aggregateRating,node.ratingsSummary.voteCount]", raw_json, _dict_votes_)
     logger.debug("Parsing episodes JSON")
     season_episodes = []
     for episode_data in pjmespatch("props.pageProps.contentData.section.episodes.items", raw_json):
-        season_episodes.append(episode_data)
-    return season_episodes
+        season_episodes.append(EpisodeData.from_episode_data(episode_data))
+
+    episodes_list_object = EpisodesList(
+        top_rating_episode=top_rated_episode,
+        total_series_episodes=total_series_episodes,
+        total_series_seasons=total_series_seasons,
+        top_ten_episodes=top_ten_episodes,
+        episodes=season_episodes
+    )
+    return episodes_list_object
