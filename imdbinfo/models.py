@@ -4,6 +4,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+class SeriesMixin:
+    def is_series(self) -> bool:
+        return getattr(self, "kind", None) in ( "tvSeries","tvMiniSeries")
+
+    def is_episode(self) -> bool:
+        return getattr(self, "kind", None) == "tvEpisode"
+
+
 class Person(BaseModel):
     """ person model for directors, cast and search results.
     This model is used to represent a person in the IMDb database.
@@ -90,7 +98,7 @@ class CastMember(Person):
         return f"{self.name} ({', '.join(self.characters)})"
 
 
-class MovieDetail(BaseModel):
+class MovieDetail(SeriesMixin, BaseModel):
     """MovieDetail model for detailed information about a movie.
     This model contains all the information about a movie such as title, id, imdb_id, imdbId, url, cover_url, plot, release_date, languages, certificates, directors, stars,
     year, duration, country_codes, rating, metacritic_rating, votes, trailers, genres, interests, worldwide_gross, production_budget, storyline_keywords,
@@ -150,7 +158,7 @@ class MovieDetail(BaseModel):
         return value
 
 
-class MovieInfo(BaseModel):
+class MovieInfo(SeriesMixin, BaseModel):
     """
     MovieInfo model for search results and cast members.
     This model is used to represent a movie in search results and cast members.
@@ -165,7 +173,7 @@ class MovieInfo(BaseModel):
     cover_url: Optional[str] = None
     url: Optional[str] = None
     year: Optional[int] = None # TODO series will have year as string 'from-to'. For now only movies are supported
-    kind: Optional[str] = None # e.g. 'movie', 'series', 'episode', 'video game', etc.
+    kind: Optional[str] = None # e.g. 'movie', 'tvSeries', 'tvSeriesEpisode' ...
 
 
     @classmethod
@@ -266,4 +274,4 @@ class EpisodeInfo(BaseModel):
         # print in S01E01 format
         season_str = f"S{self.season_n:02d}" if self.season_n is not None else "S??"
         episode_str = f"E{self.episode_n:02d}" if self.episode_n is not None else "E??"
-        return f"{season_str}{episode_str} - {self.series_title} ({self.series_imdbId})"
+        return f"{self.series_title} - {season_str}{episode_str} ({self.series_imdbId})"
