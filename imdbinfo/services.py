@@ -5,6 +5,7 @@ import requests
 import json
 from lxml import html
 
+from examples.usage_example import movies_list
 from .models import SearchResult, MovieDetail, EpisodesList, PersonDetail
 from .parsers import parse_json_movie, parse_json_search, parse_json_person_detail, parse_json_episodes
 
@@ -79,12 +80,12 @@ def get_name(person_id: str) -> Optional[PersonDetail]:
     logger.debug("Parsed person %s in %.2f seconds", person_id, t1 - t0)
     return person
 
-def get_episodes(imdb_id: str, season: Optional[int] = None) -> EpisodesList:
+def get_episodes(imdb_id: str, season = None) -> EpisodesList:
     """Fetch episodes for a movie or series using the provided IMDb ID."""
     season = season if season is not None else 1
-    movieid = imdb_id.lstrip('tt')
+    movies_id = imdb_id.lstrip('tt')
 
-    url = f"https://www.imdb.com/title/tt{movieid}/episodes/?season={season}"
+    url = f"https://www.imdb.com/title/tt{movies_id}/episodes/?season={season}"
     logger.info("Fetching episodes for movie %s", imdb_id)
     resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
     if resp.status_code != 200:
