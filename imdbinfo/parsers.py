@@ -212,8 +212,6 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             series_imdbId= pjmespatch("props.pageProps.mainColumnData.series.series.id", raw_json),
             series_title= pjmespatch("props.pageProps.mainColumnData.series.series.originalTitleText.text", raw_json),
             series_title_localized= pjmespatch("props.pageProps.mainColumnData.series.series.titleText.text", raw_json),
-            next_episode_imdbId= pjmespatch("props.pageProps.mainColumnData.series.nextEpisode.id", raw_json),
-            previous_episode_imdbId= pjmespatch("props.pageProps.mainColumnData.series.previousEpisode.id", raw_json),
         )
         logger.info("Parsed episode %s", data["imdbId"])
     movie = MovieDetail.model_validate(data)
