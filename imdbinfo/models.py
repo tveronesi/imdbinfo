@@ -283,4 +283,18 @@ class EpisodeInfo(BaseModel):
         return f"{self.series_title} - {season_str}{episode_str} ({self.series_imdbId})"
 
 
+class Episode(BaseModel):
+    pass
 
+
+class EpisodesList(BaseModel):
+    """
+    EpisodesList model for a list of episodes.
+    This model contains a list of EpisodeInfo objects representing the episodes of a series.
+    It can be used to represent the episodes of a series in a specific season.
+    """
+    episodes: List[Episode] = []
+
+
+    def __str__(self):
+        return f"Total Episodes: {len(self.episodes)}"
