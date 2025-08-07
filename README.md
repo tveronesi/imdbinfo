@@ -43,20 +43,53 @@ for movie in results.titles:
 movie = get_movie("0133093") # or 'tt0133093'
 print(movie.title, movie.year, movie.rating)
 
+# Get movie kind:
+print(movie.kind) # movie, tvSeries, tvMiniSeries, tvEpisode, video
+print(movie.is_series()) # False
+
 # Get person details
 person = get_name("nm0000206")# or '0000206' 
 print(person.name, person.birth_date)
+```
+#### Working with Series and Episodes
 
-# Get a TV series with seasons and episodes
-tv_series = get_movie("tt0944947")  # Game of Thrones
-print(tv_series.title, tv_series.info_series)
-game_of_thrones_episodes = get_episodes(tv_series.imdb_id)
-for episode in game_of_thrones_episodes:
-    print(f"{episode.season}x{episode.episode} - {episode.title} ({episode.year})")
+The `movie` object provides helpful methods to identify its type:
 
-# get a single episode as a Movie object
-episode = get_movie("tt1480055")
-print(f"Episode:{episode.info_episode}")
+- `movie.is_series()` — Returns `True` if the movie is a series.
+- `movie.is_episode()` — Returns `True` if the movie is an episode.
+
+Depending on the type, you can access additional information:
+
+- For series: use `movie.info_series` to get series details.
+- For episodes: use `movie.info_episode` to get episode details.
+
+#### Example: Working with Series and Episodes
+
+```python
+from imdbinfo.services import get_movie, get_episodes
+
+# Fetch a TV series as a Movie object
+game_of_thrones = get_movie("tt0944947")  # Game of Thrones
+
+# Check if the object is a series
+print(game_of_thrones.is_series())  # True
+
+# Access series-specific information
+print(f"Series Info: {game_of_thrones.info_series}")
+
+# Retrieve all episodes for the series
+game_of_thrones_episodes = get_episodes(game_of_thrones.imdb_id)
+
+# Print details for the first 3 episodes
+for episode_info in game_of_thrones_episodes[:3]:
+    print(episode_info)
+
+# Fetch a single episode as a Movie object and check its type
+episode_detail = get_movie(episode_info.imdb_id)
+print("Is Episode:", episode_detail.is_episode())  # True
+
+# Access episode-specific information: series imdbid, season and episode number ...
+print(f"Episode Info: {episode_detail.info_episode}")
 ```
 
 For more examples see the [examples](examples/) folder.
