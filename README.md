@@ -69,19 +69,19 @@ Depending on the type, you can access additional information:
 from imdbinfo.services import get_movie, get_episodes
 
 # Fetch a TV series as a Movie object
-game_of_thrones = get_movie("tt0944947")  # Game of Thrones
+walking_dead_serie = get_movie("tt1520211")  # Walking Dead
 
 # Check if the object is a series
-print(game_of_thrones.is_series())  # True
+print(walking_dead_serie.is_series())  # True
 
 # Access series-specific information
-print(f"Series Info: {game_of_thrones.info_series}")
+print(f"Series Info: {walking_dead_serie.info_series}")
 
 # Retrieve all episodes for the series
-game_of_thrones_episodes = get_episodes(game_of_thrones.imdb_id)
+walking_dead_episodes = get_episodes(walking_dead_serie.imdb_id)
 
 # Print details for the first 3 episodes
-for episode_info in game_of_thrones_episodes[:3]:
+for episode_info in walking_dead_episodes[:3]:
     print(episode_info)
 
 # Fetch a single episode as a Movie object and check its type
