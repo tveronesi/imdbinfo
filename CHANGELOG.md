@@ -58,3 +58,12 @@
 - Added the `jekyll-theme-cayman` theme for documentation in `docs/_config.yml`.
 - Updated `pyproject.toml` with the package homepage URL.
 - Added a step in the GitHub Actions workflow (`pypi-publish.yml`) to install dependencies before running tests.
+
+## v0.4.0
+- Added `SeriesMixin` with `is_series()` and `is_episode()` methods to `MovieDetail` and `MovieInfo` for movie kind checking.
+- Introduced `SeriesInfo` and `EpisodeInfo` models for structured series and episode metadata.
+- Added new `EpisodeData` and `EpisodesList` models to represent episodes and collections of episodes.
+- Expanded the README and main documentation to highlight support for series, miniseries, and episodes, with new sections and code examples.
+- Updated and added example scripts (`usage_example.py`, `usage_example_episodes.py`, `all_usage_example.py`) to demonstrate searching, fetching, and displaying information for movies, series, and episodes.
+- Enhanced feature lists in documentation to enumerate new capabilities such as series and episode support, release dates, and international titles.
+- Added user guidance for the new features and pointers to related projects for REST API access.
