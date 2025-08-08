@@ -48,7 +48,7 @@ That’s all you need.
 Here's how you can use it in a Python script:
 
 ```python
-from imdbinfo.services import search_title, get_movie, get_name, get_episodes
+from imdbinfo.services import search_title, get_movie, get_name, get_season_episodes
 
 # 🔍 Search for a title
 results = search_title("The Matrix")
@@ -67,7 +67,7 @@ print(person.name, person.birth_date)
 series = get_movie("tt1520211")  # Walking Dead
 if series.is_series():
     print(f"Series Info: {series.info_series}")
-    episodes = get_episodes(series.imdb_id, season=1)
+    episodes = get_season_episodes(series.imdb_id, season=1)
     for episode in episodes[:3]:
         print(episode)
     # Details for a single episode

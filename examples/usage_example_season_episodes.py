@@ -24,7 +24,7 @@ for series_id in series_ids:
     seasons.reverse()
     for season_number in seasons:
         season_list = get_episodes(series_id, season_number)
-        print(f"Total Episodes in Season {season_number}: {len(season_list)}")
+        print(f"\nTotal Episodes in Season {season_number}: {len(season_list)}")
         for episode in season_list.episodes:
             print(f"{episode}")
     print("\n" + "="*50 + "\n")

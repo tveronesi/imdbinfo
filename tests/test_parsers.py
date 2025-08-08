@@ -29,7 +29,7 @@ def test_parse_json_movie():
     assert "AU" in movie.country_codes
     assert movie.cover_url.startswith("https://m.media-amazon.com/images/")
     assert movie.url == "https://www.imdb.com/title/tt0133093/"
-    assert movie.release_date == "1999-3-31"
+    assert movie.release_date == "1999-03-31"
 
     # Directors
     assert len(movie.directors) == 2
