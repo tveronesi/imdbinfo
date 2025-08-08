@@ -287,8 +287,7 @@ class PersonDetail(BaseModel):
 
 
 
-
-class EpisodeData(BaseModel):
+class SeasonEpisode(BaseModel):
     id: str  # id without 'tt' prefix, e.g. '1234567'
     imdbId: str
     imdb_id: str
@@ -304,7 +303,7 @@ class EpisodeData(BaseModel):
     kind: Optional[str] = None
 
     @classmethod
-    def from_episode_data(cls, data: dict) -> 'EpisodeData':
+    def from_episode_data(cls, data: dict) -> 'SeasonEpisode':
         """
         Create an EpisodeData instance from episode data dictionary.
         """
@@ -326,8 +325,29 @@ class EpisodeData(BaseModel):
             kind=data.get('type'),
 
         )
+
+
+    def __str__(self):
+        return f"{self.title} (S{self.season:02d}E{self.episode:02d}) - {self.imdbId} ({self.year or 'N/A'}) - {self.kind or 'N/A'}"
+
+
+class BulkedEpisode(BaseModel):
+    id: str  # id without 'tt' prefix, e.g. '1234567'
+    imdbId: str
+    imdb_id: str
+    title: str
+    plot: str
+    cover_url: Optional[str] = None
+    rating: Optional[float] = None
+    votes: Optional[int] = None
+    year: Optional[int] = None
+    release_date: Optional[str] = None
+    kind: Optional[str] = None
+    genres: Optional[List[str]] = None
+    duration: Optional[int] = None  # Duration in seconds
+
     @classmethod
-    def from_bulked_episode_data(cls, data: dict) -> 'EpisodeData':
+    def from_bulked_episode_data(cls, data: dict) -> 'BulkedEpisode':
         """
         Create an EpisodeData instance from bulked episode data dictionary.
         This is used when fetching episodes in bulk from a series.
@@ -337,29 +357,28 @@ class EpisodeData(BaseModel):
             imdbId=data['titleId'],
             imdb_id=data['titleId'].replace('tt', ''),
             title=data['titleText'],
-            season=data['season'],
-            episode=data['episode'],
+            genres= data.get('genres') or [],
             plot=data.get('plot',''),
-            cover_url=data.get('image', {}).get('url', None),
-            rating=data.get('aggregateRating', None),
-            votes=data.get('voteCount', None),
+            cover_url=data.get('primaryImage', {}).get('url', None),
+            rating=data.get('ratingSummary', {}).get('aggregateRating', None),
+            votes=data.get('ratingSummary', {}).get('voteCount', None),
             year=data.get('releaseYear', None),
             release_date=datetime.date(
                     data['releaseDate'].get('year', 1),
                     data['releaseDate'].get('month', 1),
                     data['releaseDate'].get('day', 1)
                 ).strftime('%Y-%m-%d') if data.get('releaseDate') else None,
-            kind=data.get('type'),
+            kind=data.get('titleType',{}).get('id', None),
+            duration=data.get('runtime'),
 
         )
 
     def __str__(self):
-        return f"{self.title} (S{self.season:02d}E{self.episode:02d}) - {self.imdbId} ({self.year or 'N/A'}) - {self.kind or 'N/A'}"
+        return f"{self.title} ({self.release_date or 'N/A'}) - {self.imdbId} ({self.kind or 'N/A'})"
 
 
 
-
-class EpisodesList(BaseModel):
+class SeasonEpisodesList(BaseModel):
     """
     EpisodesList model for a list of episodes.
     This model contains a list of EpisodeInfo objects representing the episodes of a series.
@@ -369,7 +388,7 @@ class EpisodesList(BaseModel):
     total_series_episodes  : Optional[int] = None  # Total number of episodes in the series
     total_series_seasons : Optional[int] = None  # Total number of seasons in the series
     top_ten_episodes : Optional[List[dict]]  = None # List of top ten episodes based on rating
-    episodes: List[EpisodeData] = []
+    episodes: List[SeasonEpisode] = []
 
     @property
     def count(self)-> int:

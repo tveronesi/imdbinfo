@@ -4,7 +4,7 @@ import logging
 import jmespath
 
 from .models import MovieDetail, Person, MovieInfo, SearchResult, CastMember, PersonDetail, SeriesInfo, EpisodeInfo, \
-    EpisodeData, EpisodesList
+    SeasonEpisode, SeasonEpisodesList, BulkedEpisode
 
 VIDEO_URL = "https://www.imdb.com/video/"
 TITLE_URL = "https://www.imdb.com/title/"
@@ -291,7 +291,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
     return person
 
 
-def parse_json_season_episodes(raw_json) -> EpisodesList:
+def parse_json_season_episodes(raw_json) -> SeasonEpisodesList:
 
     top_rated_episode = pjmespatch("props.pageProps.contentData.data.title.episodes.topRated.edges[0].node.ratingsSummary.aggregateRating",raw_json)
     total_series_episodes = pjmespatch("props.pageProps.contentData.data.title.episodes.totalEpisodes.total", raw_json)
@@ -300,9 +300,9 @@ def parse_json_season_episodes(raw_json) -> EpisodesList:
     logger.debug("Parsing episodes JSON")
     season_episodes = []
     for episode_data in pjmespatch("props.pageProps.contentData.section.episodes.items", raw_json):
-        season_episodes.append(EpisodeData.from_episode_data(episode_data))
+        season_episodes.append(SeasonEpisode.from_episode_data(episode_data))
 
-    episodes_list_object = EpisodesList(
+    episodes_list_object = SeasonEpisodesList(
         top_rating_episode=top_rated_episode,
         total_series_episodes=total_series_episodes,
         total_series_seasons=total_series_seasons,
@@ -311,8 +311,8 @@ def parse_json_season_episodes(raw_json) -> EpisodesList:
     )
     return episodes_list_object
 
-def parse_json_bulk_episodes(raw_json):
+def parse_json_bulked_episodes(raw_json) -> List[BulkedEpisode]:
     all_episodes = []
     for episode_data in pjmespatch("props.pageProps.searchResults.titleResults.titleListItems", raw_json):
-        all_episodes.append(EpisodeData.from_bulked_episode_data(episode_data))
+        all_episodes.append(BulkedEpisode.from_bulked_episode_data(episode_data))
     return all_episodes
