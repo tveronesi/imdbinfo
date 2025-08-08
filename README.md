@@ -99,8 +99,12 @@ from imdbinfo.services import get_all_episodes
 # Fetch all episodes for a series
 all_episodes = get_all_episodes("tt1520211")  # Walking Dead
 for episode in all_episodes:
-    print(f"{episode}")
-    print(episode.cover_url)
+    print(f"Title: {episode.title} - ({episode.imdbId})")
+    print(f"Plot: {episode.plot[:100]}...")
+    print(f"Release Date: {episode.release_date}")
+    print(f"Rating: {episode.rating}")
+    print(f"Duration: {episode.duration/60}min")
+    print("" + "="*50)
 ```
 
 📝 For more examples see the [examples](examples/) folder.
