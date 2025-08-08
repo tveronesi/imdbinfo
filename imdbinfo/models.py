@@ -3,6 +3,8 @@ from typing import Optional, List, Dict, Tuple, Union
 from pydantic import BaseModel, field_validator
 import logging
 
+from imdbinfo.transformers import _release_date
+
 logger = logging.getLogger(__name__)
 
 class SeriesMixin:
@@ -295,7 +297,7 @@ class SeasonEpisode(BaseModel):
     season: int
     episode: int
     plot: str
-    cover_url: Optional[str] = None
+    image_url: Optional[str] = None
     rating: Optional[float] = None
     votes: Optional[int] = None
     year: Optional[int] = None
@@ -315,13 +317,11 @@ class SeasonEpisode(BaseModel):
             season=data['season'],
             episode=data['episode'],
             plot=data.get('plot',''),
-            cover_url=data.get('image', {}).get('url', None),
+            image_url=data.get('image', {}).get('url', None),
             rating=data.get('aggregateRating', None),
             votes=data.get('voteCount', None),
             year=data.get('releaseYear', None),
-            release_date="-".join(
-                str(data['releaseDate'].get(k, '')).zfill(2) for k in ['year', 'month', 'day']) if data.get(
-                'releaseDate') else None,
+            release_date=_release_date(data['releaseDate']),
             kind=data.get('type'),
 
         )
@@ -337,7 +337,7 @@ class BulkedEpisode(BaseModel):
     imdb_id: str
     title: str
     plot: str
-    cover_url: Optional[str] = None
+    image_url: Optional[str] = None
     rating: Optional[float] = None
     votes: Optional[int] = None
     year: Optional[int] = None
@@ -359,15 +359,11 @@ class BulkedEpisode(BaseModel):
             title=data['titleText'],
             genres= data.get('genres') or [],
             plot=data.get('plot',''),
-            cover_url=data.get('primaryImage', {}).get('url', None),
+            image_url=data.get('primaryImage', {}).get('url', None),
             rating=data.get('ratingSummary', {}).get('aggregateRating', None),
             votes=data.get('ratingSummary', {}).get('voteCount', None),
             year=data.get('releaseYear', None),
-            release_date=datetime.date(
-                    data['releaseDate'].get('year', 1),
-                    data['releaseDate'].get('month', 1),
-                    data['releaseDate'].get('day', 1)
-                ).strftime('%Y-%m-%d') if data.get('releaseDate') else None,
+            release_date=_release_date(data['releaseDate']),
             kind=data.get('titleType',{}).get('id', None),
             duration=data.get('runtime'),
 
