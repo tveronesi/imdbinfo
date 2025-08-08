@@ -1,3 +1,4 @@
+import datetime
 from typing import Optional, List, Dict, Tuple, Union
 from pydantic import BaseModel, field_validator
 import logging
@@ -322,6 +323,32 @@ class EpisodeData(BaseModel):
             release_date="-".join(
                 str(data['releaseDate'].get(k, '')).zfill(2) for k in ['year', 'month', 'day']) if data.get(
                 'releaseDate') else None,
+            kind=data.get('type'),
+
+        )
+    @classmethod
+    def from_bulked_episode_data(cls, data: dict) -> 'EpisodeData':
+        """
+        Create an EpisodeData instance from bulked episode data dictionary.
+        This is used when fetching episodes in bulk from a series.
+        """
+        return cls(
+            id=data['titleId'].replace('tt', ''),
+            imdbId=data['titleId'],
+            imdb_id=data['titleId'].replace('tt', ''),
+            title=data['titleText'],
+            season=data['season'],
+            episode=data['episode'],
+            plot=data.get('plot',''),
+            cover_url=data.get('image', {}).get('url', None),
+            rating=data.get('aggregateRating', None),
+            votes=data.get('voteCount', None),
+            year=data.get('releaseYear', None),
+            release_date=datetime.date(
+                    data['releaseDate'].get('year', 1),
+                    data['releaseDate'].get('month', 1),
+                    data['releaseDate'].get('day', 1)
+                ).strftime('%Y-%m-%d') if data.get('releaseDate') else None,
             kind=data.get('type'),
 
         )

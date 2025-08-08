@@ -119,6 +119,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data["metacritic_rating"] = pjmespatch("props.pageProps.mainColumnData.metacritic.metascore.score", raw_json)
     data["cover_url"] = pjmespatch("props.pageProps.aboveTheFoldData.primaryImage.url", raw_json)
     data["plot"] = pjmespatch("props.pageProps.mainColumnData.plot.plotText.plainText", raw_json)
+    # TODO release_date format with datetime...
     data["release_date"] = pjmespatch(
         "props.pageProps.mainColumnData.releaseDate.[year,month,day]", raw_json, _join, separator="-"
     )
@@ -290,7 +291,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
     return person
 
 
-def parse_json_episodes(raw_json) -> EpisodesList:
+def parse_json_season_episodes(raw_json) -> EpisodesList:
 
     top_rated_episode = pjmespatch("props.pageProps.contentData.data.title.episodes.topRated.edges[0].node.ratingsSummary.aggregateRating",raw_json)
     total_series_episodes = pjmespatch("props.pageProps.contentData.data.title.episodes.totalEpisodes.total", raw_json)
@@ -309,3 +310,9 @@ def parse_json_episodes(raw_json) -> EpisodesList:
         episodes=season_episodes
     )
     return episodes_list_object
+
+def parse_json_bulk_episodes(raw_json):
+    all_episodes = []
+    for episode_data in pjmespatch("props.pageProps.searchResults.titleResults.titleListItems", raw_json):
+        all_episodes.append(EpisodeData.from_bulked_episode_data(episode_data))
+    return all_episodes
