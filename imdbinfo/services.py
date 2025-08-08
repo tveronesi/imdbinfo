@@ -5,9 +5,9 @@ import requests
 import json
 from lxml import html
 
-from .models import SearchResult, MovieDetail, EpisodesList, PersonDetail
+from .models import SearchResult, MovieDetail, SeasonEpisodesList, PersonDetail
 from .parsers import parse_json_movie, parse_json_search, parse_json_person_detail, parse_json_season_episodes, \
-    parse_json_bulk_episodes
+    parse_json_bulked_episodes
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ def get_name(person_id: str) -> Optional[PersonDetail]:
     logger.debug("Parsed person %s in %.2f seconds", person_id, t1 - t0)
     return person
 
-def get_season_episodes(imdb_id: str, season = 1) -> EpisodesList:
+def get_season_episodes(imdb_id: str, season = 1) -> SeasonEpisodesList:
     """Fetch episodes for a movie or series using the provided IMDb ID."""
     movies_id = imdb_id.lstrip('tt')
 
@@ -100,7 +100,7 @@ def get_season_episodes(imdb_id: str, season = 1) -> EpisodesList:
     logger.debug("Fetched %d episodes for movie %s", len(episodes.episodes), imdb_id)
     return episodes
 
-def get_bulk_episodes(imdb_id:str):
+def get_all_episodes(imdb_id:str):
     series_id = imdb_id.lstrip('tt')
     url = f"https://www.imdb.com/search/title/?count=250&series=tt{series_id}&sort=release_date,asc"
     logger.info("Fetching bulk episodes for series %s", imdb_id)
@@ -114,6 +114,13 @@ def get_bulk_episodes(imdb_id:str):
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
     raw_json = json.loads(script[0])
-    episodes = parse_json_bulk_episodes(raw_json)
-    logger.debug("Fetched %d episodes for series %s", len(episodes.episodes), imdb_id)
+    episodes = parse_json_bulked_episodes(raw_json)
+    logger.debug("Fetched %d episodes for series %s", len(episodes), imdb_id)
     return episodes
+
+
+def get_episodes(imdb_id: str, season = 1) -> SeasonEpisodesList:
+    """ wrap until deprecation : use get_season_episodes instead for sesons
+        or get_all_episodes for all episodes
+    """
+    return get_season_episodes(imdb_id, season)
