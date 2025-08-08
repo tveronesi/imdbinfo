@@ -77,10 +77,10 @@ print(walking_dead_serie.is_series())  # True
 # Access series-specific information
 print(f"Series Info: {walking_dead_serie.info_series}")
 
-# Retrieve all episodes for the series
-walking_dead_episodes = get_season_episodes(walking_dead_serie.imdb_id)
+# Retrieve episodes for the series season 1
+walking_dead_episodes = get_season_episodes(walking_dead_serie.imdb_id, season=1)
 
-# Print details for the first 3 episodes
+# Print details for the first 3 episodes from the season 1
 for episode_info in walking_dead_episodes[:3]:
     print(episode_info)
 
@@ -92,7 +92,18 @@ print("Is Episode:", episode_detail.is_episode())  # True
 print(f"Episode Info: {episode_detail.info_episode}")
 ```
 
-For more examples see the [examples](examples/) folder.
+#### ⭐⭐New: All episodes in a series⭐⭐ 
+You can now retrieve all episodes in a series with a single call:
+```python
+from imdbinfo.services import get_all_episodes
+# Fetch all episodes for a series
+all_episodes = get_all_episodes("tt1520211")  # Walking Dead
+for episode in all_episodes:
+    print(f"{episode}")
+    print(episode.cover_url)
+```
+
+📝 For more examples see the [examples](examples/) folder.
 
 > 💡 **Looking for a ready-to-use API based on this package? Check out [qdMovieAPI](https://github.com/tveronesi/qdMovieAPI) — a fast and simple way to access IMDb data via REST!**
 
