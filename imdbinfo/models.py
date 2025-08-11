@@ -307,7 +307,7 @@ class SeasonEpisode(BaseModel):
     @classmethod
     def from_episode_data(cls, data: dict) -> 'SeasonEpisode':
         """
-        Create an EpisodeData instance from episode data dictionary.
+        Create a SeasonEpisode instance from episode data dictionary.
         """
         return cls(
             id=data['id'].replace('tt', ''),
