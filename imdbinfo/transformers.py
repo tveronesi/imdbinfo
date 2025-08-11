@@ -1,13 +1,13 @@
 import datetime
 
 
-def _release_date(result):
+def _release_date(result: dict):
     """
     given a list of lists, convert it to a string with format 'YYYY-MM-DD'
     """
     if result is None:
         return None
-    return datetime.date(result.get('year', 1),result.get('month', 1),result.get('day', 1)).strftime('%Y-%m-%d')
+    return datetime.date(result.get('year') or 1,result.get('month') or 1,result.get('day') or 1).strftime('%Y-%m-%d')
 
 
 def _dict_votes_(result):
