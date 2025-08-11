@@ -5,7 +5,7 @@ series_ids = [
      'tt1520211',  # The Walking Dead
      'tt0944947',  # Game of Thrones
      'tt0903747',  # Breaking Bad
-    'tt1838556',  # a movie ... skip it
+     'tt1838556',  # a movie ... skip it
      'tt4574334',  # The Mandalorian
      'tt0071007'   # little house on the prairie
 ]
