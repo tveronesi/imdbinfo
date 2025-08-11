@@ -120,7 +120,7 @@ def get_all_episodes(imdb_id:str):
 
 
 def get_episodes(imdb_id: str, season = 1) -> SeasonEpisodesList:
-    """ wrap until deprecation : use get_season_episodes instead for sesons
+    """ wrap until deprecation : use get_season_episodes instead for seasons
         or get_all_episodes for all episodes
     """
     return get_season_episodes(imdb_id, season)
