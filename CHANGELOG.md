@@ -67,3 +67,8 @@
 - Updated and added example scripts (`usage_example.py`, `usage_example_episodes.py`, `all_usage_example.py`) to demonstrate searching, fetching, and displaying information for movies, series, and episodes.
 - Enhanced feature lists in documentation to enumerate new capabilities such as series and episode support, release dates, and international titles.
 - Added user guidance for the new features and pointers to related projects for REST API access.
+
+## v0.4.1
+- Added service `get_all_episodes` to fetch all episodes of a series, all in a row no season, no episode number. Sorted by release_date.
+- Updated README with example for fetching all episodes.
+- Added example script `usage_example_all_episodes.py` to demonstrate fetching all episodes of a series.
