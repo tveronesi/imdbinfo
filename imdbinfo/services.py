@@ -123,4 +123,5 @@ def get_episodes(imdb_id: str, season = 1) -> SeasonEpisodesList:
     """ wrap until deprecation : use get_season_episodes instead for seasons
         or get_all_episodes for all episodes
     """
+    logger.warning("get_episodes is deprecating, use get_season_episodes or get_all_episodes instead.")
     return get_season_episodes(imdb_id, season)
