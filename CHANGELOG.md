@@ -75,3 +75,6 @@
 
 ## v0.4.2
 - HOT FIX Refactor _release_date function to improve handling of None values
+
+## v0.4.3
+- Refactor movie-related models: SeriesInfo -> SeriesBriefInfo, EpisodeInfo EpisodeBriefInfo. added specialized classes for TvSeriesDetail / TvEpisodeDetail extending MovieDetail
