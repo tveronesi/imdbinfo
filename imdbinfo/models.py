@@ -22,7 +22,7 @@ class SeriesMixin:
         """
         return getattr(self, "kind", None) == "tvEpisode"
 
-class SeriesInfo(BaseModel):
+class SeriesBriefInfo(BaseModel):
     display_years : List[str] = []  # e.g. ['2013', '2014', '2015']
     display_seasons : List[str] = []  # e.g. ['1', '2', '3']
 
@@ -36,7 +36,7 @@ class SeriesInfo(BaseModel):
         return f"Years: {self.display_years[-1] if self.display_years else ''}-{self.display_years[0] if self.display_years else ''}, Seasons: {len(self.display_seasons)}"
 
 
-class EpisodeInfo(BaseModel):
+class EpisodeBriefInfo(BaseModel):
     season_n: Optional[int] = None
     episode_n: Optional[int] = None
     series_imdbId: Optional[str] = None
@@ -185,8 +185,7 @@ class MovieDetail(SeriesMixin, BaseModel):
     synopses: List[str] = []
     production: List[str] = []
     categories: Dict[str, List[Union[Person, CastMember]]] = {}
-    info_series : Optional[SeriesInfo] = None # e.g. SeriesInfo(display_years=['2013', '2014', '2015'], display_seasons=['1', '2', '3'])
-    info_episode : Optional[EpisodeInfo] = None # e.g. SeriesInfo(display_year
+
 
     @field_validator('languages', 'country_codes','genres', mode='before')
     def none_is_list(cls, value):
@@ -197,10 +196,15 @@ class MovieDetail(SeriesMixin, BaseModel):
     def __str__(self):
         return f"{self.title} ({self.year}) - {self.imdbId} ({self.kind})"
 
+class TvSeriesDetail(MovieDetail):
+    info_series: Optional[SeriesBriefInfo] = None  # e.g. SeriesInfo(display_years=['2013', '2014', '2015'], display_seasons=['1', '2', '3'])
 
-class MovieInfo(SeriesMixin, BaseModel):
+class TvEpisodeDetail(MovieDetail):
+    info_episode: Optional[EpisodeBriefInfo] = None  # e.g. SeriesInfo(display_year
+
+class MovieBriefInfo(SeriesMixin, BaseModel):
     """
-    MovieInfo model for search results and cast members.
+    MovieBriefInfo model for search results and cast members.
     This model is used to represent a movie in search results and cast members.
     It contains basic information about a movie such as title, id, imdb_id, imdbId, url, cover_url, year and kind.
     It can be used to represent a movie in search results or as part of a cast member's credits.
@@ -250,9 +254,9 @@ class SearchResult(BaseModel):
     SearchResult model for search results.
     This model contains the results of a search query, including a list of titles and names.
     It is used to represent the results of a search query for movies and people.
-    It includes a list of MovieInfo objects for titles and a list of Person objects for names.
+    It includes a list of MovieBriefInfo objects for titles and a list of Person objects for names.
     """
-    titles: List[MovieInfo] = []
+    titles: List[MovieBriefInfo] = []
     names: List[Person] = []
 
 
@@ -279,15 +283,12 @@ class PersonDetail(BaseModel):
     death_place: Optional[str] = None
     death_reason: Optional[str] = None
     jobs: List[str] = []
-    credits: Dict[str, List[MovieInfo]] = {}
-    unreleased_credits: Dict[str, List[MovieInfo]] = {}
+    credits: Dict[str, List[MovieBriefInfo]] = {}
+    unreleased_credits: Dict[str, List[MovieBriefInfo]] = {}
 
 
     def __str__(self):
         return f"{self.name} ({', '.join(self.knownfor)})"
-
-
-
 
 class SeasonEpisode(BaseModel):
     id: str  # id without 'tt' prefix, e.g. '1234567'

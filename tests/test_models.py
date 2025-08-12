@@ -1,4 +1,4 @@
-from imdbinfo.models import Person, CastMember, MovieInfo, MovieDetail
+from imdbinfo.models import Person, CastMember, MovieBriefInfo, MovieDetail
 
 
 def test_person_from_directors():
@@ -31,7 +31,7 @@ def test_movieinfo_from_movie_search():
         "titleReleaseText": "1999",
         "imageType": "movie",
     }
-    info = MovieInfo.from_movie_search(data)
+    info = MovieBriefInfo.from_movie_search(data)
     assert info.title == "The Matrix"
     assert info.imdb_id == "0133093"
     assert info.url == "https://www.imdb.com/title/tt0133093/"

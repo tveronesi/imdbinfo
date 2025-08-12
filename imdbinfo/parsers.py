@@ -3,8 +3,9 @@ import logging
 
 import jmespath
 
-from .models import MovieDetail, Person, MovieInfo, SearchResult, CastMember, PersonDetail, SeriesInfo, EpisodeInfo, \
-    SeasonEpisode, SeasonEpisodesList, BulkedEpisode
+from .models import MovieDetail, Person, MovieBriefInfo, SearchResult, CastMember, PersonDetail, SeriesBriefInfo, \
+    EpisodeBriefInfo, \
+    SeasonEpisode, SeasonEpisodesList, BulkedEpisode, TvSeriesDetail, TvEpisodeDetail
 from .transformers import _release_date, _dict_votes_, _none_to_string_in_list, _join, _certificates_to_dict
 
 VIDEO_URL = "https://www.imdb.com/video/"
@@ -43,7 +44,7 @@ def _parse_credits(result) -> dict:
 
         res.setdefault(category, [])
         res[category].append(
-            MovieInfo(
+            MovieBriefInfo(
                 id=imdbId.replace("tt", ""),
                 imdbId=imdbId,
                 imdb_id=imdbId.replace("tt", ""),
@@ -170,14 +171,15 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
 
     if movie_kind in ("tvSeries", "tvMiniSeries"):
         #data["info_series"] = SeriesInfo.from_episodes(pjmespatch("props.pageProps.mainColumnData.episodes", raw_json))
-        data["info_series"] = SeriesInfo(
+        data["info_series"] = SeriesBriefInfo(
             display_years= pjmespatch("props.pageProps.mainColumnData.episodes.displayableYears.edges[].node.year", raw_json),
             display_seasons= pjmespatch("props.pageProps.mainColumnData.episodes.displayableSeasons.edges[].node.season", raw_json)
         )
         logger.info("Parsed series %s", data["imdbId"])
+        movie = TvSeriesDetail.model_validate(data)
 
-    if movie_kind == "tvEpisode":
-        data["info_episode"] = EpisodeInfo (
+    elif movie_kind == "tvEpisode":
+        data["info_episode"] = EpisodeBriefInfo (
             season_n= pjmespatch("props.pageProps.mainColumnData.series.episodeNumber.seasonNumber", raw_json),
             episode_n= pjmespatch("props.pageProps.mainColumnData.series.episodeNumber.episodeNumber", raw_json),
             series_imdbId= pjmespatch("props.pageProps.mainColumnData.series.series.id", raw_json),
@@ -185,8 +187,10 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             series_title_localized= pjmespatch("props.pageProps.mainColumnData.series.series.titleText.text", raw_json),
         )
         logger.info("Parsed episode %s", data["imdbId"])
-    movie = MovieDetail.model_validate(data)
-    logger.info("Parsed movie %s", movie.imdbId)
+        movie = TvEpisodeDetail.model_validate(data)
+    else:
+        movie = MovieDetail.model_validate(data)
+        logger.info("Parsed movie %s", movie.imdbId)
 
     return movie
 
@@ -197,7 +201,7 @@ def parse_json_search(raw_json) -> SearchResult:
     for title_data in pjmespatch("props.pageProps.titleResults.results[]", raw_json):
         # if title_data.get('imageType','ND') != 'movie': # TODO only movies are supported for now
         #     continue
-        title.append(MovieInfo.from_movie_search(title_data))
+        title.append(MovieBriefInfo.from_movie_search(title_data))
     people = []
     for person_data in pjmespatch("props.pageProps.nameResults.results[]", raw_json):
         people.append(Person.from_search(person_data))
