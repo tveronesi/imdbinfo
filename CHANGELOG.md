@@ -72,3 +72,6 @@
 - Added service `get_all_episodes` to fetch all episodes of a series, all in a row no season, no episode number. Sorted by release_date.
 - Updated README with example for fetching all episodes.
 - Added example script `usage_example_all_episodes.py` to demonstrate fetching all episodes of a series.
+
+## v0.4.2
+- HOT FIX Refactor _release_date function to improve handling of None values
