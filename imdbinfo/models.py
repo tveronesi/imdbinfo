@@ -204,7 +204,7 @@ class TvEpisodeDetail(MovieDetail):
 
 class MovieBriefInfo(SeriesMixin, BaseModel):
     """
-    MovieInfo model for search results and cast members.
+    MovieBriefInfo model for search results and cast members.
     This model is used to represent a movie in search results and cast members.
     It contains basic information about a movie such as title, id, imdb_id, imdbId, url, cover_url, year and kind.
     It can be used to represent a movie in search results or as part of a cast member's credits.
@@ -254,7 +254,7 @@ class SearchResult(BaseModel):
     SearchResult model for search results.
     This model contains the results of a search query, including a list of titles and names.
     It is used to represent the results of a search query for movies and people.
-    It includes a list of MovieInfo objects for titles and a list of Person objects for names.
+    It includes a list of MovieBriefInfo objects for titles and a list of Person objects for names.
     """
     titles: List[MovieBriefInfo] = []
     names: List[Person] = []
