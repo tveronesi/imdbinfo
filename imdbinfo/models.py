@@ -22,7 +22,7 @@ class SeriesMixin:
         """
         return getattr(self, "kind", None) == "tvEpisode"
 
-class SeriesBriefInfo(BaseModel):
+class InfoSeries(BaseModel):
     display_years : List[str] = []  # e.g. ['2013', '2014', '2015']
     display_seasons : List[str] = []  # e.g. ['1', '2', '3']
 
@@ -36,7 +36,7 @@ class SeriesBriefInfo(BaseModel):
         return f"Years: {self.display_years[-1] if self.display_years else ''}-{self.display_years[0] if self.display_years else ''}, Seasons: {len(self.display_seasons)}"
 
 
-class EpisodeBriefInfo(BaseModel):
+class InfoEpisode(BaseModel):
     season_n: Optional[int] = None
     episode_n: Optional[int] = None
     series_imdbId: Optional[str] = None
@@ -197,10 +197,10 @@ class MovieDetail(SeriesMixin, BaseModel):
         return f"{self.title} ({self.year}) - {self.imdbId} ({self.kind})"
 
 class TvSeriesDetail(MovieDetail):
-    info_series: Optional[SeriesBriefInfo] = None  # e.g. SeriesInfo(display_years=['2013', '2014', '2015'], display_seasons=['1', '2', '3'])
+    info_series: Optional[InfoSeries] = None  # e.g. SeriesInfo(display_years=['2013', '2014', '2015'], display_seasons=['1', '2', '3'])
 
 class TvEpisodeDetail(MovieDetail):
-    info_episode: Optional[EpisodeBriefInfo] = None  # e.g. SeriesInfo(display_year
+    info_episode: Optional[InfoEpisode] = None  # e.g. SeriesInfo(display_year
 
 class MovieBriefInfo(SeriesMixin, BaseModel):
     """
