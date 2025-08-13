@@ -99,6 +99,27 @@ def test_parse_json_search():
     assert hasattr(result, "titles")
     assert hasattr(result, "names")
 
+    # test title  0
+    assert len(result.titles) > 0
+    first_title = result.titles[0]
+    assert first_title.cover_url.startswith("https://m.media-amazon.com/images/")
+    assert first_title.id == "0133093"
+    assert first_title.imdbId == "tt0133093"
+    assert first_title.imdb_id == "0133093"
+    assert first_title.kind == "movie"
+    assert first_title.title == "The Matrix"
+    assert first_title.url == "https://www.imdb.com/title/tt0133093/"
+    assert first_title.year == 1999
+
+    # test name 0
+    assert len(result.names) > 0
+    first_name = result.names[0]
+    assert first_name.id == "4210667"
+    assert first_name.imdbId == "nm4210667"
+    assert first_name.imdb_id == "4210667"
+    assert first_name.job == "Soundtrack"
+    assert first_name.name == "The Matrix"
+    assert first_name.url == "https://www.imdb.com/name/nm4210667"
 
 def test_parse_json_person_detail():
     raw_json = load_sample("sample_person.json")
@@ -106,5 +127,3 @@ def test_parse_json_person_detail():
     assert person is not None
     assert person.name == "Kevin Costner"
     assert "The Postman" in person.knownfor
-
-
