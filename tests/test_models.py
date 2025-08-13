@@ -1,4 +1,6 @@
 from imdbinfo.models import Person, CastMember, MovieBriefInfo, MovieDetail
+from imdbinfo.models import SeriesMixin
+from imdbinfo.models import InfoSeries, InfoEpisode
 
 
 def test_person_from_directors():
@@ -51,3 +53,35 @@ def test_movie_detail_validator_lists():
     assert movie.languages == []
     assert movie.genres == []
     assert movie.country_codes == []
+
+
+def test_series_mixin_is_series_and_is_episode():
+    class Dummy(SeriesMixin):
+        def __init__(self, kind):
+            self.kind = kind
+
+    assert Dummy('tvSeries').is_series() is True
+    assert Dummy('tvMiniSeries').is_series() is True
+    assert Dummy('podcastSeries').is_series() is True
+    assert Dummy('movie').is_series() is False
+    assert Dummy('tvEpisode').is_episode() is True
+    assert Dummy('podcastEpisode').is_episode() is True
+    assert Dummy('movie').is_episode() is False
+
+
+def test_info_series_filter_years_and_str():
+    # Test validazione anni
+    s = InfoSeries(display_years=['2013', '2014', 'abcd', '1999'], display_seasons=['1', '2'])
+    assert s.display_years == ['2013', '2014', '1999']
+    # Test stringa
+    s2 = InfoSeries(display_years=['2013', '2014', '2015'], display_seasons=['1', '2', '3'])
+    assert str(s2) == 'Years: 2015-2013, Seasons: 3'
+    s3 = InfoSeries(display_years=[], display_seasons=[])
+    assert str(s3) == 'Years: -, Seasons: 0'
+
+
+def test_info_episode_str():
+    e = InfoEpisode(season_n=1, episode_n=2, series_imdbId='tt123', series_title='Serie', series_title_localized=None)
+    assert str(e) == 'Serie - S01E02 (tt123)'
+    e2 = InfoEpisode(season_n=None, episode_n=None, series_imdbId='tt999', series_title='Titolo', series_title_localized=None)
+    assert str(e2) == 'Titolo - S??E?? (tt999)'
