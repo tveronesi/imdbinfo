@@ -5,7 +5,8 @@ import jmespath
 
 from .models import MovieDetail, Person, MovieBriefInfo, SearchResult, CastMember, PersonDetail, InfoSeries, \
     InfoEpisode, \
-    SeasonEpisode, SeasonEpisodesList, BulkedEpisode, TvSeriesDetail, TvEpisodeDetail
+    SeasonEpisode, SeasonEpisodesList, BulkedEpisode, TvSeriesDetail, TvEpisodeDetail, SERIES_IDENTIFIERS, \
+    EPISODE_IDENTIFIERS
 from .transformers import _release_date, _dict_votes_, _none_to_string_in_list, _join, _certificates_to_dict
 
 VIDEO_URL = "https://www.imdb.com/video/"
@@ -168,8 +169,8 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             data["categories"][category["id"]].append(person)
 
     # If Series/Episode kind
-
-    if movie_kind in ("tvSeries", "tvMiniSeries"):
+    # tvMovie,short,movie,tvEpisode,tvMiniseries,tvSpecial,tvShort,videoGame,video,musicVideo,podcastEpisode,podcastSeries
+    if movie_kind in SERIES_IDENTIFIERS:
         #data["info_series"] = SeriesInfo.from_episodes(pjmespatch("props.pageProps.mainColumnData.episodes", raw_json))
         data["info_series"] = InfoSeries(
             display_years= pjmespatch("props.pageProps.mainColumnData.episodes.displayableYears.edges[].node.year", raw_json),
@@ -178,7 +179,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         logger.info("Parsed series %s", data["imdbId"])
         movie = TvSeriesDetail.model_validate(data)
 
-    elif movie_kind == "tvEpisode":
+    elif movie_kind in EPISODE_IDENTIFIERS:
         data["info_episode"] = InfoEpisode (
             season_n= pjmespatch("props.pageProps.mainColumnData.series.episodeNumber.seasonNumber", raw_json),
             episode_n= pjmespatch("props.pageProps.mainColumnData.series.episodeNumber.episodeNumber", raw_json),
