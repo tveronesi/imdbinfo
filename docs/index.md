@@ -1,10 +1,15 @@
-# 🎬 imdbinfo – A Simple Python Tool to Fetch IMDb Movie & Actor Data (No API Keys Needed)
+# 🎬 imdbinfo – A Simple Python Tool to Fetch IMDb 
+### Movie Series Episodes & Actor Data (No API Keys Needed)
+
+[![PyPI Downloads](https://static.pepy.tech/badge/imdbinfo)](https://pepy.tech/projects/imdbinfo) 
+[![Build Status](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml/badge.svg)](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml)
+[![Python Versions](https://img.shields.io/pypi/pyversions/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
 
 Have you ever needed to grab movie or actor details from IMDb, but didn’t want to deal with complicated APIs or authentication keys?
 
 That’s exactly why I built [`imdbinfo`](https://github.com/tveronesi/imdbinfo) — a lightweight, easy-to-use Python package to search and fetch structured IMDb data, **with no API keys required**.
 
-[![PyPI Downloads](https://static.pepy.tech/badge/imdbinfo)](https://pepy.tech/projects/imdbinfo)
+
 
 ---
 
@@ -12,12 +17,19 @@ That’s exactly why I built [`imdbinfo`](https://github.com/tveronesi/imdbinfo)
 
 **imdbinfo** is your personal gateway to IMDb data. It lets you:
 
-- 🔍 Search for movies and people by name/title  
-- 🎬 Retrieve detailed movie info (year, rating, cast, etc.)  
-- 👥 Get full person info like biography, birth date, and filmography  
-- 🧩 Work with structured Pydantic models for predictable parsing  
+- 🔍 **Search movies,series, miniseries and people** by name or title
+- 🎬 **Detailed movie info** including cast, crew, ratings and more
+- 👥 **Detailed person info** with biography, filmography and images
+- 📺 **TV series and miniseries** support with seasons and episodes
+- 📅 **Release dates** and **box office** information
+- 🌍 **International titles** and **alternate titles**
+- 📸 **Poster images** and **backdrops**
+- 📊 **Ratings** from IMDb and other sources
+- 🗂️ **Full filmography** for actors, directors and writers
+- 📝 **Typed Pydantic models** for predictable responses
+- ✅ **No API keys required**
 
-No scraping mess. No API credentials. Just clean, simple data for your projects.
+_No complicated scraping. No API credentials. Just clean, reliable data for your projects—ready to use in seconds._
 
 ---
 
@@ -36,7 +48,7 @@ That’s all you need.
 Here's how you can use it in a Python script:
 
 ```python
-from imdbinfo.services import search_title, get_movie, get_name
+from imdbinfo.services import search_title, get_movie, get_name, get_season_episodes
 
 # 🔍 Search for a title
 results = search_title("The Matrix")
@@ -50,6 +62,18 @@ print(movie.title, movie.year, movie.rating)
 # 👤 Get person details
 person = get_name("nm0000206")  # or '0000206'
 print(person.name, person.birth_date)
+
+# 📺 Working with series and episodes
+series = get_movie("tt1520211")  # Walking Dead
+if series.is_series():
+    print(f"Series Info: {series.info_series}")
+    episodes = get_season_episodes(series.imdb_id, season=1)
+    for episode in episodes[:3]:
+        print(episode)
+    # Details for a single episode
+    episode_detail = get_movie(episodes[0].imdb_id)
+    print("Is Episode:", episode_detail.is_episode())
+    print(f"Episode Info: {episode_detail.info_episode}")
 ```
 
 More usage examples can be found in the [examples folder](https://github.com/tveronesi/imdbinfo/tree/main/examples).
@@ -65,6 +89,8 @@ More usage examples can be found in the [examples folder](https://github.com/tve
 - 🪶 Lightweight and dependency-minimal  
 
 Whether you're building a movie catalog, a Telegram bot, or just scraping your favorite actors' filmographies — `imdbinfo` is built to be intuitive and developer-friendly.
+
+And if you want a REST API based on this package, check out [qdMovieAPI](https://github.com/tveronesi/qdMovieAPI) — a fast and simple way to access IMDb data via REST!
 
 ---
 
