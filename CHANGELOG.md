@@ -77,7 +77,6 @@
 - HOT FIX Refactor _release_date function to improve handling of None values
 
 ## v0.4.3
-- Refactor movie-related models: `SeriesInfo` -> `SeriesBriefInfo`, `EpisodeInfo` `EpisodeBriefInfo`. added specialized classes for `TvSeriesDetail` / `TvEpisodeDetail` extending `MovieDetail`
+- Refactor movie-related models: `SeriesInfo` -> `InfoSeries`, `EpisodeInfo` `InfoEpisode`. added specialized classes for `TvSeriesDetail` / `TvEpisodeDetail` extending `MovieDetail`
 - Deprecate `get_episodes` function and add warning log for alternative usage
-- Rename SeriesBriefInfo to InfoSeries and EpisodeBriefInfo to InfoEpisode for consistency
-- Update movie kind identifiers in usage_example.py and models.py for better clarity and consistency, now handling :  tvMovie,short,movie,tvEpisode,tvMiniseries,tvSpecial,tvShort,videoGame,video,musicVideo,podcastEpisode,podcastSeries
+- Update movie kind identifiers in usage_example.py and models.py for better clarity and consistency, now handling all: tvMovie, short, movie, tvEpisode, tvMiniseries, tvSpecial, tvShort, videoGame, video, musicVideo, podcastEpisode, podcastSeries
