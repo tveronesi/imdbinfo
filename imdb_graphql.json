@@ -14,10 +14,19 @@
       "request": {
         "url": "https://api.graphql.imdb.com/",
         "method": "POST",
-        "headers": [],
+        "headers": [
+          {
+            "name": "Content-Type",
+            "value": "application/json",
+            "enabled": true
+          }
+        ],
         "params": [],
         "body": {
-          "mode": "none",
+          "mode": "graphql",
+          "graphql": {
+            "query": "query {\n  title(id: \"tt6334354\") {\n     \n    id\n    titleText {\n      text\n    }\n    \n    ratingsSummary {\n      aggregateRating\n      voteCount\n    }\n\n  }\n  \n}\n"
+          },
           "formUrlEncoded": [],
           "multipartForm": [],
           "file": []
@@ -55,7 +64,7 @@
         "body": {
           "mode": "graphql",
           "graphql": {
-            "query": "query {\n  title(id: \"tt6334354\") {\n    ratingsSummary {\n      aggregateRating\n      voteCount\n    }\n  }\n}"
+            "query": "query {\n  title(id: \"tt6334354\") {\n    \n    ratingsSummary {\n      aggregateRating\n      voteCount\n    }\n  }\n}"
           },
           "formUrlEncoded": [],
           "multipartForm": [],
@@ -94,7 +103,7 @@
         "body": {
           "mode": "graphql",
           "graphql": {
-            "query": "query {\n  title(id: \"tt6334354\") {\n    ratingsSummary {\n      aggregateRating\n      voteCount\n    }\n  }\n}"
+            "query": "query {\n  title(id: \"tt1396484\") {\n    titleGenres {\n      genres {\n        genre {\n          text\n        }\n      }\n    }\n    plots(first: 2) {\n      edges {\n        node {\n          plotText {\n            plainText\n          }\n        }\n      }\n    }\n    certificate {\n      rating\n      ratingReason\n    }\n  }\n}"
           },
           "formUrlEncoded": [],
           "multipartForm": [],
@@ -172,7 +181,7 @@
         "body": {
           "mode": "graphql",
           "graphql": {
-            "query": "query {\n  title(id: \"tt0910970\") {\n    runtime {\n      seconds\n    }\n    releaseDate {\n      day\n      month\n      year\n    }\n    technicalSpecifications {\n      colorations {\n        items {\n          text\n        }\n      }\n    }\n  }\n}"
+            "query": "query {\n  # Get WALL·E\n  title(id: \"tt0910970\") {\n    # Get the first two credits for WALL·E\n    credits(first: 2) {\n      edges {\n        node {\n          # Get the name associated with that credit\n          name {\n            nameText {\n              text\n            }\n          }\n          # Get the category for that credit (e.g Actor, Director)\n          category {\n            text\n          }\n        }\n      }\n    }\n  }\n}"
           },
           "formUrlEncoded": [],
           "multipartForm": [],
@@ -250,7 +259,7 @@
         "body": {
           "mode": "graphql",
           "graphql": {
-            "query": "query {\n  #Get Joker\n  title(id: \"tt7286456\") {\n    # Get first five directors\n    DIRECTORS: credits(first: 5, filter: { categories: [\"director\"] }) {\n      edges {\n        node {\n          name {\n            nameText {\n              text\n            }\n          }\n        }\n      }\n    }\n    # Get first five writers\n    WRITERS: credits(first: 5, filter: { categories: [\"writer\"] }) {\n      edges {\n        node {\n          name {\n            nameText {\n              text\n            }\n          }\n        }\n      }\n    }\n    # Get first five cast\n    CAST: credits(first: 5, filter: { categories: [\"actor\", \"actress\"] }) {\n      edges {\n        node {\n          name {\n            nameText {\n              text\n            }\n          }\n        }\n      }\n    }\n  }\n}"
+            "query": "query {\n  # Get the movie Inception\n  title(id: \"tt1375666\") {\n    # Get the first two credits on Inception\n    credits(first: 2) {\n      edges {\n        node {\n          # Get the name associated with a given credit\n          name {\n            nameText {\n              text\n            }\n            # Get the first two titles that name is known for\n            knownFor(first: 2) {\n              edges {\n                node {\n                  title {\n                    #Get the title text for the title that the name is known for\n                    titleText {\n                      text\n                    }\n                    # Get the rating for that title that the name is known for\n                    ratingsSummary {\n                      aggregateRating\n                    }\n                  }\n                  summary {\n                    # Get the name of the charachter that they played in the title they are known for\n                    principalCharacters {\n                      name\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }"
           },
           "formUrlEncoded": [],
           "multipartForm": [],
