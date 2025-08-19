@@ -3,8 +3,11 @@ import logging
 
 import jmespath
 
-from .models import MovieDetail, Person, MovieInfo, SearchResult, CastMember, PersonDetail, SeriesInfo, EpisodeInfo, \
-    EpisodeData, EpisodesList
+from .models import MovieDetail, Person, MovieBriefInfo, SearchResult, CastMember, PersonDetail, InfoSeries, \
+    InfoEpisode, \
+    SeasonEpisode, SeasonEpisodesList, BulkedEpisode, TvSeriesDetail, TvEpisodeDetail, SERIES_IDENTIFIERS, \
+    EPISODE_IDENTIFIERS
+from .transformers import _release_date, _dict_votes_, _none_to_string_in_list, _join, _certificates_to_dict
 
 VIDEO_URL = "https://www.imdb.com/video/"
 TITLE_URL = "https://www.imdb.com/title/"
@@ -20,44 +23,13 @@ def pjmespatch(query, data, post_process=None, *args, **kwargs):
     return result
 
 
-def _none_to_string_in_list(result):
-    """
-    given a list of lists , if a None is found replace with '' recursively
-    """
-    return [[str(item) if item is not None else "" for item in sublist] for sublist in result]
-
-
-def _to_directors(result):
+def _parse_directors(result):
     if result is None:
         return []
     return [Person.from_directors(a) for a in result if a.get("name") and a.get("name").get("id")]
 
 
-def _join(result, separator=" "):
-    if result is None:
-        return None
-    return separator.join(map(str, result)) if isinstance(result, list) else str(result)
-
-
-def _certificates_to_dict(result):
-    """
-    given a list of lists, convert it to a dict with country id as key and (country text, rating) as value
-    """
-    #['CA', 'Canada', '14', ['New Brunswick', 'Nova Scotia', 'Prince Edward Island']]
-    #['CA', 'Canada', '16', ['Manitoba']]
-    if result is None:
-        return {}
-    res = {}
-    for item in result:
-        country_code, country_name, rating_value, regions = item
-        rating = f"{rating_value} " + ", ".join(regions)
-        if country_code not in res:
-            res[country_code] = [country_name, rating]
-        else:
-            res[country_code][1] += " :: " + rating
-    return res
-
-def _feed_credits(result) -> dict:
+def _parse_credits(result) -> dict:
     """feed credits from the page 'name' to the PersonDetail model"""
 
     res = {}
@@ -73,7 +45,7 @@ def _feed_credits(result) -> dict:
 
         res.setdefault(category, [])
         res[category].append(
-            MovieInfo(
+            MovieBriefInfo(
                 id=imdbId.replace("tt", ""),
                 imdbId=imdbId,
                 imdb_id=imdbId.replace("tt", ""),
@@ -86,19 +58,6 @@ def _feed_credits(result) -> dict:
         )
     return res
 
-def _dict_votes_(result):
-    """
-    given a list of lists, convert it to a dict with imdbId as key and (rating, votes) as value
-    """
-    if result is None:
-        return []
-    res = []
-    for item in result:
-        imdbId = item[0] # 'tt1234567'
-        rating = item[1] # rating value, e.g. 8.5
-        votes = item[2] # votes count, e.g. 123456
-        res.append( {"imdbId": imdbId , "rating": rating, "votes": votes} )
-    return res
 
 def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     logger.debug("Parsing movie JSON")
@@ -119,9 +78,9 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data["metacritic_rating"] = pjmespatch("props.pageProps.mainColumnData.metacritic.metascore.score", raw_json)
     data["cover_url"] = pjmespatch("props.pageProps.aboveTheFoldData.primaryImage.url", raw_json)
     data["plot"] = pjmespatch("props.pageProps.mainColumnData.plot.plotText.plainText", raw_json)
+    # TODO release_date format with datetime...
     data["release_date"] = pjmespatch(
-        "props.pageProps.mainColumnData.releaseDate.[year,month,day]", raw_json, _join, separator="-"
-    )
+        "props.pageProps.mainColumnData.releaseDate", raw_json, _release_date)
     data["year"] = pjmespatch("props.pageProps.aboveTheFoldData.releaseYear.year", raw_json)
     data["year_end"] = pjmespatch("props.pageProps.aboveTheFoldData.releaseYear.endYear", raw_json)
     data["duration"] = pjmespatch(
@@ -151,7 +110,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         "props.pageProps.aboveTheFoldData.castPageTitle.edges[]", raw_json, lambda x: [Person.from_cast(a) for a in x]
     )
     data["directors"] = pjmespatch(
-        "props.pageProps.mainColumnData.directorsPageTitle[0].credits[]", raw_json, _to_directors
+        "props.pageProps.mainColumnData.directorsPageTitle[0].credits[]", raw_json, _parse_directors
     )
     data["filming_locations"] = pjmespatch(
         "props.pageProps.mainColumnData.filmingLocations.edges[].node.text", raw_json
@@ -210,17 +169,18 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             data["categories"][category["id"]].append(person)
 
     # If Series/Episode kind
-
-    if movie_kind in ("tvSeries", "tvMiniSeries"):
+    # tvMovie,short,movie,tvEpisode,tvMiniseries,tvSpecial,tvShort,videoGame,video,musicVideo,podcastEpisode,podcastSeries
+    if movie_kind in SERIES_IDENTIFIERS:
         #data["info_series"] = SeriesInfo.from_episodes(pjmespatch("props.pageProps.mainColumnData.episodes", raw_json))
-        data["info_series"] = SeriesInfo(
+        data["info_series"] = InfoSeries(
             display_years= pjmespatch("props.pageProps.mainColumnData.episodes.displayableYears.edges[].node.year", raw_json),
             display_seasons= pjmespatch("props.pageProps.mainColumnData.episodes.displayableSeasons.edges[].node.season", raw_json)
         )
         logger.info("Parsed series %s", data["imdbId"])
+        movie = TvSeriesDetail.model_validate(data)
 
-    if movie_kind == "tvEpisode":
-        data["info_episode"] = EpisodeInfo (
+    elif movie_kind in EPISODE_IDENTIFIERS:
+        data["info_episode"] = InfoEpisode (
             season_n= pjmespatch("props.pageProps.mainColumnData.series.episodeNumber.seasonNumber", raw_json),
             episode_n= pjmespatch("props.pageProps.mainColumnData.series.episodeNumber.episodeNumber", raw_json),
             series_imdbId= pjmespatch("props.pageProps.mainColumnData.series.series.id", raw_json),
@@ -228,8 +188,10 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             series_title_localized= pjmespatch("props.pageProps.mainColumnData.series.series.titleText.text", raw_json),
         )
         logger.info("Parsed episode %s", data["imdbId"])
-    movie = MovieDetail.model_validate(data)
-    logger.info("Parsed movie %s", movie.imdbId)
+        movie = TvEpisodeDetail.model_validate(data)
+    else:
+        movie = MovieDetail.model_validate(data)
+        logger.info("Parsed movie %s", movie.imdbId)
 
     return movie
 
@@ -240,7 +202,7 @@ def parse_json_search(raw_json) -> SearchResult:
     for title_data in pjmespatch("props.pageProps.titleResults.results[]", raw_json):
         # if title_data.get('imageType','ND') != 'movie': # TODO only movies are supported for now
         #     continue
-        title.append(MovieInfo.from_movie_search(title_data))
+        title.append(MovieBriefInfo.from_movie_search(title_data))
     people = []
     for person_data in pjmespatch("props.pageProps.nameResults.results[]", raw_json):
         people.append(Person.from_search(person_data))
@@ -277,12 +239,12 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
     data["credits"] = pjmespatch(
         "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.text,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
         raw_json,
-        _feed_credits,
+        _parse_credits,
     )
     data["unreleased_credits"] = pjmespatch(
         "props.pageProps.mainColumnData.unreleasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.text,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
         raw_json,
-        _feed_credits,
+        _parse_credits,
     )
 
     person = PersonDetail.model_validate(data)
@@ -290,18 +252,19 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
     return person
 
 
-def parse_json_episodes(raw_json) -> EpisodesList:
+def parse_json_season_episodes(raw_json) -> SeasonEpisodesList:
 
     top_rated_episode = pjmespatch("props.pageProps.contentData.data.title.episodes.topRated.edges[0].node.ratingsSummary.aggregateRating",raw_json)
     total_series_episodes = pjmespatch("props.pageProps.contentData.data.title.episodes.totalEpisodes.total", raw_json)
     total_series_seasons = len(pjmespatch("props.pageProps.contentData.data.title.episodes.seasons", raw_json))
-    top_ten_episodes =pjmespatch("props.pageProps.contentData.data.title.episodes.topTenEpisodes.edges[].[node.id,node.ratingsSummary.aggregateRating,node.ratingsSummary.voteCount]", raw_json, _dict_votes_)
+    top_ten_episodes =pjmespatch("props.pageProps.contentData.data.title.episodes.topTenEpisodes.edges[].[node.id,node.ratingsSummary.aggregateRating,node.ratingsSummary.voteCount]", raw_json,
+                                 _dict_votes_)
     logger.debug("Parsing episodes JSON")
     season_episodes = []
     for episode_data in pjmespatch("props.pageProps.contentData.section.episodes.items", raw_json):
-        season_episodes.append(EpisodeData.from_episode_data(episode_data))
+        season_episodes.append(SeasonEpisode.from_episode_data(episode_data))
 
-    episodes_list_object = EpisodesList(
+    episodes_list_object = SeasonEpisodesList(
         top_rating_episode=top_rated_episode,
         total_series_episodes=total_series_episodes,
         total_series_seasons=total_series_seasons,
@@ -309,3 +272,9 @@ def parse_json_episodes(raw_json) -> EpisodesList:
         episodes=season_episodes
     )
     return episodes_list_object
+
+def parse_json_bulked_episodes(raw_json) -> List[BulkedEpisode]:
+    all_episodes = []
+    for episode_data in pjmespatch("props.pageProps.searchResults.titleResults.titleListItems", raw_json):
+        all_episodes.append(BulkedEpisode.from_bulked_episode_data(episode_data))
+    return all_episodes

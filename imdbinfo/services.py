@@ -5,8 +5,9 @@ import requests
 import json
 from lxml import html
 
-from .models import SearchResult, MovieDetail, EpisodesList, PersonDetail
-from .parsers import parse_json_movie, parse_json_search, parse_json_person_detail, parse_json_episodes
+from .models import SearchResult, MovieDetail, SeasonEpisodesList, PersonDetail
+from .parsers import parse_json_movie, parse_json_search, parse_json_person_detail, parse_json_season_episodes, \
+    parse_json_bulked_episodes
 
 logger = logging.getLogger(__name__)
 
@@ -79,9 +80,8 @@ def get_name(person_id: str) -> Optional[PersonDetail]:
     logger.debug("Parsed person %s in %.2f seconds", person_id, t1 - t0)
     return person
 
-def get_episodes(imdb_id: str, season = None) -> EpisodesList:
+def get_season_episodes(imdb_id: str, season = 1) -> SeasonEpisodesList:
     """Fetch episodes for a movie or series using the provided IMDb ID."""
-    season = season if season is not None else 1
     movies_id = imdb_id.lstrip('tt')
 
     url = f"https://www.imdb.com/title/tt{movies_id}/episodes/?season={season}"
@@ -96,6 +96,32 @@ def get_episodes(imdb_id: str, season = None) -> EpisodesList:
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
     raw_json = json.loads(script[0])
-    episodes = parse_json_episodes(raw_json)
+    episodes = parse_json_season_episodes(raw_json)
     logger.debug("Fetched %d episodes for movie %s", len(episodes.episodes), imdb_id)
     return episodes
+
+def get_all_episodes(imdb_id:str):
+    series_id = imdb_id.lstrip('tt')
+    url = f"https://www.imdb.com/search/title/?count=250&series=tt{series_id}&sort=release_date,asc"
+    logger.info("Fetching bulk episodes for series %s", imdb_id)
+    resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+    if resp.status_code != 200:
+        logger.error("Error fetching %s: %s", url, resp.status_code)
+        raise Exception(f"Error fetching {url}")
+    tree = html.fromstring(resp.content)
+    script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
+    if not script:
+        logger.error("No script found with id '__NEXT_DATA__'")
+        raise Exception("No script found with id '__NEXT_DATA__'")
+    raw_json = json.loads(script[0])
+    episodes = parse_json_bulked_episodes(raw_json)
+    logger.debug("Fetched %d episodes for series %s", len(episodes), imdb_id)
+    return episodes
+
+
+def get_episodes(imdb_id: str, season = 1) -> SeasonEpisodesList:
+    """ wrap until deprecation : use get_season_episodes instead for seasons
+        or get_all_episodes for all episodes
+    """
+    logger.warning("get_episodes is deprecating, use get_season_episodes or get_all_episodes instead.")
+    return get_season_episodes(imdb_id, season)

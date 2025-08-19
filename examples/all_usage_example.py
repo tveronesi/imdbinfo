@@ -14,10 +14,12 @@ for word in list_q:
         for movie in results.titles:
             print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
             movie = get_movie(movie.imdb_id)
-            print(f"  Valutazione: {movie.rating}")
+            print(f"  Rating: {movie.rating}")
             print(f"  Kind: {movie.kind}")
-            print(f"  Series Info: {movie.info_series or 'N/A'}")
-            print(f"  Episode Info: {movie.info_episode or 'N/A'}")
+            if movie.is_series():
+                print(f"  Series Info: {movie.info_series or 'N/A'}")
+            if movie.is_episode():
+                print(f"  Episode Info: {movie.info_episode or 'N/A'}")
             for director in movie.directors:
                 print(f"  Director: {director.name}")
             for c in movie.categories['cast'][:1]:  # Limit to first 3 cast members for brevity

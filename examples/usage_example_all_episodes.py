@@ -1,5 +1,5 @@
 from imdbinfo import get_movie
-from imdbinfo.services import get_episodes
+from imdbinfo.services import get_all_episodes
 
 series_ids = [
      'tt1520211',  # The Walking Dead
@@ -20,11 +20,9 @@ for series_id in series_ids:
     print(f"Kind: {series.kind}")
     print(f"Series Info: {series.info_series or 'N/A'}")
     print("----------------------------------------------")
-    seasons = series.info_series.display_seasons
-    seasons.reverse()
-    for season_number in seasons:
-        season_list = get_episodes(series_id, season_number)
-        print(f"Total Episodes in Season {season_number}: {len(season_list)}")
-        for episode in season_list.episodes:
-            print(f"{episode}")
+
+    all_episodes = get_all_episodes(series_id)
+    print(f"\nTotal Episodes in Series: {len(all_episodes)}")
+    for episode in all_episodes:
+        print(f"{episode}")
     print("\n" + "="*50 + "\n")

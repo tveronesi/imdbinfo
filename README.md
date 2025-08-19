@@ -32,7 +32,7 @@ pip install imdbinfo
 ## Quick Start
 
 ```python
-from imdbinfo.services import search_title, get_movie, get_name, get_episodes
+from imdbinfo.services import search_title, get_movie, get_name, get_season_episodes
 
 # Search for a title
 results = search_title("The Matrix")
@@ -40,15 +40,15 @@ for movie in results.titles:
     print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
 
 # Get movie details
-movie = get_movie("0133093") # or 'tt0133093'
+movie = get_movie("0133093")  # or 'tt0133093'
 print(movie.title, movie.year, movie.rating)
 
 # Get movie kind:
-print(movie.kind) # movie, tvSeries, tvMiniSeries, tvEpisode, video
-print(movie.is_series()) # False
+print(movie.kind)  # movie, tvSeries, tvMiniSeries, tvEpisode, video
+print(movie.is_series())  # False
 
 # Get person details
-person = get_name("nm0000206")# or '0000206' 
+person = get_name("nm0000206")  # or '0000206' 
 print(person.name, person.birth_date)
 ```
 #### Working with Series and Episodes
@@ -66,7 +66,7 @@ Depending on the type, you can access additional information:
 #### Example: Working with Series and Episodes
 
 ```python
-from imdbinfo.services import get_movie, get_episodes
+from imdbinfo.services import get_movie, get_season_episodes
 
 # Fetch a TV series as a Movie object
 walking_dead_serie = get_movie("tt1520211")  # Walking Dead
@@ -77,10 +77,10 @@ print(walking_dead_serie.is_series())  # True
 # Access series-specific information
 print(f"Series Info: {walking_dead_serie.info_series}")
 
-# Retrieve all episodes for the series
-walking_dead_episodes = get_episodes(walking_dead_serie.imdb_id)
+# Retrieve episodes for the series season 1
+walking_dead_episodes = get_season_episodes(walking_dead_serie.imdb_id, season=1)
 
-# Print details for the first 3 episodes
+# Print details for the first 3 episodes from the season 1
 for episode_info in walking_dead_episodes[:3]:
     print(episode_info)
 
@@ -92,7 +92,22 @@ print("Is Episode:", episode_detail.is_episode())  # True
 print(f"Episode Info: {episode_detail.info_episode}")
 ```
 
-For more examples see the [examples](examples/) folder.
+#### ⭐⭐New: All episodes in a series⭐⭐ 
+You can now retrieve all episodes in a series with a single call:
+```python
+from imdbinfo.services import get_all_episodes
+# Fetch all episodes for a series
+all_episodes = get_all_episodes("tt1520211")  # Walking Dead
+for episode in all_episodes:
+    print(f"Title: {episode.title} - ({episode.imdbId})")
+    print(f"Plot: {episode.plot[:100]}...")
+    print(f"Release Date: {episode.release_date}")
+    print(f"Rating: {episode.rating}")
+    print(f"Duration: {episode.duration/60}min")
+    print("" + "="*50)
+```
+
+📝 For more examples see the [examples](examples/) folder.
 
 > 💡 **Looking for a ready-to-use API based on this package? Check out [qdMovieAPI](https://github.com/tveronesi/qdMovieAPI) — a fast and simple way to access IMDb data via REST!**
 
