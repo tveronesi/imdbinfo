@@ -385,6 +385,8 @@ class SeasonEpisodesList(BaseModel):
     This model contains a list of EpisodeInfo objects representing the episodes of a series.
     It can be used to represent the episodes of a series in a specific season.
     """
+    series_imdbId: str  # The IMDb ID of the series, e.g. 'tt1234567'
+    season_number: int  # The season number, e.g. 1, 2, 3
     top_rating_episode :  Optional[float] = None
     total_series_episodes  : Optional[int] = None  # Total number of episodes in the series
     total_series_seasons : Optional[int] = None  # Total number of seasons in the series
@@ -407,4 +409,4 @@ class SeasonEpisodesList(BaseModel):
         return self.episodes[idx]
 
     def __str__(self):
-        return f"Total Episodes: {len(self.episodes)}"
+        return "Season"
