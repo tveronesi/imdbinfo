@@ -12,7 +12,7 @@ from .parsers import (
     parse_json_search,
     parse_json_person_detail,
     parse_json_season_episodes,
-    parse_json_bulked_episodes,
+    parse_json_bulked_episodes, parse_json_akas,
 )
 
 logger = logging.getLogger(__name__)
@@ -141,3 +141,57 @@ def get_episodes(imdb_id: str, season=1) -> SeasonEpisodesList:
     """
     logger.warning("get_episodes is deprecating, use get_season_episodes or get_all_episodes instead.")
     return get_season_episodes(imdb_id, season)
+
+
+
+
+
+@lru_cache(maxsize=128)
+def get_akas(imdb_id: str) -> dict:
+    imdb_id = "tt%s"%imdb_id.lstrip("tt")
+    url = "https://api.graphql.imdb.com/"
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0",
+    }
+    query = '''
+    query {
+      title(id: "%s") {
+        id
+        titleText {
+          text
+        }
+        originalTitle: originalTitleText {
+          text
+        }
+        akas(first: 200) {
+          edges {
+            node {
+              country {
+                name: text
+                code: id
+              }
+              title: text
+            }
+          }
+        }
+      }
+    }
+    ''' % imdb_id
+    payload = {"query": query}
+    logger.info("Fetching title %s from GraphQL API", imdb_id)
+    resp = requests.post(url, headers=headers, json=payload)
+    if resp.status_code != 200:
+        logger.error("GraphQL request failed: %s", resp.status_code)
+        raise Exception(f"GraphQL request failed: {resp.status_code}")
+    data = resp.json()
+    if "errors" in data:
+        logger.error("GraphQL error: %s", data["errors"])
+        raise Exception(f"GraphQL error: {data['errors']}")
+    raw_json = data.get("data", {}).get("title", {})
+    akas = parse_json_akas(raw_json)
+    if not raw_json:
+        logger.warning("No AKAs found for title %s", imdb_id)
+        return []
+    logger.debug("Fetched %d AKAs for title %s", len(akas), imdb_id)
+    return akas

@@ -7,6 +7,7 @@ from .services import (
     get_episodes,
     get_all_episodes,
     get_season_episodes,
+    get_akas,
 )
 
 __all__ = [
@@ -16,6 +17,7 @@ __all__ = [
     "get_episodes",
     "get_all_episodes",
     "get_season_episodes",
+    "get_akas",
 ]
 
 # setup library logging

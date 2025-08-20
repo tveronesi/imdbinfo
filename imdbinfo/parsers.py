@@ -307,3 +307,11 @@ def parse_json_bulked_episodes(raw_json) -> List[BulkedEpisode]:
         all_episodes.append(BulkedEpisode.from_bulked_episode_data(episode_data))
     logger.info("Parsed %d bulked episodes", len(all_episodes))
     return all_episodes
+
+
+def parse_json_akas(raw_json):
+    logger.debug("Parsing akas JSON")
+    data = {}
+    data["imdbId"] = pjmespatch("id", raw_json)
+    data["akas"] = dict((country, title) for country, title in pjmespatch("akas.edges[].node[].[country.code,title]", raw_json) if country and title)
+    return data
