@@ -87,3 +87,4 @@
 - add SeasonEpisodesList.series_imdbId and SeasonEpisodesList.season_number to identify the series and season
 - updated DISCLAIMER.txt
 - add services to __init__.py for immediate access
+- add get_akas function to fetch alternate titles
