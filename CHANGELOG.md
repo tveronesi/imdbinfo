@@ -81,3 +81,9 @@
 - Refactor movie-related models: `SeriesInfo` -> `InfoSeries`, `EpisodeInfo` `InfoEpisode`. added specialized classes for `TvSeriesDetail` / `TvEpisodeDetail` extending `MovieDetail`
 - Deprecate `get_episodes` function and add warning log for alternative usage
 - Update movie kind identifiers in usage_example.py and models.py for better clarity and consistency, now handling all: tvMovie, short, movie, tvEpisode, tvMiniseries, tvSpecial, tvShort, videoGame, video, musicVideo, podcastEpisode, podcastSeries
+
+## v0.4.4   
+- add caching to services
+- add SeasonEpisodesList.series_imdbId and SeasonEpisodesList.season_number to identify the series and season
+- updated DISCLAIMER.txt
+- add services to __init__.py for immediate access
