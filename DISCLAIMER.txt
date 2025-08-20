@@ -1,11 +1,20 @@
-Th Author is not affiliated with Internet Movie Database Inc.
+Disclaimer
 
+The Author is not affiliated with Internet Movie Database Inc.
+
+This library provides functionality to access and work with movie-related data that may originate from IMDb (www.imdb.com).
 IMDb is a trademark of Internet Movie Database Inc., and all content and data
 included on the IMDb's site is the property of IMDb or its content suppliers
-and protected by United States and international copyright laws.
+and protected by the United States and international copyright laws.
 
-Please read the IMDb's conditions of use on their website:
+Use of IMDb data through this library is subject to IMDb’s Terms and Conditions of Use (https://www.imdb.com/conditions/).
+By using this library, you acknowledge and agree that:
 
-- https://www.imdb.com/conditions
-- https://www.imdb.com/licensing
-- any other notice on the https://www.imdb.com/ site
+1. You are solely responsible for ensuring that your use of IMDb data complies with IMDb’s Terms of Service and any applicable laws.
+2. This library is provided "as is" without any warranty or guarantee of compliance with IMDb’s terms.
+3. The author(s) of this library do not endorse or encourage any use of IMDb data that violates IMDb’s Terms of Service.
+4. The author(s) of this library assume no liability for any misuse of the library, including but not limited to violations of IMDb’s Terms of Service.
+
+If you require IMDb data for commercial or public-facing projects, you must obtain proper licensing directly from IMDb (https://developer.imdb.com/).
+
+Please read any other notice on the https://www.imdb.com/ site.
