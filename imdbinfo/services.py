@@ -1,4 +1,5 @@
 from typing import Optional
+from functools import lru_cache
 from time import time
 import logging
 import requests
@@ -11,6 +12,7 @@ from .parsers import parse_json_movie, parse_json_search, parse_json_person_deta
 
 logger = logging.getLogger(__name__)
 
+@lru_cache(maxsize=128)
 def get_movie(imdb_id: str)->MovieDetail:
     """Fetch movie details from IMDb using the provided IMDb ID as string,
     preserve the 'tt' prefix or not, it will be stripped in the function.
@@ -32,6 +34,7 @@ def get_movie(imdb_id: str)->MovieDetail:
     logger.debug("Fetched movie %s", imdb_id)
     return movie
 
+@lru_cache(maxsize=128)
 def search_title(title: str) -> Optional[SearchResult]:
     """Search for a movie by title and return a list of titles and names."""
     url = f"https://www.imdb.com/find?q={title}&ref_=nv_sr_sm"
@@ -51,7 +54,7 @@ def search_title(title: str) -> Optional[SearchResult]:
     logger.debug("Search for '%s' returned %s titles", title, len(result.titles))
     return result
 
-  
+@lru_cache(maxsize=128)
 def get_name(person_id: str) -> Optional[PersonDetail]:
     """Fetch person details from IMDb using the provided IMDb ID.
     Preserve the 'nm' prefix or not, it will be stripped in the function.
@@ -80,6 +83,7 @@ def get_name(person_id: str) -> Optional[PersonDetail]:
     logger.debug("Parsed person %s in %.2f seconds", person_id, t1 - t0)
     return person
 
+@lru_cache(maxsize=128)
 def get_season_episodes(imdb_id: str, season = 1) -> SeasonEpisodesList:
     """Fetch episodes for a movie or series using the provided IMDb ID."""
     movies_id = imdb_id.lstrip('tt')
@@ -100,6 +104,7 @@ def get_season_episodes(imdb_id: str, season = 1) -> SeasonEpisodesList:
     logger.debug("Fetched %d episodes for movie %s", len(episodes.episodes), imdb_id)
     return episodes
 
+@lru_cache(maxsize=128)
 def get_all_episodes(imdb_id:str):
     series_id = imdb_id.lstrip('tt')
     url = f"https://www.imdb.com/search/title/?count=250&series=tt{series_id}&sort=release_date,asc"
@@ -118,7 +123,7 @@ def get_all_episodes(imdb_id:str):
     logger.debug("Fetched %d episodes for series %s", len(episodes), imdb_id)
     return episodes
 
-
+@lru_cache(maxsize=128)
 def get_episodes(imdb_id: str, season = 1) -> SeasonEpisodesList:
     """ wrap until deprecation : use get_season_episodes instead for seasons
         or get_all_episodes for all episodes

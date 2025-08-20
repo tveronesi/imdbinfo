@@ -254,6 +254,8 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
 def parse_json_season_episodes(raw_json) -> SeasonEpisodesList:
 
+    series_imdbId = pjmespatch("props.pageProps.contentData.data.title.id", raw_json)
+    current_season = pjmespatch("props.pageProps.contentData.section.currentSeason", raw_json)
     top_rated_episode = pjmespatch("props.pageProps.contentData.data.title.episodes.topRated.edges[0].node.ratingsSummary.aggregateRating",raw_json)
     total_series_episodes = pjmespatch("props.pageProps.contentData.data.title.episodes.totalEpisodes.total", raw_json)
     total_series_seasons = len(pjmespatch("props.pageProps.contentData.data.title.episodes.seasons", raw_json))
@@ -265,16 +267,21 @@ def parse_json_season_episodes(raw_json) -> SeasonEpisodesList:
         season_episodes.append(SeasonEpisode.from_episode_data(episode_data))
 
     episodes_list_object = SeasonEpisodesList(
+        series_imdbId=series_imdbId,  # remove 'tt' prefix
+        season_number=current_season,
         top_rating_episode=top_rated_episode,
         total_series_episodes=total_series_episodes,
         total_series_seasons=total_series_seasons,
         top_ten_episodes=top_ten_episodes,
         episodes=season_episodes
     )
+    logger.info("Parsed %d episodes for season", len(season_episodes))
     return episodes_list_object
 
 def parse_json_bulked_episodes(raw_json) -> List[BulkedEpisode]:
     all_episodes = []
     for episode_data in pjmespatch("props.pageProps.searchResults.titleResults.titleListItems", raw_json):
         all_episodes.append(BulkedEpisode.from_bulked_episode_data(episode_data))
+    logger.info("Parsed %d bulked episodes", len(all_episodes))
     return all_episodes
+
