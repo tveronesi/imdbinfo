@@ -13,9 +13,6 @@ series_ids = [
 
 for series_id in series_ids:
     series = get_movie(series_id)
-    if not series:
-        print(f"Series with ID {series_id} not found.")
-        continue
     if not series.is_series():
         print(f"Series with ID {series_id} not found.")
         continue

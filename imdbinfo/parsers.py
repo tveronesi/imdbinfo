@@ -2,7 +2,6 @@ from typing import Optional, List
 import logging
 
 import jmespath
-from pydantic import ValidationError
 
 from .models import MovieDetail, Person, MovieBriefInfo, SearchResult, CastMember, PersonDetail, InfoSeries, \
     InfoEpisode, \
@@ -177,7 +176,8 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             display_years= pjmespatch("props.pageProps.mainColumnData.episodes.displayableYears.edges[].node.year", raw_json),
             display_seasons= pjmespatch("props.pageProps.mainColumnData.episodes.displayableSeasons.edges[].node.season", raw_json)
         )
-        model_class = TvSeriesDetail
+        logger.info("Parsed series %s", data["imdbId"])
+        movie = TvSeriesDetail.model_validate(data)
 
     elif movie_kind in EPISODE_IDENTIFIERS:
         data["info_episode"] = InfoEpisode (
@@ -187,22 +187,16 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             series_title= pjmespatch("props.pageProps.mainColumnData.series.series.originalTitleText.text", raw_json),
             series_title_localized= pjmespatch("props.pageProps.mainColumnData.series.series.titleText.text", raw_json),
         )
-        model_class = TvEpisodeDetail
+        logger.info("Parsed episode %s", data["imdbId"])
+        movie = TvEpisodeDetail.model_validate(data)
     else:
-        model_class = MovieDetail
+        movie = MovieDetail.model_validate(data)
+        logger.info("Parsed movie %s", movie.imdbId)
 
-    # parse the data into the model
-    try:
-        data['year'] ='no int'
-        movie = model_class.model_validate(data)
-    except ValidationError as e:
-        logger.error("Validation error for title %s : %s",data['imdbId'], e.errors())
-        return None
-    logger.info("Parsed movie %s", movie)
     return movie
 
 
-def parse_json_search(raw_json) -> Optional[SearchResult]:
+def parse_json_search(raw_json) -> SearchResult:
     logger.debug("Parsing search results JSON")
     title = []
     for title_data in pjmespatch("props.pageProps.titleResults.results[]", raw_json):
@@ -213,16 +207,12 @@ def parse_json_search(raw_json) -> Optional[SearchResult]:
     for person_data in pjmespatch("props.pageProps.nameResults.results[]", raw_json):
         people.append(Person.from_search(person_data))
 
-    try:
-        res = SearchResult(titles=title, names=people)
-    except ValidationError as e:
-        logger.error("Validation error for search results: %s", e.errors())
-        return None
+    res = SearchResult(titles=title, names=people)
     logger.info("Parsed search results: %s titles, %s names", len(title), len(people))
     return res
 
 
-def parse_json_person_detail(raw_json) -> Optional[PersonDetail]:
+def parse_json_person_detail(raw_json) -> PersonDetail:
     logger.debug("Parsing person detail JSON")
 
     data = dict()
@@ -257,16 +247,12 @@ def parse_json_person_detail(raw_json) -> Optional[PersonDetail]:
         _parse_credits,
     )
 
-    try:
-        person = PersonDetail.model_validate(data)
-    except ValidationError as e:
-        logger.error("Validation error for person %s: %s", data['imdbId'], e.errors())
-        return None
-    logger.info("Parsed person %s", person)
+    person = PersonDetail.model_validate(data)
+    logger.info("Parsed person %s", person.name)
     return person
 
 
-def parse_json_season_episodes(raw_json) -> Optional[SeasonEpisodesList]:
+def parse_json_season_episodes(raw_json) -> SeasonEpisodesList:
 
     series_imdbId = pjmespatch("props.pageProps.contentData.data.title.id", raw_json)
     current_season = pjmespatch("props.pageProps.contentData.section.currentSeason", raw_json)
@@ -298,3 +284,4 @@ def parse_json_bulked_episodes(raw_json) -> List[BulkedEpisode]:
         all_episodes.append(BulkedEpisode.from_bulked_episode_data(episode_data))
     logger.info("Parsed %d bulked episodes", len(all_episodes))
     return all_episodes
+
