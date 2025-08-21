@@ -313,5 +313,5 @@ def parse_json_akas(raw_json) -> List[AkaInfo]:
     logger.debug("Parsing akas JSON")
     data = {}
     data["imdbId"] = pjmespatch("id", raw_json)
-    data["akas"] = [ AkaInfo.from_data(*a) for a in pjmespatch("akas.edges[].node[].[title, country.code,country.name, lanaguage.code, language.name]", raw_json)]
+    data["akas"] = [ AkaInfo.from_data(*a) for a in pjmespatch("akas.edges[].node[].[title, country.code,country.name, language.code, language.name]", raw_json)]
     return data

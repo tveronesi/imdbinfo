@@ -434,13 +434,19 @@ class SeasonEpisodesList(BaseModel):
 
 class AkaInfo(BaseModel):
     title: str
-    country_code: Optional[str] = None
-    country_name: Optional[str] = None
+    country_code: str
+    country_name: str
     language_code: Optional[str] = None
     language_name: Optional[str] = None
 
     @classmethod
     def from_data(self, title,country_code, country_name, language_code=None, language_name=None):
+        # if country_code is None, set it to US
+        # if country_name is None, set it to United States
+        if country_code is None:
+            country_code = "US"
+        if country_name is None:
+            country_name = "United States"
         return AkaInfo(
             title=title,
             country_code=country_code,
