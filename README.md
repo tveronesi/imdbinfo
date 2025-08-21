@@ -16,11 +16,12 @@
 - 👥 **Detailed person info** with biography, filmography and images
 - 📺 **TV series and miniseries** support with seasons and episodes
 - 📅 **Release dates** and **box office** information
-- 🌍 **International titles** and **alternate titles**
+- 🌍 **International titles** and **alternate titles (AKAs)** via `get_akas`
 - 📸 **Poster images** and **backdrops**
 - 📊 **Ratings** from IMDb and other sources
 - 🗂️ **Full filmography** for actors, directors and writers
 - 📝 **Typed Pydantic models** for predictable responses
+- ⚡ **Built-in caching** for faster repeated requests
 - ✅ **No API keys required**
 
 ## Installation
@@ -32,7 +33,7 @@ pip install imdbinfo
 ## Quick Start
 
 ```python
-from imdbinfo.services import search_title, get_movie, get_name, get_season_episodes
+from imdbinfo import search_title, get_movie, get_name, get_season_episodes
 
 # Search for a title
 results = search_title("The Matrix")
@@ -44,7 +45,7 @@ movie = get_movie("0133093")  # or 'tt0133093'
 print(movie.title, movie.year, movie.rating)
 
 # Get movie kind:
-print(movie.kind)  # movie, tvSeries, tvMiniSeries, tvEpisode, video
+print(movie.kind)  # movie, tvSeries, tvMiniSeries, tvMovie, tvEpisode, tvSpecial, tvShort, short, videoGame, video, musicVideo, podcastEpisode, podcastSeries
 print(movie.is_series())  # False
 
 # Get person details
@@ -66,7 +67,7 @@ Depending on the type, you can access additional information:
 #### Example: Working with Series and Episodes
 
 ```python
-from imdbinfo.services import get_movie, get_season_episodes
+from imdbinfo import get_movie, get_season_episodes
 
 # Fetch a TV series as a Movie object
 walking_dead_serie = get_movie("tt1520211")  # Walking Dead
@@ -95,7 +96,7 @@ print(f"Episode Info: {episode_detail.info_episode}")
 #### ⭐⭐New: All episodes in a series⭐⭐ 
 You can now retrieve all episodes in a series with a single call:
 ```python
-from imdbinfo.services import get_all_episodes
+from imdbinfo import get_all_episodes
 # Fetch all episodes for a series
 all_episodes = get_all_episodes("tt1520211")  # Walking Dead
 for episode in all_episodes:
@@ -105,6 +106,16 @@ for episode in all_episodes:
     print(f"Rating: {episode.rating}")
     print(f"Duration: {episode.duration/60}min")
     print("" + "="*50)
+```
+
+
+#### ⭐⭐New: Alternate titles (AKAs)⭐⭐
+Fetch international and alternate titles for any movie or series:
+```python
+from imdbinfo import get_akas
+akas = get_akas("tt0133093")  # The Matrix
+for aka in akas["akas"][:5]:
+    print(f"{aka.title} ({aka.country_name})")
 ```
 
 📝 For more examples see the [examples](examples/) folder.
