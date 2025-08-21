@@ -167,10 +167,8 @@ def get_akas(imdb_id: str) -> dict:
         akas(first: 200) {
           edges {
             node {
-              country {
-                name: text
-                code: id
-              }
+              country { name: text code: id }
+              language { name: text code: id }
               title: text
             }
           }

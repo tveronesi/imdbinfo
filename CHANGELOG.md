@@ -88,3 +88,4 @@
 - updated DISCLAIMER.txt
 - add services to __init__.py for immediate access
 - add get_akas function to fetch alternate titles
+- added AkaInfo model to represent alternate titles results in get_akas

@@ -430,3 +430,27 @@ class SeasonEpisodesList(BaseModel):
 
     def __str__(self):
         return "Season"
+
+
+class AkaInfo(BaseModel):
+    title: str
+    country_code: Optional[str] = None
+    country_name: Optional[str] = None
+    language_code: Optional[str] = None
+    language_name: Optional[str] = None
+
+    @classmethod
+    def from_data(self, title,country_code, country_name, language_code=None, language_name=None):
+        return AkaInfo(
+            title=title,
+            country_code=country_code,
+            country_name=country_name,
+            language_code=language_code,
+            language_name=language_name
+        )
+
+    def __str__(self):
+        return f"{self.title} ({self.country_name or 'N/A'} - {self.language_name or 'N/A'})"
+
+    def __repr__(self):
+        return self.__str__()
