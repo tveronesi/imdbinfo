@@ -83,9 +83,8 @@
 - Update movie kind identifiers in usage_example.py and models.py for better clarity and consistency, now handling all: tvMovie, short, movie, tvEpisode, tvMiniseries, tvSpecial, tvShort, videoGame, video, musicVideo, podcastEpisode, podcastSeries
 
 ## v0.4.4   
-- add caching to services
-- add SeasonEpisodesList.series_imdbId and SeasonEpisodesList.season_number to identify the series and season
+- add `get_akas(imdb_id: str) -> List[AkaInfo]` function to fetch alternate titles and AkaInfo model to represent them
+- add caching to services using `functools.lru_cache` for improved performance on repeated requests
+- add `SeasonEpisodesList.series_imdbId`and `SeasonEpisodesList.season_number` to identify the imdbId of the serie and the season number
 - updated DISCLAIMER.txt
-- add services to __init__.py for immediate access
-- add get_akas function to fetch alternate titles
-- added AkaInfo model to represent alternate titles results in get_akas
+- add services to `__init__.py` for immediate access
