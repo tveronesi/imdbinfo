@@ -18,10 +18,10 @@ def _dict_votes_(result):
         return []
     res = []
     for item in result:
-        imdbId = item[0] # 'tt1234567'
-        rating = item[1] # rating value, e.g. 8.5
-        votes = item[2] # votes count, e.g. 123456
-        res.append( {"imdbId": imdbId , "rating": rating, "votes": votes} )
+        imdbId = item[0]  # 'tt1234567'
+        rating = item[1]  # rating value, e.g. 8.5
+        votes = item[2]  # votes count, e.g. 123456
+        res.append({"imdbId": imdbId, "rating": rating, "votes": votes})
     return res
 
 
@@ -42,8 +42,8 @@ def _certificates_to_dict(result):
     """
     given a list of lists, convert it to a dict with country id as key and (country text, rating) as value
     """
-    #['CA', 'Canada', '14', ['New Brunswick', 'Nova Scotia', 'Prince Edward Island']]
-    #['CA', 'Canada', '16', ['Manitoba']]
+    # ['CA', 'Canada', '14', ['New Brunswick', 'Nova Scotia', 'Prince Edward Island']]
+    # ['CA', 'Canada', '16', ['Manitoba']]
     if result is None:
         return {}
     res = {}

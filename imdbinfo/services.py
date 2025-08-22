@@ -1,4 +1,5 @@
 from typing import Optional
+from functools import lru_cache
 from time import time
 import logging
 import requests
@@ -6,16 +7,23 @@ import json
 from lxml import html
 
 from .models import SearchResult, MovieDetail, SeasonEpisodesList, PersonDetail
-from .parsers import parse_json_movie, parse_json_search, parse_json_person_detail, parse_json_season_episodes, \
-    parse_json_bulked_episodes
+from .parsers import (
+    parse_json_movie,
+    parse_json_search,
+    parse_json_person_detail,
+    parse_json_season_episodes,
+    parse_json_bulked_episodes, parse_json_akas,
+)
 
 logger = logging.getLogger(__name__)
 
-def get_movie(imdb_id: str)->MovieDetail:
+
+@lru_cache(maxsize=128)
+def get_movie(imdb_id: str) -> MovieDetail:
     """Fetch movie details from IMDb using the provided IMDb ID as string,
     preserve the 'tt' prefix or not, it will be stripped in the function.
     """
-    imdb_id = imdb_id.lstrip('tt')
+    imdb_id = imdb_id.lstrip("tt")
     url = f"https://www.imdb.com/title/tt{imdb_id}/reference"
     logger.info("Fetching movie %s", imdb_id)
     resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -32,6 +40,8 @@ def get_movie(imdb_id: str)->MovieDetail:
     logger.debug("Fetched movie %s", imdb_id)
     return movie
 
+
+@lru_cache(maxsize=128)
 def search_title(title: str) -> Optional[SearchResult]:
     """Search for a movie by title and return a list of titles and names."""
     url = f"https://www.imdb.com/find?q={title}&ref_=nv_sr_sm"
@@ -51,13 +61,14 @@ def search_title(title: str) -> Optional[SearchResult]:
     logger.debug("Search for '%s' returned %s titles", title, len(result.titles))
     return result
 
-  
+
+@lru_cache(maxsize=128)
 def get_name(person_id: str) -> Optional[PersonDetail]:
     """Fetch person details from IMDb using the provided IMDb ID.
     Preserve the 'nm' prefix or not, it will be stripped in the function.
     """
-    #https://www.imdb.com/name/nm0000206/
-    person_id = person_id.lstrip('nm')
+    # https://www.imdb.com/name/nm0000206/
+    person_id = person_id.lstrip("nm")
 
     url = f"https://www.imdb.com/name/nm{person_id}/"
     logger.info("Fetching person %s", person_id)
@@ -80,9 +91,11 @@ def get_name(person_id: str) -> Optional[PersonDetail]:
     logger.debug("Parsed person %s in %.2f seconds", person_id, t1 - t0)
     return person
 
-def get_season_episodes(imdb_id: str, season = 1) -> SeasonEpisodesList:
+
+@lru_cache(maxsize=128)
+def get_season_episodes(imdb_id: str, season=1) -> SeasonEpisodesList:
     """Fetch episodes for a movie or series using the provided IMDb ID."""
-    movies_id = imdb_id.lstrip('tt')
+    movies_id = imdb_id.lstrip("tt")
 
     url = f"https://www.imdb.com/title/tt{movies_id}/episodes/?season={season}"
     logger.info("Fetching episodes for movie %s", imdb_id)
@@ -100,8 +113,10 @@ def get_season_episodes(imdb_id: str, season = 1) -> SeasonEpisodesList:
     logger.debug("Fetched %d episodes for movie %s", len(episodes.episodes), imdb_id)
     return episodes
 
-def get_all_episodes(imdb_id:str):
-    series_id = imdb_id.lstrip('tt')
+
+@lru_cache(maxsize=128)
+def get_all_episodes(imdb_id: str):
+    series_id = imdb_id.lstrip("tt")
     url = f"https://www.imdb.com/search/title/?count=250&series=tt{series_id}&sort=release_date,asc"
     logger.info("Fetching bulk episodes for series %s", imdb_id)
     resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -119,9 +134,62 @@ def get_all_episodes(imdb_id:str):
     return episodes
 
 
-def get_episodes(imdb_id: str, season = 1) -> SeasonEpisodesList:
-    """ wrap until deprecation : use get_season_episodes instead for seasons
-        or get_all_episodes for all episodes
+@lru_cache(maxsize=128)
+def get_episodes(imdb_id: str, season=1) -> SeasonEpisodesList:
+    """wrap until deprecation : use get_season_episodes instead for seasons
+    or get_all_episodes for all episodes
     """
     logger.warning("get_episodes is deprecating, use get_season_episodes or get_all_episodes instead.")
     return get_season_episodes(imdb_id, season)
+
+
+
+
+
+@lru_cache(maxsize=128)
+def get_akas(imdb_id: str) -> dict:
+    imdb_id = "tt%s"%imdb_id.lstrip("tt")
+    url = "https://api.graphql.imdb.com/"
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0",
+    }
+    query = '''
+    query {
+      title(id: "%s") {
+        id
+        titleText {
+          text
+        }
+        originalTitle: originalTitleText {
+          text
+        }
+        akas(first: 200) {
+          edges {
+            node {
+              country { name: text code: id }
+              language { name: text code: id }
+              title: text
+            }
+          }
+        }
+      }
+    }
+    ''' % imdb_id
+    payload = {"query": query}
+    logger.info("Fetching title %s from GraphQL API", imdb_id)
+    resp = requests.post(url, headers=headers, json=payload)
+    if resp.status_code != 200:
+        logger.error("GraphQL request failed: %s", resp.status_code)
+        raise Exception(f"GraphQL request failed: {resp.status_code}")
+    data = resp.json()
+    if "errors" in data:
+        logger.error("GraphQL error: %s", data["errors"])
+        raise Exception(f"GraphQL error: {data['errors']}")
+    raw_json = data.get("data", {}).get("title", {})
+    akas = parse_json_akas(raw_json)
+    if not raw_json:
+        logger.warning("No AKAs found for title %s", imdb_id)
+        return []
+    logger.debug("Fetched %d AKAs for title %s", len(akas), imdb_id)
+    return akas

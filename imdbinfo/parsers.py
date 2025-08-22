@@ -3,11 +3,30 @@ import logging
 
 import jmespath
 
-from .models import MovieDetail, Person, MovieBriefInfo, SearchResult, CastMember, PersonDetail, InfoSeries, \
-    InfoEpisode, \
-    SeasonEpisode, SeasonEpisodesList, BulkedEpisode, TvSeriesDetail, TvEpisodeDetail, SERIES_IDENTIFIERS, \
-    EPISODE_IDENTIFIERS
-from .transformers import _release_date, _dict_votes_, _none_to_string_in_list, _join, _certificates_to_dict
+from .models import (
+    MovieDetail,
+    Person,
+    MovieBriefInfo,
+    SearchResult,
+    CastMember,
+    PersonDetail,
+    InfoSeries,
+    InfoEpisode,
+    SeasonEpisode,
+    SeasonEpisodesList,
+    BulkedEpisode,
+    TvSeriesDetail,
+    TvEpisodeDetail,
+    SERIES_IDENTIFIERS,
+    EPISODE_IDENTIFIERS, AkaInfo,
+)
+from .transformers import (
+    _release_date,
+    _dict_votes_,
+    _none_to_string_in_list,
+    _join,
+    _certificates_to_dict,
+)
 
 VIDEO_URL = "https://www.imdb.com/video/"
 TITLE_URL = "https://www.imdb.com/title/"
@@ -26,7 +45,11 @@ def pjmespatch(query, data, post_process=None, *args, **kwargs):
 def _parse_directors(result):
     if result is None:
         return []
-    return [Person.from_directors(a) for a in result if a.get("name") and a.get("name").get("id")]
+    return [
+        Person.from_directors(a)
+        for a in result
+        if a.get("name") and a.get("name").get("id")
+    ]
 
 
 def _parse_credits(result) -> dict:
@@ -253,7 +276,8 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
 
 def parse_json_season_episodes(raw_json) -> SeasonEpisodesList:
-
+    series_imdbId = pjmespatch("props.pageProps.contentData.data.title.id", raw_json)
+    current_season = pjmespatch("props.pageProps.contentData.section.currentSeason", raw_json)
     top_rated_episode = pjmespatch("props.pageProps.contentData.data.title.episodes.topRated.edges[0].node.ratingsSummary.aggregateRating",raw_json)
     total_series_episodes = pjmespatch("props.pageProps.contentData.data.title.episodes.totalEpisodes.total", raw_json)
     total_series_seasons = len(pjmespatch("props.pageProps.contentData.data.title.episodes.seasons", raw_json))
@@ -265,16 +289,29 @@ def parse_json_season_episodes(raw_json) -> SeasonEpisodesList:
         season_episodes.append(SeasonEpisode.from_episode_data(episode_data))
 
     episodes_list_object = SeasonEpisodesList(
+        series_imdbId=series_imdbId,  # remove 'tt' prefix
+        season_number=current_season,
         top_rating_episode=top_rated_episode,
         total_series_episodes=total_series_episodes,
         total_series_seasons=total_series_seasons,
         top_ten_episodes=top_ten_episodes,
-        episodes=season_episodes
+        episodes=season_episodes,
     )
+    logger.info("Parsed %d episodes for season", len(season_episodes))
     return episodes_list_object
+
 
 def parse_json_bulked_episodes(raw_json) -> List[BulkedEpisode]:
     all_episodes = []
     for episode_data in pjmespatch("props.pageProps.searchResults.titleResults.titleListItems", raw_json):
         all_episodes.append(BulkedEpisode.from_bulked_episode_data(episode_data))
+    logger.info("Parsed %d bulked episodes", len(all_episodes))
     return all_episodes
+
+
+def parse_json_akas(raw_json) -> List[AkaInfo]:
+    logger.debug("Parsing akas JSON")
+    data = {}
+    data["imdbId"] = pjmespatch("id", raw_json)
+    data["akas"] = [ AkaInfo.from_data(*a) for a in pjmespatch("akas.edges[].node[].[title, country.code,country.name, language.code, language.name]", raw_json)]
+    return data

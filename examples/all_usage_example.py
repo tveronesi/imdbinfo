@@ -1,5 +1,5 @@
 from time import time
-from imdbinfo.services import search_title, get_movie, get_name
+from imdbinfo import search_title, get_movie, get_name
 
 import logging
 logging.basicConfig(level=logging.WARNING)
