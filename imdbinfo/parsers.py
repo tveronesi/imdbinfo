@@ -223,8 +223,6 @@ def parse_json_search(raw_json) -> SearchResult:
     logger.debug("Parsing search results JSON")
     title = []
     for title_data in pjmespatch("props.pageProps.titleResults.results[]", raw_json):
-        # if title_data.get('imageType','ND') != 'movie': # TODO only movies are supported for now
-        #     continue
         title.append(MovieBriefInfo.from_movie_search(title_data))
     people = []
     for person_data in pjmespatch("props.pageProps.nameResults.results[]", raw_json):
