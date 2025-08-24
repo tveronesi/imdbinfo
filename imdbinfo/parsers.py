@@ -51,6 +51,13 @@ def _parse_directors(result):
         if a.get("name") and a.get("name").get("id")
     ]
 
+def _parse_mpaa(certificates):
+    if certificates is None:
+        return ''
+    for certificate in certificates:
+        if certificate.get("node", {}).get("id") == "ce0273137":
+            return certificate.get("node", {}).get("ratingReason", '')
+    return ''
 
 def _parse_credits(result) -> dict:
     """feed credits from the page 'name' to the PersonDetail model"""
@@ -129,6 +136,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         raw_json,
         _certificates_to_dict,
     )
+    data["mpaa"] = _parse_mpaa(pjmespatch("props.pageProps.mainColumnData.certificates.edges", raw_json))
     data["stars"] = pjmespatch(
         "props.pageProps.aboveTheFoldData.castPageTitle.edges[]", raw_json, lambda x: [Person.from_cast(a) for a in x]
     )
@@ -139,6 +147,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         "props.pageProps.mainColumnData.filmingLocations.edges[].node.text", raw_json
     )
     data["country_codes"] = pjmespatch("props.pageProps.mainColumnData.countriesDetails.countries[].id", raw_json)
+    data["countries"] = pjmespatch("props.pageProps.mainColumnData.countriesDetails.countries[].text", raw_json)
     data["storyline_keywords"] = pjmespatch(
         "props.pageProps.mainColumnData.storylineKeywords.edges[].node.text", raw_json
     )
@@ -174,7 +183,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         _none_to_string_in_list,
     )
     data["languages"] = pjmespatch("props.pageProps.mainColumnData.spokenLanguages.spokenLanguages[].id", raw_json)
-
+    data["languages_text"] = pjmespatch("props.pageProps.mainColumnData.spokenLanguages.spokenLanguages[].text", raw_json)
     # categories
     data["categories"] = {}
     for category in pjmespatch("props.pageProps.mainColumnData.categories[]", raw_json):

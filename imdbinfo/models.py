@@ -171,13 +171,16 @@ class MovieDetail(SeriesMixin, BaseModel):
     plot: Optional[str] = None
     release_date: Optional[str] = None
     languages: List[str] = []
+    languages_text: List[str] = []
     certificates: Dict[str, Tuple[str, str]] = {}
+    mpaa: Optional[str] = None
     directors: List[Person] = []
     stars: List[Person] = []
     year: Optional[int] = None
     year_end: Optional[int] = None
     duration: Optional[int] = None
     country_codes: List[str] = []
+    countries: List[str] = []
     rating: Optional[float] = None
     metacritic_rating: Optional[int] = None
     votes: Optional[int] = None
