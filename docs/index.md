@@ -19,6 +19,7 @@ That’s exactly why I built [`imdbinfo`](https://github.com/tveronesi/imdbinfo)
 - 🎬 **Detailed movie info** including cast, crew, ratings and more
 - 👥 **Detailed person info** with biography, filmography and images
 - 📺 **TV series and miniseries** support with seasons and episodes
+- 🌐 **Localized results** in multiple languages (set globally or per request)
 - 📅 **Release dates** and **box office** information
 - 🌍 **International titles** and **alternate titles (AKAs)** via `get_akas`
 - 📸 **Poster images** and **backdrops**

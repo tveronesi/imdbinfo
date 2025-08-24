@@ -88,3 +88,6 @@
 - add `SeasonEpisodesList.series_imdbId`and `SeasonEpisodesList.season_number` to identify the imdbId of the serie and the season number
 - updated DISCLAIMER.txt
 - add services to `__init__.py` for immediate access
+
+## v0.5.0
+- add locale support to services: `search_movie`, `get_movie`, `get_episodes`, `get_all_episodes`, `get_name`, `get_akas` 
