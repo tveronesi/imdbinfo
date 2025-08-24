@@ -25,7 +25,11 @@ def get_movie(imdb_id: str, locale: str = None) -> MovieDetail:
     preserve the 'tt' prefix or not, it will be stripped in the function.
     """
     lang = locale or get_locale()
+    if type(imdb_id) != str:
+        imdb_id = str(imdb_id)
     imdb_id = imdb_id.lstrip("tt")
+    if len(imdb_id) != 7:
+        imdb_id = "0" * (7 - len(imdb_id)) + imdb_id
     url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/reference"
     logger.info("Fetching movie %s", imdb_id)
     resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
