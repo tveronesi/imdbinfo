@@ -14,7 +14,7 @@ from .parsers import (
     parse_json_season_episodes,
     parse_json_bulked_episodes, parse_json_akas,
 )
-from .locale import get_locale
+from .locale import _retrieve_url_lang
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ def get_movie(imdb_id: str, locale: str = None) -> MovieDetail:
     """Fetch movie details from IMDb using the provided IMDb ID as string,
     preserve the 'tt' prefix or not, it will be stripped in the function.
     """
-    lang = locale or get_locale()
+    lang = _retrieve_url_lang(locale)
     imdb_id = imdb_id.lstrip("tt")
     url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/reference"
     logger.info("Fetching movie %s", imdb_id)
@@ -46,7 +46,7 @@ def get_movie(imdb_id: str, locale: str = None) -> MovieDetail:
 @lru_cache(maxsize=128)
 def search_title(title: str, locale: str = None) -> Optional[SearchResult]:
     """Search for a movie by title and return a list of titles and names."""
-    lang = locale or get_locale()
+    lang = _retrieve_url_lang(locale)
     url = f"https://www.imdb.com/{lang}/find?q={title}&ref_=nv_sr_sm"
     logger.info("Searching for title '%s'", title)
     resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -70,7 +70,7 @@ def get_name(person_id: str, locale: str = None) -> Optional[PersonDetail]:
     """Fetch person details from IMDb using the provided IMDb ID.
     Preserve the 'nm' prefix or not, it will be stripped in the function.
     """
-    lang = locale or get_locale()
+    lang = _retrieve_url_lang(locale)
     person_id = person_id.lstrip("nm")
     url = f"https://www.imdb.com/{lang}/name/nm{person_id}/"
     logger.info("Fetching person %s", person_id)
@@ -98,7 +98,7 @@ def get_name(person_id: str, locale: str = None) -> Optional[PersonDetail]:
 def get_season_episodes(imdb_id: str, season=1, locale: str = None) -> SeasonEpisodesList:
     """Fetch episodes for a movie or series using the provided IMDb ID."""
     movies_id = imdb_id.lstrip("tt")
-    lang = locale or get_locale()
+    lang = _retrieve_url_lang(locale)
     url = f"https://www.imdb.com/{lang}/title/tt{movies_id}/episodes/?season={season}"
     logger.info("Fetching episodes for movie %s", imdb_id)
     resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -119,7 +119,7 @@ def get_season_episodes(imdb_id: str, season=1, locale: str = None) -> SeasonEpi
 @lru_cache(maxsize=128)
 def get_all_episodes(imdb_id: str, locale: str = None):
     series_id = imdb_id.lstrip("tt")
-    lang = locale or get_locale()
+    lang = _retrieve_url_lang(locale)
     url = f"https://www.imdb.com/{lang}/search/title/?count=250&series=tt{series_id}&sort=release_date,asc"
     logger.info("Fetching bulk episodes for series %s", imdb_id)
     resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})

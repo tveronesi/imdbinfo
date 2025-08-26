@@ -1,5 +1,4 @@
 from imdbinfo import get_akas
-from imdbinfo.services import search_title, get_movie
 
 import logging
 logging.basicConfig(level=logging.WARNING)

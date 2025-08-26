@@ -14,6 +14,7 @@ Thank you for your interest in contributing! To keep things organized and mainta
    git checkout -b feature/your-feature-name
    ```
 3. Make your changes and commit clearly:
+   (Don't change version numbers, they are managed by the release process)
    ```bash
    git commit -m "feat: add new feature description"
    ```
