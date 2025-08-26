@@ -1,5 +1,4 @@
-from imdbinfo import get_movie
-from imdbinfo.services import get_episodes
+from imdbinfo import get_movie, get_episodes
 
 series_ids = [
      'tt1520211',  # The Walking Dead
