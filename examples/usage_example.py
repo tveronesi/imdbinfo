@@ -1,4 +1,4 @@
-from imdbinfo.services import search_title, get_movie
+from imdbinfo import search_title, get_movie
 
 import logging
 logging.basicConfig(level=logging.WARNING)
