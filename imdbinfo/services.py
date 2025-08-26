@@ -12,7 +12,8 @@ from .parsers import (
     parse_json_search,
     parse_json_person_detail,
     parse_json_season_episodes,
-    parse_json_bulked_episodes, parse_json_akas,
+    parse_json_bulked_episodes,
+    parse_json_akas,
 )
 from .locale import _retrieve_url_lang
 
@@ -95,7 +96,9 @@ def get_name(person_id: str, locale: str = None) -> Optional[PersonDetail]:
 
 
 @lru_cache(maxsize=128)
-def get_season_episodes(imdb_id: str, season=1, locale: str = None) -> SeasonEpisodesList:
+def get_season_episodes(
+    imdb_id: str, season=1, locale: str = None
+) -> SeasonEpisodesList:
     """Fetch episodes for a movie or series using the provided IMDb ID."""
     movies_id = imdb_id.lstrip("tt")
     lang = _retrieve_url_lang(locale)
@@ -142,22 +145,22 @@ def get_episodes(imdb_id: str, season=1, locale: str = None) -> SeasonEpisodesLi
     """wrap until deprecation : use get_season_episodes instead for seasons
     or get_all_episodes for all episodes
     """
-    logger.warning("get_episodes is deprecating, use get_season_episodes or get_all_episodes instead.")
+    logger.warning(
+        "get_episodes is deprecating, use get_season_episodes or get_all_episodes instead."
+    )
     return get_season_episodes(imdb_id, season, locale)
-
-
-
 
 
 @lru_cache(maxsize=128)
 def get_akas(imdb_id: str) -> dict:
-    imdb_id = "tt%s"%imdb_id.lstrip("tt")
+    imdb_id = "tt%s" % imdb_id.lstrip("tt")
     url = "https://api.graphql.imdb.com/"
     headers = {
         "Content-Type": "application/json",
         "User-Agent": "Mozilla/5.0",
     }
-    query = '''
+    query = (
+        """
     query {
       title(id: "%s") {
         id
@@ -178,7 +181,9 @@ def get_akas(imdb_id: str) -> dict:
         }
       }
     }
-    ''' % imdb_id
+    """
+        % imdb_id
+    )
     payload = {"query": query}
     logger.info("Fetching title %s from GraphQL API", imdb_id)
     resp = requests.post(url, headers=headers, json=payload)

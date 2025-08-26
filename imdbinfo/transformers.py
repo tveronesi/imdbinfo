@@ -7,7 +7,9 @@ def _release_date(result: dict):
     """
     if result is None:
         return None
-    return datetime.date(result.get('year') or 1,result.get('month') or 1,result.get('day') or 1).strftime('%Y-%m-%d')
+    return datetime.date(
+        result.get("year") or 1, result.get("month") or 1, result.get("day") or 1
+    ).strftime("%Y-%m-%d")
 
 
 def _dict_votes_(result):
@@ -29,7 +31,10 @@ def _none_to_string_in_list(result):
     """
     given a list of lists , if a None is found replace with '' recursively
     """
-    return [[str(item) if item is not None else "" for item in sublist] for sublist in result]
+    return [
+        [str(item) if item is not None else "" for item in sublist]
+        for sublist in result
+    ]
 
 
 def _join(result, separator=" "):
