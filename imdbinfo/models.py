@@ -149,6 +149,17 @@ class CastMember(Person):
     def __str__(self):
         return f"{self.name} ({', '.join(self.characters)})"
 
+class Company(BaseModel):
+    id: str  # id without 'co' prefix, e.g. '0133093', same as imdb_id
+    imdb_id: str  # id without 'co' prefix, e.g. '0133093'
+    imdbId: str  # id with 'co' prefix, e.g. 'co0133093'
+    name: str
+    url: str
+    attributes : Optional[List[str]] = None
+    countries : Optional[List[str]] = None
+
+    def __str__(self):
+        return f"{self.name} ({self.imdbId})"
 
 class MovieDetail(SeriesMixin, BaseModel):
     """MovieDetail model for detailed information about a movie.
@@ -200,6 +211,7 @@ class MovieDetail(SeriesMixin, BaseModel):
     synopses: List[str] = []
     production: List[str] = []
     categories: Dict[str, List[Union[Person, CastMember]]] = {}
+    company_credits: Dict[str, List[Company]] = {}
 
     @field_validator("languages", "country_codes", "genres", mode="before")
     def none_is_list(cls, value):

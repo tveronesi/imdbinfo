@@ -18,7 +18,7 @@ from .models import (
     TvSeriesDetail,
     TvEpisodeDetail,
     SERIES_IDENTIFIERS,
-    EPISODE_IDENTIFIERS, AkaInfo,
+    EPISODE_IDENTIFIERS, AkaInfo, Company,
 )
 from .transformers import (
     _release_date,
@@ -190,6 +190,26 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
                 person = Person.from_category(category_person)
             person = person
             data["categories"][category["id"]].append(person)
+
+    # company_credits
+    data["company_credits"] =  {}
+    for company_credits_category in pjmespatch("props.pageProps.mainColumnData.companyCreditCategories[]",raw_json):
+        cat_id = company_credits_category.get('category').get('id')
+        if not cat_id: # sometimes there is no id, skip those
+            continue
+        data["company_credits"].setdefault(cat_id, [])
+        for company in company_credits_category["companyCredits"]["edges"]:
+            company_node = company.get("node", {})
+            company_data = {
+                "id": company_node.get("company", {}).get("id", "").replace("co", ""),
+                "imdb_id": company_node.get("company", {}).get("id", "").replace("co", ""),
+                "imdbId": company_node.get("company", {}).get("id", ""),
+                "name": company_node.get("displayableProperty", {}).get("value", {}).get("plainText", ""),
+                "url": f"https://www.imdb.com/company/{company_node.get('company', {}).get('id', '')}/",
+                "attributes": pjmespatch("[].text",company_node.get("attributes")),
+                "countries" : pjmespatch("[].text",company_node.get("countries"))
+            }
+            data["company_credits"][cat_id].append(Company(**company_data))
 
     # If Series/Episode kind
     # tvMovie,short,movie,tvEpisode,tvMiniseries,tvSpecial,tvShort,videoGame,video,musicVideo,podcastEpisode,podcastSeries
