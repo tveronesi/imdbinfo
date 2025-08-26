@@ -91,3 +91,6 @@
 
 ## v0.5.0
 - add locale support to services: `search_movie`, `get_movie`, `get_episodes`, `get_all_episodes`, `get_name`, `get_akas` 
+
+## v0.5.1
+- fix locale handling in services, errors in `'en'` when no locale provided
