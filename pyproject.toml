@@ -9,25 +9,12 @@ version = "0.5.1"
 description = "A Python service for querying IMDb data"
 readme = "README.md"
 license = { file = "LICENSE.txt" }
-authors = [
-    { name = "@tveronesi", email = "tveronesi+imdbinfo@gmail.com" }
-]
-dependencies = [
-    "requests",
-    "lxml",
-    "pydantic",
-    "jmespath",
-    "deprecated"
-]
+authors = [{ name = "@tveronesi", email = "tveronesi+imdbinfo@gmail.com" }]
+dependencies = ["requests", "lxml", "pydantic", "jmespath", "deprecated"]
 
-urls = {Homepage = "https://tveronesi.github.io/imdbinfo/"}
+urls = { Homepage = "https://tveronesi.github.io/imdbinfo/" }
 
-keywords = [
-    "imdb",
-    "movie",
-    "information",
-    "data"
-]
+keywords = ["imdb", "movie", "information", "data"]
 
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -42,6 +29,12 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 
 ]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.9.6"]
+
+[tool.ruff]
+line-length = 88
 
 [tool.setuptools]
 packages = ["imdbinfo"]
