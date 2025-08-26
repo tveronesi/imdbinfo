@@ -148,13 +148,22 @@ def get_episodes(imdb_id: str, season=1, locale: str = None) -> SeasonEpisodesLi
     logger.warning("get_episodes is deprecating, use get_season_episodes or get_all_episodes instead.")
     return get_season_episodes(imdb_id, season, locale)
 
-
-
-
-
 @lru_cache(maxsize=128)
 def get_akas(imdb_id: str)->list:
     imdb_id, _ = normalize_imdb_id(imdb_id)
+    raw_json = _get_extended_info(imdb_id)
+    akas = parse_json_akas(raw_json)
+    if not raw_json:
+        logger.warning("No AKAs found for title %s", imdb_id)
+        return []
+    logger.debug("Fetched %d AKAs for title %s", len(akas), imdb_id)
+    return akas
+
+
+def _get_extended_info(imdb_id) -> dict:
+    """
+        Fetch extended info (like AKAs) using IMDb's GraphQL API.
+    """
     imdbId = "tt" + imdb_id
     url = "https://api.graphql.imdb.com/"
     headers = {
@@ -194,9 +203,4 @@ def get_akas(imdb_id: str)->list:
         logger.error("GraphQL error: %s", data["errors"])
         raise Exception(f"GraphQL error: {data['errors']}")
     raw_json = data.get("data", {}).get("title", {})
-    akas = parse_json_akas(raw_json)
-    if not raw_json:
-        logger.warning("No AKAs found for title %s", imdb_id)
-        return []
-    logger.debug("Fetched %d AKAs for title %s", len(akas), imdb_id)
-    return akas
+    return raw_json
