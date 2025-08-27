@@ -18,7 +18,7 @@ from .models import (
     TvSeriesDetail,
     TvEpisodeDetail,
     SERIES_IDENTIFIERS,
-    EPISODE_IDENTIFIERS, AkaInfo, Company,
+    EPISODE_IDENTIFIERS, AkaInfo, CompanyInfo,
 )
 from .transformers import (
     _release_date,
@@ -209,7 +209,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
                 "attributes": pjmespatch("[].text",company_node.get("attributes")),
                 "countries" : pjmespatch("[].text",company_node.get("countries"))
             }
-            data["company_credits"][cat_id].append(Company(**company_data))
+            data["company_credits"][cat_id].append(CompanyInfo(**company_data))
 
     # If Series/Episode kind
     # tvMovie,short,movie,tvEpisode,tvMiniseries,tvSpecial,tvShort,videoGame,video,musicVideo,podcastEpisode,podcastSeries
