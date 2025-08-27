@@ -57,6 +57,7 @@ for imdb_id in movies_list:
     print(f"Kind: {movie.kind}")
     print(f"URL: {movie.url}")
     print(f"Rating: {movie.rating or 'N/A'}")
+    print(f"MPAA: {movie.mpaa or 'N/A'}")
     print(f"Genres: {', '.join(movie.genres) if movie.genres else 'N/A'}")
     print(f"Languages: {', '.join(movie.languages) if movie.languages else 'N/A'}")
     print(f"Country Codes: {', '.join(movie.country_codes) if movie.country_codes else 'N/A'}")

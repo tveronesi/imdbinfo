@@ -25,7 +25,7 @@ from .transformers import (
     _dict_votes_,
     _none_to_string_in_list,
     _join,
-    _certificates_to_dict, _parse_mpaa, MPAA_CERT_ID,
+    _certificates_to_dict, _parse_mpaa
 )
 
 VIDEO_URL = "https://www.imdb.com/video/"
@@ -129,7 +129,8 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         raw_json,
         _certificates_to_dict,
     )
-    data["mpaa"] = pjmespatch(f"props.pageProps.mainColumnData.certificates.edges[?node.id=='{MPAA_CERT_ID}']", raw_json, _parse_mpaa)
+    # TODO is not working 100% need deeper check
+    data["mpaa"] = pjmespatch(f"props.pageProps.mainColumnData.certificates.edges[?node.ratingsBody.id=='MPAA']", raw_json, _parse_mpaa)
     data["stars"] = pjmespatch(
         "props.pageProps.aboveTheFoldData.castPageTitle.edges[]", raw_json, lambda x: [Person.from_cast(a) for a in x]
     )

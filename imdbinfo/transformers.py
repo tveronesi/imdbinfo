@@ -1,7 +1,5 @@
 import datetime
 
-MPAA_CERT_ID = "ce0273137"
-
 
 def _release_date(result: dict):
     """
@@ -63,6 +61,6 @@ def _parse_mpaa(mpaa_certificate_node):
     if mpaa_certificate_node is None:
         return ''
     for certificate in mpaa_certificate_node:
-        if certificate.get("node", {}).get("id") == MPAA_CERT_ID:
+        if certificate.get("node", {}).get("ratingsBody",{}).get("id") =="MPAA":
             return certificate.get("node", {}).get("ratingReason", '')
     return ''
