@@ -48,10 +48,19 @@ def _certificates_to_dict(result):
         return {}
     res = {}
     for item in result:
-        country_code, country_name, rating_value, regions = item
+        cert_id, country_code, country_name, rating_value,rating_reason, regions = item
         rating = f"{rating_value} " + ", ".join(regions)
         if country_code not in res:
             res[country_code] = [country_name, rating]
         else:
             res[country_code][1] += " :: " + rating
     return res
+
+
+def _parse_mpaa(mpaa_certificate_node):
+    if mpaa_certificate_node is None:
+        return ''
+    for certificate in mpaa_certificate_node:
+        if certificate.get("node", {}).get("ratingsBody",{}).get("id") =="MPAA":
+            return certificate.get("node", {}).get("ratingReason", '')
+    return ''
