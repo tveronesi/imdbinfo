@@ -25,7 +25,7 @@ from .transformers import (
     _dict_votes_,
     _none_to_string_in_list,
     _join,
-    _certificates_to_dict,
+    _certificates_to_dict, _parse_mpaa, MPAA_CERT_ID,
 )
 
 VIDEO_URL = "https://www.imdb.com/video/"
@@ -125,10 +125,11 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     )
     data["interests"] = pjmespatch("props.pageProps.mainColumnData.interests.edges[].node.primaryText.text", raw_json)
     data["certificates"] = pjmespatch(
-        "props.pageProps.mainColumnData.certificates.edges[].node.[country.id,country.text,rating,attributes[].text]",
+        "props.pageProps.mainColumnData.certificates.edges[].node.[id,country.id,country.text,rating,ratingReason,attributes[].text]",
         raw_json,
         _certificates_to_dict,
     )
+    data["mpaa"] = pjmespatch(f"props.pageProps.mainColumnData.certificates.edges[?node.id=='{MPAA_CERT_ID}']", raw_json, _parse_mpaa)
     data["stars"] = pjmespatch(
         "props.pageProps.aboveTheFoldData.castPageTitle.edges[]", raw_json, lambda x: [Person.from_cast(a) for a in x]
     )
@@ -139,6 +140,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         "props.pageProps.mainColumnData.filmingLocations.edges[].node.text", raw_json
     )
     data["country_codes"] = pjmespatch("props.pageProps.mainColumnData.countriesDetails.countries[].id", raw_json)
+    data["countries"] = pjmespatch("props.pageProps.mainColumnData.countriesDetails.countries[].text", raw_json)
     data["storyline_keywords"] = pjmespatch(
         "props.pageProps.mainColumnData.storylineKeywords.edges[].node.text", raw_json
     )
@@ -174,7 +176,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         _none_to_string_in_list,
     )
     data["languages"] = pjmespatch("props.pageProps.mainColumnData.spokenLanguages.spokenLanguages[].id", raw_json)
-
+    data["languages_text"] = pjmespatch("props.pageProps.mainColumnData.spokenLanguages.spokenLanguages[].text", raw_json)
     # categories
     data["categories"] = {}
     for category in pjmespatch("props.pageProps.mainColumnData.categories[]", raw_json):
