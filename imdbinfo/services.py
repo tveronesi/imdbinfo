@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 from functools import lru_cache
 from time import time
@@ -18,14 +19,19 @@ from .locale import _retrieve_url_lang
 
 logger = logging.getLogger(__name__)
 
+def normalize_imdb_id(imdb_id: str | int, locale: str = None):
+    num = int(re.sub(r"\D", "", imdb_id))
+    lang = _retrieve_url_lang(locale)
+    imdb_id = f"{num:07d}"
+    return imdb_id, lang
+
 
 @lru_cache(maxsize=128)
 def get_movie(imdb_id: str, locale: str = None) -> MovieDetail:
     """Fetch movie details from IMDb using the provided IMDb ID as string,
     preserve the 'tt' prefix or not, it will be stripped in the function.
     """
-    lang = _retrieve_url_lang(locale)
-    imdb_id = imdb_id.lstrip("tt")
+    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/reference"
     logger.info("Fetching movie %s", imdb_id)
     resp = niquests.get(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -70,8 +76,7 @@ def get_name(person_id: str, locale: str = None) -> Optional[PersonDetail]:
     """Fetch person details from IMDb using the provided IMDb ID.
     Preserve the 'nm' prefix or not, it will be stripped in the function.
     """
-    lang = _retrieve_url_lang(locale)
-    person_id = person_id.lstrip("nm")
+    person_id, lang = normalize_imdb_id(person_id, locale)
     url = f"https://www.imdb.com/{lang}/name/nm{person_id}/"
     logger.info("Fetching person %s", person_id)
     t0 = time()
@@ -97,9 +102,8 @@ def get_name(person_id: str, locale: str = None) -> Optional[PersonDetail]:
 @lru_cache(maxsize=128)
 def get_season_episodes(imdb_id: str, season=1, locale: str = None) -> SeasonEpisodesList:
     """Fetch episodes for a movie or series using the provided IMDb ID."""
-    movies_id = imdb_id.lstrip("tt")
-    lang = _retrieve_url_lang(locale)
-    url = f"https://www.imdb.com/{lang}/title/tt{movies_id}/episodes/?season={season}"
+    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
+    url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/episodes/?season={season}"
     logger.info("Fetching episodes for movie %s", imdb_id)
     resp = niquests.get(url, headers={"User-Agent": "Mozilla/5.0"})
     if resp.status_code != 200:
@@ -118,8 +122,7 @@ def get_season_episodes(imdb_id: str, season=1, locale: str = None) -> SeasonEpi
 
 @lru_cache(maxsize=128)
 def get_all_episodes(imdb_id: str, locale: str = None):
-    series_id = imdb_id.lstrip("tt")
-    lang = _retrieve_url_lang(locale)
+    series_id, lang = normalize_imdb_id(imdb_id, locale)
     url = f"https://www.imdb.com/{lang}/search/title/?count=250&series=tt{series_id}&sort=release_date,asc"
     logger.info("Fetching bulk episodes for series %s", imdb_id)
     resp = niquests.get(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -145,13 +148,23 @@ def get_episodes(imdb_id: str, season=1, locale: str = None) -> SeasonEpisodesLi
     logger.warning("get_episodes is deprecating, use get_season_episodes or get_all_episodes instead.")
     return get_season_episodes(imdb_id, season, locale)
 
-
-
-
-
 @lru_cache(maxsize=128)
-def get_akas(imdb_id: str) -> dict:
-    imdb_id = "tt%s"%imdb_id.lstrip("tt")
+def get_akas(imdb_id: str)->list:
+    imdb_id, _ = normalize_imdb_id(imdb_id)
+    raw_json = _get_extended_info(imdb_id)
+    akas = parse_json_akas(raw_json)
+    if not raw_json:
+        logger.warning("No AKAs found for title %s", imdb_id)
+        return []
+    logger.debug("Fetched %d AKAs for title %s", len(akas), imdb_id)
+    return akas
+
+
+def _get_extended_info(imdb_id) -> dict:
+    """
+        Fetch extended info (like AKAs) using IMDb's GraphQL API.
+    """
+    imdbId = "tt" + imdb_id
     url = "https://api.graphql.imdb.com/"
     headers = {
         "Content-Type": "application/json",
@@ -178,7 +191,7 @@ def get_akas(imdb_id: str) -> dict:
         }
       }
     }
-    ''' % imdb_id
+    ''' % imdbId
     payload = {"query": query}
     logger.info("Fetching title %s from GraphQL API", imdb_id)
     resp = niquests.post(url, headers=headers, json=payload)
@@ -190,9 +203,4 @@ def get_akas(imdb_id: str) -> dict:
         logger.error("GraphQL error: %s", data["errors"])
         raise Exception(f"GraphQL error: {data['errors']}")
     raw_json = data.get("data", {}).get("title", {})
-    akas = parse_json_akas(raw_json)
-    if not raw_json:
-        logger.warning("No AKAs found for title %s", imdb_id)
-        return []
-    logger.debug("Fetched %d AKAs for title %s", len(akas), imdb_id)
-    return akas
+    return raw_json
