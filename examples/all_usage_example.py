@@ -14,9 +14,9 @@ for word in list_q:
         for movie in results.titles:
             print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
             movie = get_movie(movie.imdb_id)
+            print(f"  URL: {movie.url}")
             print(f"  Rating: {movie.rating}")
             print(f"  MPAA: {movie.mpaa}")
-            # languages countries languages_codes
             print(f"  Countries: {', '.join(movie.countries) if movie.countries else 'N/A'}")
             print(f"  Languages codes: {', '.join(movie.languages) if movie.languages else 'N/A'}")
             print(f"  Languages: {', '.join(movie.languages_text) if movie.languages_text else 'N/A'}")
