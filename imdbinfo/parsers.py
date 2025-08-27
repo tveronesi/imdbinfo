@@ -30,6 +30,7 @@ from .transformers import (
 
 VIDEO_URL = "https://www.imdb.com/video/"
 TITLE_URL = "https://www.imdb.com/title/"
+COMPANY_URL = "https://www.imdb.com/company/"
 
 logger = logging.getLogger(__name__)
 
@@ -205,7 +206,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
                 "imdb_id": company_node.get("company", {}).get("id", "").replace("co", ""),
                 "imdbId": company_node.get("company", {}).get("id", ""),
                 "name": company_node.get("displayableProperty", {}).get("value", {}).get("plainText", ""),
-                "url": f"https://www.imdb.com/company/{company_node.get('company', {}).get('id', '')}/",
+                "url": f"{COMPANY_URL}{company_node.get('company', {}).get('id', '')}/",
                 "attributes": pjmespatch("[].text",company_node.get("attributes")),
                 "countries" : pjmespatch("[].text",company_node.get("countries"))
             }
