@@ -47,3 +47,14 @@ def test_normalize_imdb_id_handles_short_id():
     imdb_id, lang = services.normalize_imdb_id("1", "en")
     assert imdb_id == "0000001"
     assert lang == "" # empty lang for url
+
+# test 1 -> 0000001
+def test_normalize_imdb_id_handles_short_id_int():
+    imdb_id, lang = services.normalize_imdb_id(1, "en")
+    assert imdb_id == "0000001"
+    assert lang == "" # empty lang for url
+
+def test_normalize_imdb_id_handles_long_id_int():
+    imdb_id, lang = services.normalize_imdb_id(123456789, "es")
+    assert imdb_id == "123456789"
+    assert lang == "es" # empty lang for url
