@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing! To keep things organized and maintain high quality, please follow the guidelines below.
 
+We welcome meaningful contributions that improve the codebase, documentation, or features. Please note that pull requests containing only formatting or cosmetic changes, with no substantial improvement, may not be accepted. If you want to help, consider addressing open issues, fixing bugs, or adding features. All contributions must follow our code of conduct and be reviewed for quality and purpose.
+
 ---
 
 ## 📌 Workflow
