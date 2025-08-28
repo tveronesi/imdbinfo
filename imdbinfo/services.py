@@ -19,7 +19,7 @@ from .locale import _retrieve_url_lang
 
 logger = logging.getLogger(__name__)
 
-def normalize_imdb_id(imdb_id: str | int, locale: str = None):
+def normalize_imdb_id(imdb_id: str, locale: str = None):
     imdb_id = str(imdb_id)
     num = int(re.sub(r"\D", "", imdb_id))
     lang = _retrieve_url_lang(locale)
@@ -160,7 +160,7 @@ def get_akas(imdb_id: str)->list:
     logger.debug("Fetched %d AKAs for title %s", len(akas), imdb_id)
     return akas
 
-
+@lru_cache(maxsize=128)
 def _get_extended_info(imdb_id) -> dict:
     """
         Fetch extended info (like AKAs) using IMDb's GraphQL API.
