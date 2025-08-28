@@ -1,7 +1,7 @@
-[![Build Status](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml/badge.svg)](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml)
+[![PyPI Downloads](https://static.pepy.tech/badge/imdbinfo/month)](https://pepy.tech/projects/imdbinfo)
 [![PyPI Version](https://img.shields.io/pypi/v/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
+[![Build Status](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml/badge.svg)](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml)
 [![Python Versions](https://img.shields.io/pypi/pyversions/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
-[![PyPI Downloads](https://static.pepy.tech/badge/imdbinfo/week)](https://pepy.tech/projects/imdbinfo)
 
 [//]: # (![PyPI - Daily Downloads]&#40;https://img.shields.io/pypi/dm/your-package-name?label=PyPI%20downloads&logo=pypi&#41;)
 
