@@ -118,7 +118,7 @@ print("Is Episode:", episode_detail.is_episode())  # True
 print(f"Episode Info: {episode_detail.info_episode}")
 ```
 
-#### ⭐⭐New: All episodes in a series⭐⭐ 
+#### All episodes in a series
 You can now retrieve all episodes in a series with a single call:
 ```python
 from imdbinfo import get_all_episodes
@@ -133,8 +133,43 @@ for episode in all_episodes:
     print("" + "="*50)
 ```
 
+####  ⭐⭐New: Company Credits: ⭐⭐ 
 
-#### ⭐⭐New: Alternate titles (AKAs)⭐⭐
+* distribution companies, 
+* production companies, 
+* sales companies, 
+* special effects companies, 
+* miscellaneous companies
+
+You can now extract information about the companies involved in a movie or series:
+
+```python
+from imdbinfo import get_movie
+
+movie = get_movie("tt0133093")  # The Matrix
+
+# Distribution companies
+for company in movie.company_credits["distribution"]:
+    print(f"Distribution: {company.name} ({company.country})")
+
+# Sales companies
+for company in movie.company_credits["sales"]:
+    print(f"Sales: {company.name}")
+
+# Production companies
+for company in movie.company_credits["production"]:
+    print(f"Production: {company.name}")
+
+# Special effects companies
+for company in movie.company_credits["specialEffects"]:
+    print(f"Special Effects: {company.name}")
+
+# Miscellaneous companies
+for company in movie.company_credits["miscellaneous"]:
+    print(f"Miscellaneous: {company.name}")
+```
+
+#### Alternate titles (AKAs)
 Fetch international and alternate titles for any movie or series:
 ```python
 from imdbinfo import get_akas
