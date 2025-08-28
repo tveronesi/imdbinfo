@@ -195,7 +195,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             person = person
             data["categories"][category["id"]].append(person)
 
-    # company_credits
+    # company_credits [ distributors , production_companies, special_effects_companies, etc ]
     data["company_credits"] =  {}
     for company_credits_category in pjmespatch("props.pageProps.mainColumnData.companyCreditCategories[]",raw_json):
         cat_id = company_credits_category.get('category').get('id')
