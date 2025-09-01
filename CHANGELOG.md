@@ -10,6 +10,7 @@
 ## v0.2.5
 - Add new feature to fetch movie ratings
 - Fix bug in movie search functionality
+- Fix bug in movie search functionality
 - Update dependencies to latest versions
 - Improve error handling for network requests
 - Add support for fetching movie reviews
@@ -94,3 +95,10 @@
 
 ## v0.5.1
 - fix locale handling in services, errors in `'en'` when no locale provided
+
+## v0.5.2
+- **Company Credits Extraction:** Added support for extracting detailed company credits (distribution, production, sales, special effects, miscellaneous) from IMDb. This includes a new `CompanyInfo` model and updates to the `MovieDetail` model and parser logic to populate `company_credits`
+- **Additional Movie Metadata:** The `MovieDetail` model and parser now include fields for `mpaa` rating, `countries`, and `languages_text`, allowing for richer movie information.
+- **HTTP Library Migration:** Replaced all usages of `requests` with `niquests` for making HTTP requests, including updates in the `Dockerfile`, `services.py`, and documentation.
+- **Locale Handling:** Improved locale management by changing `supported_locales` to a tuple and introducing a normalization function for IMDb IDs.
+- **README and Examples:** Updated the `README.md` and example scripts to showcase new features, including company credits extraction and additional metadata fields. Also clarified usage of `niquests` and improved code samples.

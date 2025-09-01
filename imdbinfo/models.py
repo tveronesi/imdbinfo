@@ -149,6 +149,17 @@ class CastMember(Person):
     def __str__(self):
         return f"{self.name} ({', '.join(self.characters)})"
 
+class CompanyInfo(BaseModel):
+    id: str  # id without 'co' prefix, e.g. '0133093', same as imdb_id
+    imdb_id: str  # id without 'co' prefix, e.g. '0133093'
+    imdbId: str  # id with 'co' prefix, e.g. 'co0133093'
+    name: str
+    url: str
+    attributes : Optional[List[str]] = None
+    countries : Optional[List[str]] = None
+
+    def __str__(self):
+        return f"{self.name} ({self.imdbId})"
 
 class MovieDetail(SeriesMixin, BaseModel):
     """MovieDetail model for detailed information about a movie.
@@ -171,13 +182,16 @@ class MovieDetail(SeriesMixin, BaseModel):
     plot: Optional[str] = None
     release_date: Optional[str] = None
     languages: List[str] = []
+    languages_text: List[str] = []
     certificates: Dict[str, Tuple[str, str]] = {}
+    mpaa: Optional[str] = None
     directors: List[Person] = []
     stars: List[Person] = []
     year: Optional[int] = None
     year_end: Optional[int] = None
     duration: Optional[int] = None
     country_codes: List[str] = []
+    countries: List[str] = []
     rating: Optional[float] = None
     metacritic_rating: Optional[int] = None
     votes: Optional[int] = None
@@ -200,6 +214,7 @@ class MovieDetail(SeriesMixin, BaseModel):
     synopses: List[str] = []
     production: List[str] = []
     categories: Dict[str, List[Union[Person, CastMember]]] = {}
+    company_credits: Dict[str, List[CompanyInfo]] = {}
 
     @field_validator("languages", "country_codes", "genres", mode="before")
     def none_is_list(cls, value):

@@ -18,18 +18,19 @@ from .models import (
     TvSeriesDetail,
     TvEpisodeDetail,
     SERIES_IDENTIFIERS,
-    EPISODE_IDENTIFIERS, AkaInfo,
+    EPISODE_IDENTIFIERS, AkaInfo, CompanyInfo,
 )
 from .transformers import (
     _release_date,
     _dict_votes_,
     _none_to_string_in_list,
     _join,
-    _certificates_to_dict,
+    _certificates_to_dict, _parse_mpaa
 )
 
 VIDEO_URL = "https://www.imdb.com/video/"
 TITLE_URL = "https://www.imdb.com/title/"
+COMPANY_URL = "https://www.imdb.com/company/"
 
 logger = logging.getLogger(__name__)
 
@@ -125,10 +126,12 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     )
     data["interests"] = pjmespatch("props.pageProps.mainColumnData.interests.edges[].node.primaryText.text", raw_json)
     data["certificates"] = pjmespatch(
-        "props.pageProps.mainColumnData.certificates.edges[].node.[country.id,country.text,rating,attributes[].text]",
+        "props.pageProps.mainColumnData.certificates.edges[].node.[id,country.id,country.text,rating,ratingReason,attributes[].text]",
         raw_json,
         _certificates_to_dict,
     )
+    # TODO is not working 100% need deeper check
+    data["mpaa"] = pjmespatch(f"props.pageProps.mainColumnData.certificates.edges[?node.ratingsBody.id=='MPAA']", raw_json, _parse_mpaa)
     data["stars"] = pjmespatch(
         "props.pageProps.aboveTheFoldData.castPageTitle.edges[]", raw_json, lambda x: [Person.from_cast(a) for a in x]
     )
@@ -139,6 +142,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         "props.pageProps.mainColumnData.filmingLocations.edges[].node.text", raw_json
     )
     data["country_codes"] = pjmespatch("props.pageProps.mainColumnData.countriesDetails.countries[].id", raw_json)
+    data["countries"] = pjmespatch("props.pageProps.mainColumnData.countriesDetails.countries[].text", raw_json)
     data["storyline_keywords"] = pjmespatch(
         "props.pageProps.mainColumnData.storylineKeywords.edges[].node.text", raw_json
     )
@@ -174,7 +178,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         _none_to_string_in_list,
     )
     data["languages"] = pjmespatch("props.pageProps.mainColumnData.spokenLanguages.spokenLanguages[].id", raw_json)
-
+    data["languages_text"] = pjmespatch("props.pageProps.mainColumnData.spokenLanguages.spokenLanguages[].text", raw_json)
     # categories
     data["categories"] = {}
     for category in pjmespatch("props.pageProps.mainColumnData.categories[]", raw_json):
@@ -191,10 +195,29 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             person = person
             data["categories"][category["id"]].append(person)
 
+    # company_credits [ distributors , production_companies, special_effects_companies, etc ]
+    data["company_credits"] =  {}
+    for company_credits_category in pjmespatch("props.pageProps.mainColumnData.companyCreditCategories[]",raw_json):
+        cat_id = company_credits_category.get('category').get('id')
+        if not cat_id: # sometimes there is no id, skip those
+            continue
+        data["company_credits"].setdefault(cat_id, [])
+        for company in company_credits_category["companyCredits"]["edges"]:
+            company_node = company.get("node", {})
+            company_data = {
+                "id": company_node.get("company", {}).get("id", "").replace("co", ""),
+                "imdb_id": company_node.get("company", {}).get("id", "").replace("co", ""),
+                "imdbId": company_node.get("company", {}).get("id", ""),
+                "name": company_node.get("displayableProperty", {}).get("value", {}).get("plainText", ""),
+                "url": f"{COMPANY_URL}{company_node.get('company', {}).get('id', '')}/",
+                "attributes": pjmespatch("[].text",company_node.get("attributes")),
+                "countries" : pjmespatch("[].text",company_node.get("countries"))
+            }
+            data["company_credits"][cat_id].append(CompanyInfo(**company_data))
+
     # If Series/Episode kind
     # tvMovie,short,movie,tvEpisode,tvMiniseries,tvSpecial,tvShort,videoGame,video,musicVideo,podcastEpisode,podcastSeries
     if movie_kind in SERIES_IDENTIFIERS:
-        #data["info_series"] = SeriesInfo.from_episodes(pjmespatch("props.pageProps.mainColumnData.episodes", raw_json))
         data["info_series"] = InfoSeries(
             display_years= pjmespatch("props.pageProps.mainColumnData.episodes.displayableYears.edges[].node.year", raw_json),
             display_seasons= pjmespatch("props.pageProps.mainColumnData.episodes.displayableSeasons.edges[].node.season", raw_json)

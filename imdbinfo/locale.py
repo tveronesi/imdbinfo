@@ -1,9 +1,8 @@
 import logging
 
 logger = logging.getLogger(__name__)
-supported_locales = [
-    "en", "fr-ca","fr","hi", "de", "it", "es", "pt", "es", "es-es"
-]
+supported_locales = ("en", "fr-ca","fr","hi", "de", "it", "es", "pt", "es", "es-es")
+
 
 DEFAULT_LOCALE = "en" # fallback locale
 _configured_locale = None
