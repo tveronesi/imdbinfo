@@ -22,21 +22,21 @@ def mock_get_factory(filename: str):
 
 
 def test_get_movie(monkeypatch):
-    monkeypatch.setattr(services.requests, "get", mock_get_factory("sample_resource.json"))
+    monkeypatch.setattr(services.niquests, "get", mock_get_factory("sample_resource.json"))
     movie = services.get_movie("tt0133093")
     assert movie.title == "The Matrix"
     assert movie.duration == 136
 
 
 def test_search_title(monkeypatch):
-    monkeypatch.setattr(services.requests, "get", mock_get_factory("sample_search.json"))
+    monkeypatch.setattr(services.niquests, "get", mock_get_factory("sample_search.json"))
     result = services.search_title("matrix")
     assert result.titles[0].title == "The Matrix"
     assert result.names
 
 
 def test_get_name(monkeypatch):
-    monkeypatch.setattr(services.requests, "get", mock_get_factory("sample_person.json"))
+    monkeypatch.setattr(services.niquests, "get", mock_get_factory("sample_person.json"))
     person = services.get_name("nm0000126")
     assert person.name == "Kevin Costner"
     assert "The Postman" in person.knownfor

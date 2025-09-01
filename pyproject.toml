@@ -13,7 +13,7 @@ authors = [
     { name = "@tveronesi", email = "tveronesi+imdbinfo@gmail.com" }
 ]
 dependencies = [
-    "requests",
+    "niquests",
     "lxml",
     "pydantic",
     "jmespath",

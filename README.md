@@ -186,7 +186,7 @@ for aka in akas["akas"][:5]:
 
 - Easy to use Python API
 - Returns clean structured data
-- Powered by requests and lxml
+- Powered by niquests and lxml
 - Uses Pydantic for type safety
 - No external dependencies or API keys required
 - Ideal for quick scripts and data analysis

@@ -118,7 +118,7 @@ More usage examples can be found in the [examples folder](https://github.com/tve
 ## 🤔 Why Choose imdbinfo?
 
 - ✅ No API keys or auth needed  
-- ⚡ Blazing fast with `requests` + `lxml`  
+- ⚡ Blazing fast with `niquests` + `lxml`  
 - 🎯 Cleanly typed with [Pydantic](https://docs.pydantic.dev)  
 - 🧪 Great for automation, data science, or bots  
 - 🪶 Lightweight and dependency-minimal  
@@ -131,7 +131,7 @@ And if you want a REST API based on this package, check out [qdMovieAPI](https:/
 
 ## 🛠 Under the Hood
 
-- Built using `requests` and `lxml` for fast scraping  
+- Built using `niquests` and `lxml` for fast scraping  
 - Uses [Pydantic](https://docs.pydantic.dev) for typing and validation  
 - No tracking, no telemetry, no nonsense  
 
