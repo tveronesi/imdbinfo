@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+from typing import Optional, Dict, Union, List
 from functools import lru_cache
 from time import time
 import logging
@@ -7,7 +7,7 @@ import niquests
 import json
 from lxml import html
 
-from .models import SearchResult, MovieDetail, SeasonEpisodesList, PersonDetail
+from .models import SearchResult, MovieDetail, SeasonEpisodesList, PersonDetail, AkaInfo, AkasDataModel
 from .parsers import (
     parse_json_movie,
     parse_json_search,
@@ -19,7 +19,7 @@ from .locale import _retrieve_url_lang
 
 logger = logging.getLogger(__name__)
 
-def normalize_imdb_id(imdb_id: str, locale: str = None):
+def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
     imdb_id = str(imdb_id)
     num = int(re.sub(r"\D", "", imdb_id))
     lang = _retrieve_url_lang(locale)
@@ -28,7 +28,7 @@ def normalize_imdb_id(imdb_id: str, locale: str = None):
 
 
 @lru_cache(maxsize=128)
-def get_movie(imdb_id: str, locale: str = None) -> MovieDetail:
+def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetail]:
     """Fetch movie details from IMDb using the provided IMDb ID as string,
     preserve the 'tt' prefix or not, it will be stripped in the function.
     """
@@ -39,19 +39,20 @@ def get_movie(imdb_id: str, locale: str = None) -> MovieDetail:
     if resp.status_code != 200:
         logger.error("Error fetching %s: %s", url, resp.status_code)
         raise Exception(f"Error fetching {url}")
-    tree = html.fromstring(resp.content)
+    tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
-    if not script:
+    if not script or  type(script) is not list:
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
-    raw_json = json.loads(script[0])
+
+    raw_json = json.loads(str(script[0]))
     movie = parse_json_movie(raw_json)
     logger.debug("Fetched url %s", url)
     return movie
 
 
 @lru_cache(maxsize=128)
-def search_title(title: str, locale: str = None) -> Optional[SearchResult]:
+def search_title(title: str, locale: Optional[str] = None) -> Optional[SearchResult]:
     """Search for a movie by title and return a list of titles and names."""
     lang = _retrieve_url_lang(locale)
     url = f"https://www.imdb.com/{lang}/find?q={title}&ref_=nv_sr_sm"
@@ -60,12 +61,16 @@ def search_title(title: str, locale: str = None) -> Optional[SearchResult]:
     if resp.status_code != 200:
         logger.warning("Search request failed: %s", resp.status_code)
         return None
-    tree = html.fromstring(resp.content)
+    tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
-    if not script:  # throw if no script found
+    if not script or  type(script) is not list:  # throw if no script found
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
-    raw_json = json.loads(script[0])
+    # if script is not indexeable throw
+    if len(script) == 0:
+        logger.error("No script found with id '__NEXT_DATA__'")
+        raise Exception("No script found with id '__NEXT_DATA__'")
+    raw_json = json.loads(str(script[0]))
 
     result = parse_json_search(raw_json)
     logger.debug("Search for '%s' returned %s titles", title, len(result.titles))
@@ -73,7 +78,7 @@ def search_title(title: str, locale: str = None) -> Optional[SearchResult]:
 
 
 @lru_cache(maxsize=128)
-def get_name(person_id: str, locale: str = None) -> Optional[PersonDetail]:
+def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDetail]:
     """Fetch person details from IMDb using the provided IMDb ID.
     Preserve the 'nm' prefix or not, it will be stripped in the function.
     """
@@ -87,13 +92,13 @@ def get_name(person_id: str, locale: str = None) -> Optional[PersonDetail]:
     if resp.status_code != 200:
         logger.error("Error fetching %s: %s", url, resp.status_code)
         raise Exception(f"Error fetching {url}")
-    tree = html.fromstring(resp.content)
+    tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
-    if not script:
+    if not script or  type(script) is not list:
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
     t0 = time()
-    raw_json = json.loads(script[0])
+    raw_json = json.loads(str(script[0]))
     person = parse_json_person_detail(raw_json)
     t1 = time()
     logger.debug("Parsed person %s in %.2f seconds", person_id, t1 - t0)
@@ -101,7 +106,7 @@ def get_name(person_id: str, locale: str = None) -> Optional[PersonDetail]:
 
 
 @lru_cache(maxsize=128)
-def get_season_episodes(imdb_id: str, season=1, locale: str = None) -> SeasonEpisodesList:
+def get_season_episodes(imdb_id: str, season=1, locale: Optional[str] = None) -> SeasonEpisodesList:
     """Fetch episodes for a movie or series using the provided IMDb ID."""
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/episodes/?season={season}"
@@ -110,19 +115,19 @@ def get_season_episodes(imdb_id: str, season=1, locale: str = None) -> SeasonEpi
     if resp.status_code != 200:
         logger.error("Error fetching %s: %s", url, resp.status_code)
         raise Exception(f"Error fetching {url}")
-    tree = html.fromstring(resp.content)
+    tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
-    if not script:
+    if not script or  type(script) is not list:
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
-    raw_json = json.loads(script[0])
+    raw_json = json.loads(str(script[0]))
     episodes = parse_json_season_episodes(raw_json)
     logger.debug("Fetched %d episodes for movie %s", len(episodes.episodes), imdb_id)
     return episodes
 
 
 @lru_cache(maxsize=128)
-def get_all_episodes(imdb_id: str, locale: str = None):
+def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
     series_id, lang = normalize_imdb_id(imdb_id, locale)
     url = f"https://www.imdb.com/{lang}/search/title/?count=250&series=tt{series_id}&sort=release_date,asc"
     logger.info("Fetching bulk episodes for series %s", imdb_id)
@@ -130,19 +135,19 @@ def get_all_episodes(imdb_id: str, locale: str = None):
     if resp.status_code != 200:
         logger.error("Error fetching %s: %s", url, resp.status_code)
         raise Exception(f"Error fetching {url}")
-    tree = html.fromstring(resp.content)
+    tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
-    if not script:
+    if not script or  type(script) is not list:
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
-    raw_json = json.loads(script[0])
+    raw_json = json.loads(str(script[0]))
     episodes = parse_json_bulked_episodes(raw_json)
     logger.debug("Fetched %d episodes for series %s", len(episodes), imdb_id)
     return episodes
 
 
 @lru_cache(maxsize=128)
-def get_episodes(imdb_id: str, season=1, locale: str = None) -> SeasonEpisodesList:
+def get_episodes(imdb_id: str, season=1, locale: Optional[str] = None) -> SeasonEpisodesList:
     """wrap until deprecation : use get_season_episodes instead for seasons
     or get_all_episodes for all episodes
     """
@@ -150,7 +155,7 @@ def get_episodes(imdb_id: str, season=1, locale: str = None) -> SeasonEpisodesLi
     return get_season_episodes(imdb_id, season, locale)
 
 @lru_cache(maxsize=128)
-def get_akas(imdb_id: str)->list:
+def get_akas(imdb_id: str)-> AkasDataModel:
     imdb_id, _ = normalize_imdb_id(imdb_id)
     raw_json = _get_extended_info(imdb_id)
     akas = parse_json_akas(raw_json)

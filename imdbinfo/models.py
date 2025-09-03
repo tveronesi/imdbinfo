@@ -475,3 +475,33 @@ class AkaInfo(BaseModel):
 
     def __repr__(self):
         return self.__str__()
+
+
+class AkaInfoModel(BaseModel):
+    title: str
+    country_code: str
+    country_name: str
+    language_code: Optional[str] = None
+    language_name: Optional[str] = None
+
+    # the print will return as a dict
+    def __str__(self):
+        return f"{self.title} ({self.country_name or 'N/A'} - {self.language_name or 'N/A'})"
+
+class AkasDataModel(BaseModel):
+    imdbId: str
+    akas: List[AkaInfoModel]
+
+    def __len__(self):
+        return len(self.akas)
+
+    # create a method that when called self['akas'] returns the list of akas, and self[imdbId] returns the imdbId
+    def __getitem__(self, item):
+        if item == 'akas':
+            return self.akas
+        elif item == 'imdbId':
+            return self.imdbId
+        else:
+            raise KeyError(f"Key {item} not found in AkasDataModel")
+
+

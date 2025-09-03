@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Union
 import logging
 
 import jmespath
@@ -18,7 +18,7 @@ from .models import (
     TvSeriesDetail,
     TvEpisodeDetail,
     SERIES_IDENTIFIERS,
-    EPISODE_IDENTIFIERS, AkaInfo, CompanyInfo,
+    EPISODE_IDENTIFIERS, AkaInfo, CompanyInfo, AkaInfoModel, AkasDataModel,
 )
 from .transformers import (
     _release_date,
@@ -56,7 +56,7 @@ def _parse_directors(result):
 def _parse_credits(result) -> dict:
     """feed credits from the page 'name' to the PersonDetail model"""
 
-    res = {}
+    res: Dict[str, List[MovieBriefInfo]] = {}
     for itemCast in result:
         # ['writer', 'tt27665778', 'Horizon: An American Saga - Chapter 2', 'Movie', 'https://m.media-amazon.com/images/M/MV5BMDg1OWI3NTYtY2IwMy00NmQ4LTk5YWUtZmViNmU5YTFkNGU5XkEyXkFqcGc@._V1_.jpg', 2024, None]
         category = itemCast[0]
@@ -86,6 +86,7 @@ def _parse_credits(result) -> dict:
 def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     logger.debug("Parsing movie JSON")
     data = {}
+    movie: Union[TvSeriesDetail, TvEpisodeDetail, MovieDetail]
     mainColumnData = pjmespatch("props.pageProps.mainColumnData", raw_json)
     if not mainColumnData:
         logger.warning("'mainColumnData' not found in movie JSON")
@@ -330,9 +331,17 @@ def parse_json_bulked_episodes(raw_json) -> List[BulkedEpisode]:
     return all_episodes
 
 
-def parse_json_akas(raw_json) -> List[AkaInfo]:
+def parse_json_akas(raw_json) -> AkasDataModel:
     logger.debug("Parsing akas JSON")
-    data = {}
-    data["imdbId"] = pjmespatch("id", raw_json)
-    data["akas"] = [ AkaInfo.from_data(*a) for a in pjmespatch("akas.edges[].node[].[title, country.code,country.name, language.code, language.name]", raw_json)]
-    return data
+    imdb_id = pjmespatch("id", raw_json)
+    akas_list = [
+        AkaInfoModel(
+            title=a[0],
+            country_code=a[1],
+            country_name=a[2],
+            language_code=a[3],
+            language_name=a[4]
+        )
+        for a in pjmespatch("akas.edges[].node[].[title, country.code,country.name, language.code, language.name]", raw_json)
+    ]
+    return AkasDataModel(imdbId=imdb_id, akas=akas_list)
