@@ -7,7 +7,7 @@ import niquests
 import json
 from lxml import html
 
-from .models import SearchResult, MovieDetail, SeasonEpisodesList, PersonDetail, AkaInfo, AkasDataModel
+from .models import SearchResult, MovieDetail, SeasonEpisodesList, PersonDetail, AkaInfo, AkasData
 from .parsers import (
     parse_json_movie,
     parse_json_search,
@@ -155,7 +155,7 @@ def get_episodes(imdb_id: str, season=1, locale: Optional[str] = None) -> Season
     return get_season_episodes(imdb_id, season, locale)
 
 @lru_cache(maxsize=128)
-def get_akas(imdb_id: str)-> AkasDataModel:
+def get_akas(imdb_id: str) -> Union[AkasData, list]:
     imdb_id, _ = normalize_imdb_id(imdb_id)
     raw_json = _get_extended_info(imdb_id)
     akas = parse_json_akas(raw_json)

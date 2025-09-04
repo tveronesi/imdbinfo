@@ -18,7 +18,7 @@ from .models import (
     TvSeriesDetail,
     TvEpisodeDetail,
     SERIES_IDENTIFIERS,
-    EPISODE_IDENTIFIERS, AkaInfo, CompanyInfo, AkaInfoModel, AkasDataModel,
+    EPISODE_IDENTIFIERS, AkaInfo, CompanyInfo, AkasData,
 )
 from .transformers import (
     _release_date,
@@ -331,17 +331,10 @@ def parse_json_bulked_episodes(raw_json) -> List[BulkedEpisode]:
     return all_episodes
 
 
-def parse_json_akas(raw_json) -> AkasDataModel:
+def parse_json_akas(raw_json) -> AkasData:
     logger.debug("Parsing akas JSON")
     imdb_id = pjmespatch("id", raw_json)
-    akas_list = [
-        AkaInfoModel(
-            title=a[0],
-            country_code=a[1],
-            country_name=a[2],
-            language_code=a[3],
-            language_name=a[4]
-        )
-        for a in pjmespatch("akas.edges[].node[].[title, country.code,country.name, language.code, language.name]", raw_json)
-    ]
-    return AkasDataModel(imdbId=imdb_id, akas=akas_list)
+    akas = [AkaInfo.from_data(*a) for a in
+                    pjmespatch("akas.edges[].node[].[title, country.code,country.name, language.code, language.name]",
+                               raw_json)]
+    return AkasData(imdbId=imdb_id, akas=akas)
