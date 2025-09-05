@@ -149,17 +149,19 @@ class CastMember(Person):
     def __str__(self):
         return f"{self.name} ({', '.join(self.characters)})"
 
+
 class CompanyInfo(BaseModel):
     id: str  # id without 'co' prefix, e.g. '0133093', same as imdb_id
     imdb_id: str  # id without 'co' prefix, e.g. '0133093'
     imdbId: str  # id with 'co' prefix, e.g. 'co0133093'
     name: str
     url: str
-    attributes : Optional[List[str]] = None
-    countries : Optional[List[str]] = None
+    attributes: Optional[List[str]] = None
+    countries: Optional[List[str]] = None
 
     def __str__(self):
         return f"{self.name} ({self.imdbId})"
+
 
 class MovieDetail(SeriesMixin, BaseModel):
     """MovieDetail model for detailed information about a movie.
@@ -455,7 +457,9 @@ class AkaInfo(BaseModel):
     language_name: Optional[str] = None
 
     @classmethod
-    def from_data(self, title,country_code, country_name, language_code=None, language_name=None):
+    def from_data(
+        self, title, country_code, country_name, language_code=None, language_name=None
+    ):
         # if country_code is None, set it to US
         # if country_name is None, set it to United States
         if country_code is None:
@@ -467,7 +471,7 @@ class AkaInfo(BaseModel):
             country_code=country_code,
             country_name=country_name,
             language_code=language_code,
-            language_name=language_name
+            language_name=language_name,
         )
 
     def __str__(self):
@@ -475,6 +479,7 @@ class AkaInfo(BaseModel):
 
     def __repr__(self):
         return self.__str__()
+
 
 class AkasData(BaseModel):
     imdbId: str
@@ -485,11 +490,9 @@ class AkasData(BaseModel):
 
     # create a method that when called self['akas'] returns the list of akas, and self[imdbId] returns the imdbId
     def __getitem__(self, item):
-        if item == 'akas':
+        if item == "akas":
             return self.akas
-        elif item == 'imdbId':
+        elif item == "imdbId":
             return self.imdbId
         else:
             raise KeyError(f"Key {item} not found in AkasDataModel")
-
-

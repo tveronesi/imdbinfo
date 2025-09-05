@@ -7,7 +7,9 @@ def _release_date(result: dict):
     """
     if result is None:
         return None
-    return datetime.date(result.get('year') or 1,result.get('month') or 1,result.get('day') or 1).strftime('%Y-%m-%d')
+    return datetime.date(
+        result.get("year") or 1, result.get("month") or 1, result.get("day") or 1
+    ).strftime("%Y-%m-%d")
 
 
 def _dict_votes_(result):
@@ -29,7 +31,10 @@ def _none_to_string_in_list(result):
     """
     given a list of lists , if a None is found replace with '' recursively
     """
-    return [[str(item) if item is not None else "" for item in sublist] for sublist in result]
+    return [
+        [str(item) if item is not None else "" for item in sublist]
+        for sublist in result
+    ]
 
 
 def _join(result, separator=" "):
@@ -48,7 +53,7 @@ def _certificates_to_dict(result):
         return {}
     res = {}
     for item in result:
-        cert_id, country_code, country_name, rating_value,rating_reason, regions = item
+        cert_id, country_code, country_name, rating_value, rating_reason, regions = item
         rating = f"{rating_value} " + ", ".join(regions)
         if country_code not in res:
             res[country_code] = [country_name, rating]
@@ -59,8 +64,8 @@ def _certificates_to_dict(result):
 
 def _parse_mpaa(mpaa_certificate_node):
     if mpaa_certificate_node is None:
-        return ''
+        return ""
     for certificate in mpaa_certificate_node:
-        if certificate.get("node", {}).get("ratingsBody",{}).get("id") =="MPAA":
-            return certificate.get("node", {}).get("ratingReason", '')
-    return ''
+        if certificate.get("node", {}).get("ratingsBody", {}).get("id") == "MPAA":
+            return certificate.get("node", {}).get("ratingReason", "")
+    return ""

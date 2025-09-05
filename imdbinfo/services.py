@@ -7,17 +7,26 @@ import niquests
 import json
 from lxml import html
 
-from .models import SearchResult, MovieDetail, SeasonEpisodesList, PersonDetail, AkaInfo, AkasData
+from .models import (
+    SearchResult,
+    MovieDetail,
+    SeasonEpisodesList,
+    PersonDetail,
+    AkaInfo,
+    AkasData,
+)
 from .parsers import (
     parse_json_movie,
     parse_json_search,
     parse_json_person_detail,
     parse_json_season_episodes,
-    parse_json_bulked_episodes, parse_json_akas,
+    parse_json_bulked_episodes,
+    parse_json_akas,
 )
 from .locale import _retrieve_url_lang
 
 logger = logging.getLogger(__name__)
+
 
 def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
     imdb_id = str(imdb_id)
@@ -41,7 +50,7 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
         raise Exception(f"Error fetching {url}")
     tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
-    if not script or  type(script) is not list:
+    if not script or type(script) is not list:
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
 
@@ -63,7 +72,7 @@ def search_title(title: str, locale: Optional[str] = None) -> Optional[SearchRes
         return None
     tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
-    if not script or  type(script) is not list:  # throw if no script found
+    if not script or type(script) is not list:  # throw if no script found
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
     # if script is not indexeable throw
@@ -94,7 +103,7 @@ def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDet
         raise Exception(f"Error fetching {url}")
     tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
-    if not script or  type(script) is not list:
+    if not script or type(script) is not list:
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
     t0 = time()
@@ -106,7 +115,9 @@ def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDet
 
 
 @lru_cache(maxsize=128)
-def get_season_episodes(imdb_id: str, season=1, locale: Optional[str] = None) -> SeasonEpisodesList:
+def get_season_episodes(
+    imdb_id: str, season=1, locale: Optional[str] = None
+) -> SeasonEpisodesList:
     """Fetch episodes for a movie or series using the provided IMDb ID."""
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/episodes/?season={season}"
@@ -117,7 +128,7 @@ def get_season_episodes(imdb_id: str, season=1, locale: Optional[str] = None) ->
         raise Exception(f"Error fetching {url}")
     tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
-    if not script or  type(script) is not list:
+    if not script or type(script) is not list:
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
     raw_json = json.loads(str(script[0]))
@@ -137,7 +148,7 @@ def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
         raise Exception(f"Error fetching {url}")
     tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
-    if not script or  type(script) is not list:
+    if not script or type(script) is not list:
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
     raw_json = json.loads(str(script[0]))
@@ -147,12 +158,17 @@ def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
 
 
 @lru_cache(maxsize=128)
-def get_episodes(imdb_id: str, season=1, locale: Optional[str] = None) -> SeasonEpisodesList:
+def get_episodes(
+    imdb_id: str, season=1, locale: Optional[str] = None
+) -> SeasonEpisodesList:
     """wrap until deprecation : use get_season_episodes instead for seasons
     or get_all_episodes for all episodes
     """
-    logger.warning("get_episodes is deprecating, use get_season_episodes or get_all_episodes instead.")
+    logger.warning(
+        "get_episodes is deprecating, use get_season_episodes or get_all_episodes instead."
+    )
     return get_season_episodes(imdb_id, season, locale)
+
 
 @lru_cache(maxsize=128)
 def get_akas(imdb_id: str) -> Union[AkasData, list]:
@@ -165,10 +181,11 @@ def get_akas(imdb_id: str) -> Union[AkasData, list]:
     logger.debug("Fetched %d AKAs for title %s", len(akas), imdb_id)
     return akas
 
+
 @lru_cache(maxsize=128)
 def _get_extended_info(imdb_id) -> dict:
     """
-        Fetch extended info (like AKAs) using IMDb's GraphQL API.
+    Fetch extended info (like AKAs) using IMDb's GraphQL API.
     """
     imdbId = "tt" + imdb_id
     url = "https://api.graphql.imdb.com/"
@@ -176,7 +193,8 @@ def _get_extended_info(imdb_id) -> dict:
         "Content-Type": "application/json",
         "User-Agent": "Mozilla/5.0",
     }
-    query = '''
+    query = (
+        """
     query {
       title(id: "%s") {
         id
@@ -197,7 +215,9 @@ def _get_extended_info(imdb_id) -> dict:
         }
       }
     }
-    ''' % imdbId
+    """
+        % imdbId
+    )
     payload = {"query": query}
     logger.info("Fetching title %s from GraphQL API", imdb_id)
     resp = niquests.post(url, headers=headers, json=payload)
