@@ -173,7 +173,7 @@ def get_episodes(
 @lru_cache(maxsize=128)
 def get_akas(imdb_id: str) -> Union[AkasData, list]:
     imdb_id, _ = normalize_imdb_id(imdb_id)
-    raw_json = _get_extended_info(imdb_id)
+    raw_json = _get_extended_title_info(imdb_id)
     akas = parse_json_akas(raw_json)
     if not raw_json:
         logger.warning("No AKAs found for title %s", imdb_id)
@@ -183,7 +183,7 @@ def get_akas(imdb_id: str) -> Union[AkasData, list]:
 
 
 @lru_cache(maxsize=128)
-def _get_extended_info(imdb_id) -> dict:
+def _get_extended_title_info(imdb_id) -> dict:
     """
     Fetch extended info (like AKAs) using IMDb's GraphQL API.
     """
