@@ -488,7 +488,7 @@ def parse_json_trivia(raw_json: dict) -> List[Any]:
     trivia_list = []
     for node in [edge.get("node", {}) for edge in trivia_edges]:
         trivia_item = {
-           # "id": node.get("id"),
+            # "id": node.get("id"),
             "body": node.get("displayableArticle", {}).get("body", {}).get("plaidHtml"),
             "interestScore": node.get("interestScore", {}),
         }
@@ -501,12 +501,12 @@ def parse_json_reviews(raw_json: dict) -> List[Any]:
     reviews_list = []
     for edge in reviews_edges:
         review_item = {
-             "spoiler": pjmespatch("node.spoiler", edge ),
-             "summary": pjmespatch("node.summary.originalText", edge ),
-             "text": pjmespatch("node.text.originalText.plaidHtml", edge ),
-             "authorRating": pjmespatch("node.authorRating", edge ),
-             "downVotes": pjmespatch("node.helpfulness.downVotes", edge ),
-             "upVotes":pjmespatch("node.helpfulness.upVotes", edge )
+            "spoiler": pjmespatch("node.spoiler", edge),
+            "summary": pjmespatch("node.summary.originalText", edge),
+            "text": pjmespatch("node.text.originalText.plaidHtml", edge),
+            "authorRating": pjmespatch("node.authorRating", edge),
+            "downVotes": pjmespatch("node.helpfulness.downVotes", edge),
+            "upVotes": pjmespatch("node.helpfulness.upVotes", edge),
         }
         reviews_list.append(review_item)
     return reviews_list
