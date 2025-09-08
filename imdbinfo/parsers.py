@@ -506,7 +506,7 @@ def parse_json_reviews(raw_json: dict) -> List[Any]:
              "summary": pjmespatch("node.summary.originalText", edge ),
              "text": pjmespatch("node.text.originalText.plaidHtml", edge ),
              "authorRating": pjmespatch("node.authorRating", edge ),
-             "helpfulness": pjmespatch("node.helpfulness.downVotes", edge ),
+             "downVotes": pjmespatch("node.helpfulness.downVotes", edge ),
              "upVotes":pjmespatch("node.helpfulness.upVotes", edge )
         }
         reviews_list.append(review_item)
