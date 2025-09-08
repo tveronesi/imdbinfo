@@ -30,12 +30,12 @@ def get_locale():
     return lcl
 
 
-def _retrieve_url_lang(l=None):
+def _retrieve_url_lang(locale=None):
     """
     Internal function to retrieve the locale for URL construction.
     Priority: function argument > configured locale > default locale
     """
-    lcl = l or _configured_locale or DEFAULT_LOCALE
+    lcl = locale or _configured_locale or DEFAULT_LOCALE
     if lcl not in supported_locales:
         logger.warning("Locale '%s' is not supported. Using '%s'", lcl, DEFAULT_LOCALE)
         lcl = DEFAULT_LOCALE

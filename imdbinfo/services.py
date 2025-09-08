@@ -12,7 +12,6 @@ from .models import (
     MovieDetail,
     SeasonEpisodesList,
     PersonDetail,
-    AkaInfo,
     AkasData,
 )
 from .parsers import (

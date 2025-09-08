@@ -69,7 +69,6 @@ def _parse_credits(result) -> dict:
         type = itemCast[3]
         imageUrl = itemCast[4]
         year = itemCast[5]
-        genres = ",".join(itemCast[6] or [])
 
         res.setdefault(category, [])
         res[category].append(
@@ -173,7 +172,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     )
     # TODO is not working 100% need deeper check
     data["mpaa"] = pjmespatch(
-        f"props.pageProps.mainColumnData.certificates.edges[?node.ratingsBody.id=='MPAA']",
+        "props.pageProps.mainColumnData.certificates.edges[?node.ratingsBody.id=='MPAA']",
         raw_json,
         _parse_mpaa,
     )
