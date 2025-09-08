@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Union
+from typing import Optional, List, Dict, Union, Any
 import logging
 
 import jmespath
@@ -482,3 +482,36 @@ def parse_json_akas(raw_json) -> AkasData:
         )
     ]
     return AkasData(imdbId=imdb_id, akas=akas)
+
+
+def parse_json_trivia(raw_json: dict) -> List[Any]:
+    trivia_edges = raw_json.get("trivia", {}).get("edges", [])
+    trivia_list = []
+    for edge in trivia_edges:
+        node = edge.get("node", {})
+        trivia_item = {
+            "id": node.get("id"),
+            "body": node.get("displayableArticle", {}).get("body", {}).get("plaidHtml"),
+            "interestScore": node.get("interestScore", {}),
+        }
+        trivia_list.append(trivia_item)
+    return trivia_list
+
+
+def parse_json_reviews(raw_json: dict) -> List[Any]:
+    reviews_edges = raw_json.get("reviews", {}).get("edges", [])
+    reviews_list = []
+    for edge in reviews_edges:
+        node = edge.get("node", {})
+        review_item = {
+            "id": node.get("id"),
+            "spoiler": node.get("spoiler"),
+            "author": node.get("author", {}).get("nickName"),
+            "summary": node.get("summary", {}).get("originalText"),
+            "text": node.get("text", {}).get("originalText", {}).get("plaidHtml"),
+            "authorRating": node.get("authorRating"),
+            "submissionDate": node.get("submissionDate"),
+            "helpfulness": node.get("helpfulness", {}),
+        }
+        reviews_list.append(review_item)
+    return reviews_list

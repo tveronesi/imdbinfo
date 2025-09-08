@@ -22,6 +22,7 @@ from .parsers import (
     parse_json_season_episodes,
     parse_json_bulked_episodes,
     parse_json_akas,
+    parse_json_trivia,
 )
 from .locale import _retrieve_url_lang
 
@@ -174,10 +175,10 @@ def get_episodes(
 def get_akas(imdb_id: str) -> Union[AkasData, list]:
     imdb_id, _ = normalize_imdb_id(imdb_id)
     raw_json = _get_extended_title_info(imdb_id)
-    akas = parse_json_akas(raw_json)
     if not raw_json:
         logger.warning("No AKAs found for title %s", imdb_id)
         return []
+    akas = parse_json_akas(raw_json)
     logger.debug("Fetched %d AKAs for title %s", len(akas), imdb_id)
     return akas
 
@@ -189,18 +190,10 @@ def get_trivia(imdb_id: str) -> List[Dict]:
     if not raw_json:
         logger.warning("No trivia found for title %s", imdb_id)
         return []
-    trivia_edges = raw_json.get("trivia", {}).get("edges", [])
-    trivia_list = []
-    for edge in trivia_edges:
-        node = edge.get("node", {})
-        trivia_item = {
-            "id": node.get("id"),
-            "body": node.get("displayableArticle", {}).get("body", {}).get("plaidHtml"),
-            "interestScore": node.get("interestScore", {}),
-        }
-        trivia_list.append(trivia_item)
+    trivia_list = parse_json_trivia(raw_json)
     logger.debug("Fetched %d trivia items for title %s", len(trivia_list), imdb_id)
     return trivia_list
+
 
 def get_reviews(imdb_id: str) -> List[Dict]:
     imdb_id, _ = normalize_imdb_id(imdb_id)
@@ -208,21 +201,7 @@ def get_reviews(imdb_id: str) -> List[Dict]:
     if not raw_json:
         logger.warning("No reviews found for title %s", imdb_id)
         return []
-    reviews_edges = raw_json.get("reviews", {}).get("edges", [])
-    reviews_list = []
-    for edge in reviews_edges:
-        node = edge.get("node", {})
-        review_item = {
-            "id": node.get("id"),
-            "spoiler": node.get("spoiler"),
-            "author": node.get("author", {}).get("nickName"),
-            "summary": node.get("summary", {}).get("originalText"),
-            "text": node.get("text", {}).get("originalText", {}).get("plaidHtml"),
-            "authorRating": node.get("authorRating"),
-            "submissionDate": node.get("submissionDate"),
-            "helpfulness": node.get("helpfulness", {}),
-        }
-        reviews_list.append(review_item)
+    reviews_list = parse_json_reviews(raw_json)
     logger.debug("Fetched %d reviews for title %s", len(reviews_list), imdb_id)
     return reviews_list
 
