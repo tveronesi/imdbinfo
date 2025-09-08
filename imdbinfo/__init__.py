@@ -8,6 +8,8 @@ from .services import (
     get_all_episodes,
     get_season_episodes,
     get_akas,
+    get_reviews,
+    get_trivia,
 )
 
 __all__ = [
