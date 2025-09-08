@@ -485,10 +485,9 @@ def parse_json_akas(raw_json) -> AkasData:
 
 
 def parse_json_trivia(raw_json: dict) -> List[Any]:
-    trivia_edges = raw_json.get("trivia", {}).get("edges", [])
+    trivia_edges = pjmespatch("trivia.edges[]", raw_json)
     trivia_list = []
-    for edge in trivia_edges:
-        node = edge.get("node", {})
+    for node in [edge.get("node", {}) for edge in trivia_edges]:
         trivia_item = {
             "id": node.get("id"),
             "body": node.get("displayableArticle", {}).get("body", {}).get("plaidHtml"),
@@ -499,7 +498,7 @@ def parse_json_trivia(raw_json: dict) -> List[Any]:
 
 
 def parse_json_reviews(raw_json: dict) -> List[Any]:
-    reviews_edges = raw_json.get("reviews", {}).get("edges", [])
+    reviews_edges = pjmespatch("reviews.edges[]", raw_json)
     reviews_list = []
     for edge in reviews_edges:
         node = edge.get("node", {})
