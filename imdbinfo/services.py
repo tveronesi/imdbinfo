@@ -22,7 +22,7 @@ from .parsers import (
     parse_json_season_episodes,
     parse_json_bulked_episodes,
     parse_json_akas,
-    parse_json_trivia,
+    parse_json_trivia, parse_json_reviews,
 )
 from .locale import _retrieve_url_lang
 
