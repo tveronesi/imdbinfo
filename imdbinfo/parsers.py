@@ -501,16 +501,13 @@ def parse_json_reviews(raw_json: dict) -> List[Any]:
     reviews_edges = pjmespatch("reviews.edges[]", raw_json)
     reviews_list = []
     for edge in reviews_edges:
-        pass
-        # node = edge.get("node", {})
-        # review_item = {
-        #    # "id": node.get("id"),
-        #     "spoiler": pjmespatch("node.spoiler", edge )
-        #     "summary": node.get("summary", {}).get("originalText"),
-        #     "text": node.get("text", {}).get("originalText", {}).get("plaidHtml"),
-        #     "authorRating": node.get("authorRating"),
-        #     "submissionDate": node.get("submissionDate"),
-        #     "helpfulness": node.get("helpfulness", {}),
-        # }
-        # reviews_list.append(review_item)
+        review_item = {
+             "spoiler": pjmespatch("node.spoiler", edge ),
+             "summary": pjmespatch("node.summary.originalText", edge ),
+             "text": pjmespatch("node.text.originalText.plaidHtml", edge ),
+             "authorRating": pjmespatch("node.authorRating", edge ),
+             "helpfulness": pjmespatch("node.helpfulness.downVotes", edge ),
+             "upVotes":pjmespatch("node.helpfulness.upVotes", edge )
+        }
+        reviews_list.append(review_item)
     return reviews_list
