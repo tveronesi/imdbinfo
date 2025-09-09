@@ -102,3 +102,7 @@
 - **HTTP Library Migration:** Replaced all usages of `requests` with `niquests` for making HTTP requests, including updates in the `Dockerfile`, `services.py`, and documentation.
 - **Locale Handling:** Improved locale management by changing `supported_locales` to a tuple and introducing a normalization function for IMDb IDs.
 - **README and Examples:** Updated the `README.md` and example scripts to showcase new features, including company credits extraction and additional metadata fields. Also clarified usage of `niquests` and improved code samples.
+
+## v0.5.3
+- **Movie Reviews Extraction:** Added new `get_reviews` function to fetch user reviews for any IMDb title, including review text, ratings, author information, and helpfulness votes
+- **Trivia Information Access:** Added new `get_trivia` function to retrieve interesting trivia facts about movies and TV shows, complete with interest scores from the community
