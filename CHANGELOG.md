@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.3
+- **Movie Reviews Extraction:** Added new `get_reviews` function to fetch user reviews for any IMDb title, including review text, ratings, author information, and helpfulness votes
+- **Trivia Information Access:** Added new `get_trivia` function to retrieve interesting trivia facts about movies and TV shows, complete with interest scores from the community
+- **Enhanced GraphQL Integration:** Improved GraphQL API usage for fetching extended title information, supporting both reviews and trivia data retrieval
+- **Extended Public API:** Both `get_reviews` and `get_trivia` functions are now available directly from the main package import for easy access
+
 ## v0.1.0
 - Fix bug in something
 - Improve documentation
