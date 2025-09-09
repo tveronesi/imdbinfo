@@ -9,41 +9,19 @@
 
 **Your personal gateway to IMDb data**. Search for movies, series and people and get structured information in seconds.
 
-## 💣 New in v0.5.0 
-
-### **Localized results** in multiple languages (set globally or per request)
-
-Added support for locales in `search_movie`, `get_movie`, `get_episodes`, `get_all_episodes`, `get_name`
-```python
-from imdbinfo import get_movie, search_title
-# Fetch movie details in Italian
-movie_it = get_movie("tt0133093", locale="it")  # The Matrix
-
-# Search for titles in Spanish (although IMDb search is mostly in all languages)
-results_es = search_title("La Casa de Papel", locale="es")
-```
-
-Localized data can be set globally, dont need to pass `locale` every time in the functions:
-```python
-from imdbinfo import get_movie
-from imdbinfo.locale import set_locale
-set_locale("it")  # Set default locale to Italian
-movie_it = get_movie("tt0133093")  # The Matrix in Italian
-```
-
-
-
-
 ## Features
 
-- 🔍 **Search movies,series, miniseries and people** by name or title
+- 🔍 **Search movies, series, miniseries and people** by name or title
 - 🎬 **Detailed movie info** including cast, crew, ratings and more
 - 👥 **Detailed person info** with biography, filmography and images
 - 📺 **TV series and miniseries** support with seasons and episodes
+- 🌐 **Localized results** in multiple languages (set globally or per request)
 - 📅 **Release dates** and **box office** information
 - 🌍 **International titles** and **alternate titles (AKAs)** via `get_akas`
 - 📸 **Poster images** and **backdrops**
 - 📊 **Ratings** from IMDb and other sources
+- 📝 **User reviews and ratings** via `get_reviews`
+- 🎭 **Movie trivia and interesting facts** via `get_trivia`
 - 🗂️ **Full filmography** for actors, directors and writers
 - 📝 **Typed Pydantic models** for predictable responses
 - ⚡ **Built-in caching** for faster repeated requests
@@ -58,7 +36,7 @@ pip install imdbinfo
 ## Quick Start
 
 ```python
-from imdbinfo import search_title, get_movie, get_name, get_season_episodes
+from imdbinfo import search_title, get_movie, get_name, get_season_episodes, get_reviews, get_trivia
 
 # Search for a title
 results = search_title("The Matrix")
@@ -133,7 +111,7 @@ for episode in all_episodes:
     print("" + "="*50)
 ```
 
-####  ⭐⭐New: Company Credits: ⭐⭐ 
+#### Company Credits
 
 * distribution companies, 
 * production companies, 
@@ -177,6 +155,52 @@ akas = get_akas("tt0133093")  # The Matrix
 for aka in akas["akas"][:5]:
     print(f"{aka.title} ({aka.country_name})")
 ```
+
+#### Reviews and User Ratings
+Get user reviews and ratings for any movie or series:
+```python
+from imdbinfo import get_reviews
+reviews = get_reviews("tt0133093")  # The Matrix
+for review in reviews[:3]:
+    print(f"Rating: {review['authorRating']}/10")
+    print(f"Summary: {review['summary']}")
+    print(f"Helpful votes: {review['upVotes']} up, {review['downVotes']} down")
+    print(f"Spoiler: {review['spoiler']}")
+    print("---")
+```
+
+#### Movie Trivia and Facts
+Discover interesting trivia and behind-the-scenes facts:
+```python
+from imdbinfo import get_trivia
+trivia = get_trivia("tt0133093")  # The Matrix
+for fact in trivia[:3]:
+    print(f"Interest Score: {fact['interestScore']}")
+    print(f"Fact: {fact['body'][:200]}...")
+    print("---")
+```
+
+### Localized results in multiple languages (set globally or per request)
+
+Added support for locales in `search_movie`, `get_movie`, `get_episodes`, `get_all_episodes`, `get_name`
+```python
+from imdbinfo import get_movie, search_title
+# Fetch movie details in Italian
+movie_it = get_movie("tt0133093", locale="it")  # The Matrix
+
+# Search for titles in Spanish (although IMDb search is mostly in all languages)
+results_es = search_title("La Casa de Papel", locale="es")
+```
+
+Localized data can be set globally, dont need to pass `locale` every time in the functions:
+```python
+from imdbinfo import get_movie
+from imdbinfo.locale import set_locale
+set_locale("it")  # Set default locale to Italian
+movie_it = get_movie("tt0133093")  # The Matrix in Italian
+```
+
+
 
 📝 For more examples see the [examples](examples/) folder.
 

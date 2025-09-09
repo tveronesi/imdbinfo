@@ -1,6 +1,9 @@
 from imdbinfo import get_akas
 
 import logging
+
+from imdbinfo.services import get_reviews, get_trivia
+
 logging.basicConfig(level=logging.WARNING)
 
 
@@ -22,5 +25,9 @@ movies_list = [
 
 for imdb_id in movies_list:
     movie_akas = get_akas(imdb_id)
+    movie_reviews = get_reviews(imdb_id)
+    movie_trivia = get_trivia(imdb_id)
     print(f"##########################################################################")
     print(movie_akas['akas'])
+    print(f"Reviews: {movie_reviews[:5]}")
+    print(f"Trivia: {movie_trivia[:5]}")
