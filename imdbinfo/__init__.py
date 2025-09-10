@@ -10,6 +10,7 @@ from .services import (
     get_akas,
     get_reviews,
     get_trivia,
+    ImdbInfoService,
 )
 
 __all__ = [
@@ -22,6 +23,7 @@ __all__ = [
     "get_akas",
     "get_reviews",
     "get_trivia",
+    "ImdbInfoService",
 ]
 
 # setup library logging
