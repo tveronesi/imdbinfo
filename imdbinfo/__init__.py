@@ -10,6 +10,7 @@ from .services import (
     get_akas,
     get_reviews,
     get_trivia,
+    normalize_imdb_id,
     ImdbInfoService,
 )
 
@@ -23,6 +24,7 @@ __all__ = [
     "get_akas",
     "get_reviews",
     "get_trivia",
+    "normalize_imdb_id",
     "ImdbInfoService",
 ]
 
