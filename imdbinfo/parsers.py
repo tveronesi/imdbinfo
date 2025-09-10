@@ -22,6 +22,9 @@ from .models import (
     AkaInfo,
     CompanyInfo,
     AkasData,
+    TriviaItem,
+    ReviewItem,
+    InterestScore,
 )
 from .transformers import (
     _release_date,
@@ -483,24 +486,29 @@ def parse_json_akas(raw_json) -> AkasData:
     return AkasData(imdbId=imdb_id, akas=akas)
 
 
-def parse_json_trivia(raw_json: dict) -> List[Any]:
+def parse_json_trivia(raw_json: dict) -> List[TriviaItem]:
     trivia_edges = pjmespatch("trivia.edges[]", raw_json)
     trivia_list = []
     for node in [edge.get("node", {}) for edge in trivia_edges]:
-        trivia_item = {
-            # "id": node.get("id"),
+        interest_score_data = node.get("interestScore", {})
+        interest_score: InterestScore = {
+            "usersVoted": interest_score_data.get("usersVoted", 0),
+            "usersInterested": interest_score_data.get("usersInterested", 0),
+        }
+        
+        trivia_item: TriviaItem = {
             "body": node.get("displayableArticle", {}).get("body", {}).get("plaidHtml"),
-            "interestScore": node.get("interestScore", {}),
+            "interestScore": interest_score,
         }
         trivia_list.append(trivia_item)
     return trivia_list
 
 
-def parse_json_reviews(raw_json: dict) -> List[Any]:
+def parse_json_reviews(raw_json: dict) -> List[ReviewItem]:
     reviews_edges = pjmespatch("reviews.edges[]", raw_json)
     reviews_list = []
     for edge in reviews_edges:
-        review_item = {
+        review_item: ReviewItem = {
             "spoiler": pjmespatch("node.spoiler", edge),
             "summary": pjmespatch("node.summary.originalText", edge),
             "text": pjmespatch("node.text.originalText.plaidHtml", edge),

@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Tuple, Union
+from typing import Optional, List, Dict, Tuple, Union, TypedDict
 from pydantic import BaseModel, field_validator
 import logging
 
@@ -495,3 +495,25 @@ class AkasData(BaseModel):
             return self.imdbId
         else:
             raise KeyError(f"Key {item} not found in AkasDataModel")
+
+
+class InterestScore(TypedDict):
+    """Interest score data for trivia items"""
+    usersVoted: int
+    usersInterested: int
+
+
+class TriviaItem(TypedDict):
+    """Structure for individual trivia items"""
+    body: Optional[str]  # HTML content of the trivia
+    interestScore: InterestScore
+
+
+class ReviewItem(TypedDict):
+    """Structure for individual review items"""
+    spoiler: Optional[bool]
+    summary: Optional[str]
+    text: Optional[str]  # HTML content of the review
+    authorRating: Optional[int]
+    downVotes: Optional[int]
+    upVotes: Optional[int]

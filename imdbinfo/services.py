@@ -13,6 +13,8 @@ from .models import (
     SeasonEpisodesList,
     PersonDetail,
     AkasData,
+    TriviaItem,
+    ReviewItem,
 )
 from .parsers import (
     parse_json_movie,
@@ -184,7 +186,7 @@ def get_akas(imdb_id: str) -> Union[AkasData, list]:
 
 
 @lru_cache(maxsize=128)
-def get_trivia(imdb_id: str) -> List[Dict]:
+def get_trivia(imdb_id: str) -> List[TriviaItem]:
     imdb_id, _ = normalize_imdb_id(imdb_id)
     raw_json = _get_extended_title_info(imdb_id)
     if not raw_json:
@@ -195,7 +197,7 @@ def get_trivia(imdb_id: str) -> List[Dict]:
     return trivia_list
 
 
-def get_reviews(imdb_id: str) -> List[Dict]:
+def get_reviews(imdb_id: str) -> List[ReviewItem]:
     imdb_id, _ = normalize_imdb_id(imdb_id)
     raw_json = _get_extended_title_info(imdb_id)
     if not raw_json:
