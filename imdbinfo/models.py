@@ -217,7 +217,7 @@ class MovieDetail(SeriesMixin, BaseModel):
     categories: Dict[str, List[Union[Person, CastMember]]] = {}
     company_credits: Dict[str, List[CompanyInfo]] = {}
 
-    @field_validator("languages", "country_codes", "genres", mode="before")
+    @field_validator("languages", "country_codes", "genres","languages_text","countries", mode="before")
     def none_is_list(cls, value):
         if value is None:
             return []
