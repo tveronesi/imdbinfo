@@ -106,3 +106,6 @@
 ## v0.5.3
 - **Movie Reviews Extraction:** Added new `get_reviews` function to fetch user reviews for any IMDb title, including review text, ratings, author information, and helpfulness votes
 - **Trivia Information Access:** Added new `get_trivia` function to retrieve interesting trivia facts about movies and TV shows, complete with interest scores from the community
+
+## v0.5.4
+- **Bug Fixes and Improvements:** Fixed bug in get_movies for movies without country pr languages
