@@ -150,6 +150,11 @@ class CastMember(Person):
 
 
 class CompanyInfo(BaseModel):
+    """
+    CompanyInfo model for production companies and other companies involved in a movie.
+    This model contains basic information about a company such as name, id, imdb_id, imdbId, url, attributes and countries.
+    """
+
     id: str  # id without 'co' prefix, e.g. '0133093', same as imdb_id
     imdb_id: str  # id without 'co' prefix, e.g. '0133093'
     imdbId: str  # id with 'co' prefix, e.g. 'co0133093'
