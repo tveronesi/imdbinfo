@@ -109,3 +109,9 @@
 
 ## v0.5.4
 - **Bug Fixes and Improvements:** Fixed bug in get_movies for movies without country pr languages
+
+## v0.5.5
+-- **Added get_filmography**
+
+## v0.5.7
+- **Bug Fixes:** Fixed bugs in get_filmography
