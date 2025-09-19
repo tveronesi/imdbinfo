@@ -1,6 +1,9 @@
 from imdbinfo import search_title, get_name, get_movie
 
 import logging
+
+from imdbinfo.services import get_filmography
+
 logging.basicConfig(level=logging.WARNING)
 
 # Example 1: Search for a person by name
@@ -45,3 +48,11 @@ for p in movie.categories['cast']:
         print(f"Primary Profession: {', '.join(person.primary_profession)}")
         print(f"Image URL: {person.image_url}")
         print(f"IMDb URL: {person.url}")
+
+        # filmography
+        filmography_results = get_filmography(person.id)
+        if filmography_results:
+            for role, films in filmography_results.items():
+                print(f"\nRole: {role}")
+                for film in films:
+                    print(f" - {film.title} ({film.year}) [{film.imdbId}]")

@@ -290,6 +290,31 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             kind=data.get("imageType", None),
         )
 
+    @classmethod
+    def from_filmography(cls, data: dict):
+        year = data.get("releaseYear", {})
+
+        if isinstance(year, dict):
+            year = year.get("year", None)
+
+
+        _cover = data.get("titleImage",{})
+        if _cover:
+            cover_url = data.get("primaryImage", {}).get("url", None)
+        else:
+            cover_url = None
+
+        return cls(
+            id=str(data["id"].replace("tt", "")),
+            imdb_id=str(data["id"].replace("tt", "")),
+            imdbId=data["id"],
+            title=data.get("titleText",{}).get("text",""),
+            cover_url=cover_url,
+            url=f"https://www.imdb.com/title/{data['id']}/",
+            year=year,
+            kind=data.get("titleType", {}).get("id", None),
+        )
+
 
 class SearchResult(BaseModel):
     """
