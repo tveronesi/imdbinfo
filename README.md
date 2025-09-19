@@ -199,8 +199,19 @@ from imdbinfo.locale import set_locale
 set_locale("it")  # Set default locale to Italian
 movie_it = get_movie("tt0133093")  # The Matrix in Italian
 ```
+### 🆕 New: get filmography with images 🎬🖼️
+You can now get filmography for actors, directors and writers and all credits with images:
+```python
+from imdbinfo import get_filmography
 
+filmography = get_filmography("nm0000206")  # Brad Pitt
+    if filmography:
+        for role, films in filmography.items():
+            print(f"\nRole: {role}")
+            for film in films:
+                print(f" - {film.title} ({film.year}) [{film.imdbId}]")
 
+```
 
 📝 For more examples see the [examples](examples/) folder.
 
@@ -231,3 +242,4 @@ Contributions are welcome! Open an issue or pull request on GitHub.
 If you find this project useful, please consider giving it a ⭐ on GitHub!
 
 Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
+

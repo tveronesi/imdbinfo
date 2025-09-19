@@ -150,6 +150,11 @@ class CastMember(Person):
 
 
 class CompanyInfo(BaseModel):
+    """
+    CompanyInfo model for production companies and other companies involved in a movie.
+    This model contains basic information about a company such as name, id, imdb_id, imdbId, url, attributes and countries.
+    """
+
     id: str  # id without 'co' prefix, e.g. '0133093', same as imdb_id
     imdb_id: str  # id without 'co' prefix, e.g. '0133093'
     imdbId: str  # id with 'co' prefix, e.g. 'co0133093'
@@ -217,7 +222,14 @@ class MovieDetail(SeriesMixin, BaseModel):
     categories: Dict[str, List[Union[Person, CastMember]]] = {}
     company_credits: Dict[str, List[CompanyInfo]] = {}
 
-    @field_validator("languages", "country_codes", "genres","languages_text","countries", mode="before")
+    @field_validator(
+        "languages",
+        "country_codes",
+        "genres",
+        "languages_text",
+        "countries",
+        mode="before",
+    )
     def none_is_list(cls, value):
         if value is None:
             return []
@@ -283,6 +295,30 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             url=f"https://www.imdb.com/title/{data['id']}/",
             year=data.get("titleReleaseText", None),
             kind=data.get("imageType", None),
+        )
+
+    @classmethod
+    def from_filmography(cls, data: dict):
+        year = data.get("releaseYear", {})
+
+        if isinstance(year, dict):
+            year = year.get("year", None)
+
+        _cover = data.get("titleImage", {})
+        if _cover:
+            cover_url = data.get("primaryImage", {}).get("url", None)
+        else:
+            cover_url = None
+
+        return cls(
+            id=str(data["id"].replace("tt", "")),
+            imdb_id=str(data["id"].replace("tt", "")),
+            imdbId=data["id"],
+            title=data.get("titleText", {}).get("text", ""),
+            cover_url=cover_url,
+            url=f"https://www.imdb.com/title/{data['id']}/",
+            year=year,
+            kind=data.get("titleType", {}).get("id", None),
         )
 
 

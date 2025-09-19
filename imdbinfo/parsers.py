@@ -366,7 +366,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
     data["name"] = pjmespatch("props.pageProps.aboveTheFold.nameText.text", raw_json)
     data["url"] = f"https://www.imdb.com/name/{data['imdbId']}/"
     data["knownfor"] = pjmespatch(
-        "props.pageProps.aboveTheFold.knownFor.edges[].node.title.titleText.text",
+        "props.pageProps.mainColumnData.knownForFeature.edges[].node.title.titleText.text",
         raw_json,
     )
     data["knownfor2"] = pjmespatch(
@@ -384,7 +384,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
         raw_json,
     )
     data["primary_profession"] = pjmespatch(
-        "props.pageProps.aboveTheFold.primaryProfessions[].category.text", raw_json
+        "props.pageProps.aboveTheFold.primaryProfessions[].category.id", raw_json
     )
     data["birth_date"] = pjmespatch(
         "props.pageProps.aboveTheFold.birthDate.date", raw_json
@@ -402,15 +402,16 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
         "props.pageProps.mainColumnData.deathReason.text", raw_json
     )
     data["jobs"] = pjmespatch(
-        "props.pageProps.mainColumnData.jobs[].category.text", raw_json
+        "props.pageProps.mainColumnData.jobs[].category.id", raw_json
     )
+
     data["credits"] = pjmespatch(
-        "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.text,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
+        "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.id,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
         raw_json,
         _parse_credits,
     )
     data["unreleased_credits"] = pjmespatch(
-        "props.pageProps.mainColumnData.unreleasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.text,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
+        "props.pageProps.mainColumnData.unreleasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.id,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
         raw_json,
         _parse_credits,
     )
@@ -510,3 +511,16 @@ def parse_json_reviews(raw_json: dict) -> List[Any]:
         }
         reviews_list.append(review_item)
     return reviews_list
+
+
+def parse_json_filmography(raw_json) -> Dict[str, List[MovieBriefInfo]]:
+    filmography_edges = pjmespatch("credits.edges[].node", raw_json)
+    if not filmography_edges:
+        return {}
+    credits_by_job = {}
+    for edge in filmography_edges:
+        jobid = pjmespatch("category.id", edge)
+        credits_by_job.setdefault(jobid, []).append(
+            MovieBriefInfo.from_filmography(pjmespatch("title", edge))
+        )
+    return credits_by_job

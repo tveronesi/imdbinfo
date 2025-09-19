@@ -111,6 +111,20 @@ print("Is Episode:", episode_detail.is_episode())  # True
 print(f"Episode Info: {episode_detail.info_episode}")
 ```
 
+### 🆕 New: get filmography with images 🎬🖼️
+You can now get filmography for actors, directors and writers and all credits with images:
+```python
+from imdbinfo import get_filmography
+
+filmography = get_filmography("nm0000206")  # Brad Pitt
+if filmography:
+    for role, films in filmography.items():
+        print(f"\nRole: {role}")
+        for film in films:
+            print(f" - {film.title} ({film.year}) [{film.imdbId}]")
+
+```
+
 More usage examples can be found in the [examples folder](https://github.com/tveronesi/imdbinfo/tree/main/examples).
 
 ---

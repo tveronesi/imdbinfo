@@ -23,6 +23,7 @@ from .parsers import (
     parse_json_akas,
     parse_json_trivia,
     parse_json_reviews,
+    parse_json_filmography,
 )
 from .locale import _retrieve_url_lang
 
@@ -183,7 +184,6 @@ def get_akas(imdb_id: str) -> Union[AkasData, list]:
     return akas
 
 
-@lru_cache(maxsize=128)
 def get_trivia(imdb_id: str) -> List[Dict]:
     imdb_id, _ = normalize_imdb_id(imdb_id)
     raw_json = _get_extended_title_info(imdb_id)
@@ -295,4 +295,141 @@ def _get_extended_title_info(imdb_id) -> dict:
         logger.error("GraphQL error: %s", data["errors"])
         raise Exception(f"GraphQL error: {data['errors']}")
     raw_json = data.get("data", {}).get("title", {})
+    return raw_json
+
+
+def get_filmography(imdb_id) -> dict:
+    """
+    Fetch full filmography for a person using the provided IMDb ID.
+    """
+    imdb_id, _ = normalize_imdb_id(imdb_id)
+    raw_json = _get_extended_name_info(imdb_id)
+    if not raw_json:
+        logger.warning("No full_credit found for name %s", imdb_id)
+        return []
+    full_credits_list = parse_json_filmography(raw_json)
+    logger.debug("Fetched full_credits for name %s", imdb_id)
+    return full_credits_list
+
+
+def _get_extended_name_info(person_id) -> dict:
+    """
+    Fetch extended person info using IMDb's GraphQL API.
+    """
+    person_id = "nm" + person_id
+
+    query = (
+        """
+        query {
+          name(id: "%s") {
+            nameText {
+              text
+            }
+        
+            credits(first: 250
+            filter: {
+        categories: [
+          "production_designer"
+          "casting_department"
+          "director"
+          "composer"
+          "casting_director"
+          "executive"
+          "art_director"
+          "actress"
+          "costume_designer"
+          "writer"
+          "camera_department"
+          "art_department"
+          "publicist"
+          "cinematographer"
+          "location_management"
+          "soundtrack"
+          "sound_department"
+          "talent_agent"
+          "set_decorator"
+          "animation_department"
+          "make_up_department"
+          "costume_department"
+          "script_department"
+          "producer"
+          "stunts"
+          "editor"        
+          "stunt_coordinator"
+          "special_effects"
+          "assistant_director"
+          "editorial_department"
+          "music_department"
+          "transportation_department"
+          "actor"
+          "visual_effects"
+          "production_manager"
+          "production_designer"
+          "casting_department"
+          "director"
+          "composer"        
+          "archive_sound"
+          "casting_director"
+          "art_director"
+        ]
+      }
+            ) 
+           
+            {
+              edges {
+                node {
+                  category {
+                    id
+                  }
+        
+                  title {
+                    id
+                    primaryImage {
+                      url
+                    }
+                    #certificate {rating}
+                    originalTitleText {
+                      text
+                    }
+                    titleText {
+                      text
+                    }
+                    titleType {
+                      #text
+                      id
+                    }
+                    releaseYear {
+                      year
+                    }
+                  }
+                }
+              }
+        
+              pageInfo {
+                endCursor
+                hasNextPage
+              }
+            }
+          }
+        }
+
+    """
+        % person_id
+    )
+    url = "https://api.graphql.imdb.com/"
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0",
+    }
+    payload = {"query": query}
+    logger.info("Fetching person %s from GraphQL API", person_id)
+    resp = niquests.post(url, headers=headers, json=payload)
+    if resp.status_code != 200:
+        logger.error("GraphQL request failed: %s", resp.status_code)
+        raise Exception(f"GraphQL request failed: {resp.status_code}")
+    data = resp.json()
+    if "errors" in data:
+        logger.error("GraphQL error: %s", data["errors"])
+        raise Exception(f"GraphQL error: {data['errors']}")
+    raw_json = data.get("data", {}).get("name", {})
     return raw_json

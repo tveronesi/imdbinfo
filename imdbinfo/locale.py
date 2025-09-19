@@ -32,7 +32,7 @@ def get_locale():
 
 def _retrieve_url_lang(locale=None):
     """
-    Internal function to retrieve the locale for URL construction.
+    Internal function to retrieve the locale for URL composition.
     Priority: function argument > configured locale > default locale
     """
     lcl = locale or _configured_locale or DEFAULT_LOCALE
