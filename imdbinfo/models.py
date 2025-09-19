@@ -300,13 +300,11 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
     @classmethod
     def from_filmography(cls, data: dict):
         year = data.get("releaseYear", {})
-
         if isinstance(year, dict):
             year = year.get("year", None)
-
-        _cover = data.get("titleImage", {})
+        _cover = data.get("primaryImage", {})
         if _cover:
-            cover_url = data.get("primaryImage", {}).get("url", None)
+            cover_url = _cover.get("url", None)
         else:
             cover_url = None
 
