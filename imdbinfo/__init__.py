@@ -10,7 +10,7 @@ from .services import (
     get_akas,
     get_reviews,
     get_trivia,
-    get_filmography
+    get_filmography,
 )
 
 __all__ = [
