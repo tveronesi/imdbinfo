@@ -117,11 +117,11 @@ You can now get filmography for actors, directors and writers and all credits wi
 from imdbinfo import get_filmography
 
 filmography = get_filmography("nm0000206")  # Brad Pitt
-    if filmography:
-        for role, films in filmography.items():
-            print(f"\nRole: {role}")
-            for film in films:
-                print(f" - {film.title} ({film.year}) [{film.imdbId}]")
+if filmography:
+    for role, films in filmography.items():
+        print(f"\nRole: {role}")
+        for film in films:
+            print(f" - {film.title} ({film.year}) [{film.imdbId}]")
 
 ```
 
