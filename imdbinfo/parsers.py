@@ -513,7 +513,7 @@ def parse_json_reviews(raw_json: dict) -> List[Any]:
     return reviews_list
 
 
-def parse_json_filmography(raw_json) ->  Dict[str, List[MovieBriefInfo]]:
+def parse_json_filmography(raw_json) -> Dict[str, List[MovieBriefInfo]]:
     filmography_edges = pjmespatch("credits.edges[].node", raw_json)
     if not filmography_edges:
         return {}

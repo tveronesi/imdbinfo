@@ -222,7 +222,14 @@ class MovieDetail(SeriesMixin, BaseModel):
     categories: Dict[str, List[Union[Person, CastMember]]] = {}
     company_credits: Dict[str, List[CompanyInfo]] = {}
 
-    @field_validator("languages", "country_codes", "genres","languages_text","countries", mode="before")
+    @field_validator(
+        "languages",
+        "country_codes",
+        "genres",
+        "languages_text",
+        "countries",
+        mode="before",
+    )
     def none_is_list(cls, value):
         if value is None:
             return []
@@ -297,8 +304,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
         if isinstance(year, dict):
             year = year.get("year", None)
 
-
-        _cover = data.get("titleImage",{})
+        _cover = data.get("titleImage", {})
         if _cover:
             cover_url = data.get("primaryImage", {}).get("url", None)
         else:
@@ -308,7 +314,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             id=str(data["id"].replace("tt", "")),
             imdb_id=str(data["id"].replace("tt", "")),
             imdbId=data["id"],
-            title=data.get("titleText",{}).get("text",""),
+            title=data.get("titleText", {}).get("text", ""),
             cover_url=cover_url,
             url=f"https://www.imdb.com/title/{data['id']}/",
             year=year,

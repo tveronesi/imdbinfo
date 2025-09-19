@@ -23,7 +23,7 @@ from .parsers import (
     parse_json_akas,
     parse_json_trivia,
     parse_json_reviews,
-    parse_json_filmography
+    parse_json_filmography,
 )
 from .locale import _retrieve_url_lang
 
@@ -311,6 +311,7 @@ def get_filmography(imdb_id) -> dict:
     logger.debug("Fetched full_credits for name %s", imdb_id)
     return full_credits_list
 
+
 def _get_extended_name_info(person_id) -> dict:
     """
     Fetch extended person info using IMDb's GraphQL API.
@@ -432,6 +433,3 @@ def _get_extended_name_info(person_id) -> dict:
         raise Exception(f"GraphQL error: {data['errors']}")
     raw_json = data.get("data", {}).get("name", {})
     return raw_json
-
-
-
