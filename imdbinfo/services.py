@@ -172,7 +172,6 @@ def get_episodes(
     return get_season_episodes(imdb_id, season, locale)
 
 
-@lru_cache(maxsize=128)
 def get_akas(imdb_id: str) -> Union[AkasData, list]:
     imdb_id, _ = normalize_imdb_id(imdb_id)
     raw_json = _get_extended_title_info(imdb_id)
@@ -182,6 +181,23 @@ def get_akas(imdb_id: str) -> Union[AkasData, list]:
     akas = parse_json_akas(raw_json)
     logger.debug("Fetched %d AKAs for title %s", len(akas), imdb_id)
     return akas
+
+
+def get_full_interests(imdb_id: str):
+    imdb_id, _ = normalize_imdb_id(imdb_id)
+    raw_json = _get_extended_title_info(imdb_id)
+    if not raw_json:
+        logger.warning("No interests found for title %s", imdb_id)
+        return []
+    interests = []
+    interests_edges = raw_json.get("interests", {}).get("edges", [])
+    for edge in interests_edges:
+        node = edge.get("node", {})
+        primary_text = node.get("primaryText", {}).get("text", "")
+        if primary_text:
+            interests.append(primary_text)
+    logger.debug("Fetched %d interests for title %s", len(interests), imdb_id)
+    return interests
 
 
 def get_trivia(imdb_id: str) -> List[Dict]:
@@ -228,6 +244,9 @@ def _get_extended_title_info(imdb_id) -> dict:
         originalTitle: originalTitleText {
           text
         }
+          interests(first:20){
+            edges{node{primaryText{text}}}
+       }
         akas(first: 200) {
           edges {
             node {

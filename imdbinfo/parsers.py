@@ -144,7 +144,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         "props.pageProps.mainColumnData.ratingsSummary.voteCount", raw_json
     )
     data["genres"] = pjmespatch(
-        "props.pageProps.mainColumnData.titleGenres.genres[].genre.text", raw_json
+        "props.pageProps.mainColumnData.genres.genres[].text", raw_json
     )
     data["worldwide_gross"] = pjmespatch(
         "props.pageProps.mainColumnData.worldwideGross.total.[amount,currency]",
