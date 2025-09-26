@@ -230,11 +230,6 @@ if filmography:
 This project and its authors are not affiliated in any way with IMDb Inc. or its affiliates. 
 For more information, please refer to the [DISCLAIMER](DISCLAIMER.txt) file.
 
-## License
-
-imdbinfo is released under the MIT License.
-See the [LICENSE](LICENSE) file for details.
-
 ## Contributing
 
 Contributions are welcome! Open an issue or pull request on GitHub.
@@ -243,3 +238,7 @@ If you find this project useful, please consider giving it a ⭐ on GitHub!
 
 Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 
+## License
+
+imdbinfo is released under the MIT License.
+See the [LICENSE](LICENSE) file for details.
