@@ -22,9 +22,7 @@
 import logging
 
 logger = logging.getLogger(__name__)
-supported_locales = ("en", "fr-ca", "fr", "hi", "de", "it", "es", "pt", "es", "es-es")
-
-
+SUPPORTED_LOCALES = ("en", "fr-ca", "fr", "hi", "de", "it", "es", "pt", "es-es")
 DEFAULT_LOCALE = "en"  # fallback locale
 _configured_locale = None
 
@@ -43,7 +41,7 @@ def get_locale():
     Get the currently configured locale.
     """
     lcl = _configured_locale or DEFAULT_LOCALE
-    if lcl not in supported_locales:
+    if lcl not in SUPPORTED_LOCALES:
         logger.warning("Locale '%s' is not supported. Using '%s'", lcl, DEFAULT_LOCALE)
         lcl = DEFAULT_LOCALE
     if lcl == "en":
@@ -57,7 +55,7 @@ def _retrieve_url_lang(locale=None):
     Priority: function argument > configured locale > default locale
     """
     lcl = locale or _configured_locale or DEFAULT_LOCALE
-    if lcl not in supported_locales:
+    if lcl not in SUPPORTED_LOCALES:
         logger.warning("Locale '%s' is not supported. Using '%s'", lcl, DEFAULT_LOCALE)
         lcl = DEFAULT_LOCALE
     if lcl == "en":
