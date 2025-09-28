@@ -204,7 +204,18 @@ def get_akas(imdb_id: str) -> Union[AkasData, list]:
     return akas
 
 
-def get_full_interests(imdb_id: str):
+def get_all_interests(imdb_id: str):
+    """
+        Fetch all 'interests' for a title using the provided IMDb ID.
+
+    In the context of IMDb data, 'interests' are thematic tags, topics, or metadata associated with a title,
+    such as genres, themes, or other descriptors that go beyond the standard genre classification.
+    These interests are extracted from the extended title information returned by IMDb's GraphQL API.
+
+    Note: This function makes an additional request to IMDb's GraphQL endpoint, which may be slower and
+    more resource-intensive than standard API calls. Use this function only if you require interests
+    beyond what is available in movie.genres, as it can impact performance.
+    """
     imdb_id, _ = normalize_imdb_id(imdb_id)
     raw_json = _get_extended_title_info(imdb_id)
     if not raw_json:

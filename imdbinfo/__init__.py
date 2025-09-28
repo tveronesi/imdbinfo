@@ -32,6 +32,7 @@ from .services import (
     get_reviews,
     get_trivia,
     get_filmography,
+    get_all_interests,
 )
 
 __all__ = [
@@ -45,6 +46,7 @@ __all__ = [
     "get_reviews",
     "get_trivia",
     "get_filmography",
+    "get_all_interests",
 ]
 
 # setup library logging

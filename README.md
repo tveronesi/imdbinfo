@@ -199,7 +199,7 @@ from imdbinfo.locale import set_locale
 set_locale("it")  # Set default locale to Italian
 movie_it = get_movie("tt0133093")  # The Matrix in Italian
 ```
-### 🆕 New: get filmography with images 🎬🖼️
+### Get filmography with images 🎬🖼️
 You can now get filmography for actors, directors and writers and all credits with images:
 ```python
 from imdbinfo import get_filmography
@@ -212,6 +212,21 @@ if filmography:
             print(f" - {film.title} ({film.year}) [{film.imdbId}]")
 
 ```
+🆕 New: get all interests for a title
+
+_Fetch all interests for a title using the provided IMDb ID. Most time it returns the same as genres. 
+    It requires a new request and parsing. Use it only if you really need it._
+
+```python
+from imdbinfo import get_all_interests
+
+movies = ["tt1490017", "tt0133093"]
+
+for imdb_id in movies:
+    interests = get_all_interests(imdb_id)
+    print(f"Interests for {imdb_id}: {interests}")
+```
+
 
 📝 For more examples see the [examples](examples/) folder.
 
