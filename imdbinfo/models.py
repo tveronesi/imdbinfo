@@ -1,3 +1,24 @@
+# MIT License
+# Copyright (c) 2025 tveronesi+imdbinfo@gmail.com
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 from typing import Optional, List, Dict, Tuple, Union
 from pydantic import BaseModel, field_validator
 import logging
@@ -9,52 +30,6 @@ EPISODE_IDENTIFIERS = ("tvEpisode", "podcastEpisode")
 SERIES_IDENTIFIERS = ("tvSeries", "tvMiniSeries", "podcastSeries")
 
 logger = logging.getLogger(__name__)
-
-
-class SeriesMixin:
-    def is_series(self) -> bool:
-        """
-        Check if this movie title is a series, the main title of a series.
-        If True, it means that this is a series, not a movie, not an episode, but the main reference for the series itself, and series details can be found in the self.info_series property.
-        """
-        return getattr(self, "kind", None) in SERIES_IDENTIFIERS
-
-    def is_episode(self) -> bool:
-        """
-        Check if this movie title is an episode of a series.
-        If True, means that this is the episode of a series and episode details can be found in the self.info_episode property
-        """
-        return getattr(self, "kind", None) in EPISODE_IDENTIFIERS
-
-
-class InfoSeries(BaseModel):
-    display_years: List[str] = []  # e.g. ['2013', '2014', '2015']
-    display_seasons: List[str] = []  # e.g. ['1', '2', '3']
-
-    @field_validator("display_years", mode="before")
-    def filter_years(cls, value):
-        if value is None:
-            return []
-        return [
-            str(y) for y in value if isinstance(y, str) and len(y) == 4 and y.isdigit()
-        ]
-
-    def __str__(self):
-        return f"Years: {self.display_years[-1] if self.display_years else ''}-{self.display_years[0] if self.display_years else ''}, Seasons: {len(self.display_seasons)}"
-
-
-class InfoEpisode(BaseModel):
-    season_n: Optional[int] = None
-    episode_n: Optional[int] = None
-    series_imdbId: Optional[str] = None
-    series_title: Optional[str] = None
-    series_title_localized: Optional[str] = None
-
-    def __str__(self):
-        # print in S01E01 format
-        season_str = f"S{self.season_n:02d}" if self.season_n is not None else "S??"
-        episode_str = f"E{self.episode_n:02d}" if self.episode_n is not None else "E??"
-        return f"{self.series_title} - {season_str}{episode_str} ({self.series_imdbId})"
 
 
 class Person(BaseModel):
@@ -80,6 +55,17 @@ class Person(BaseModel):
             imdbId=data["name"]["id"],
             url=f"https://www.imdb.com/name/{data['name']['id']}",
             job="Director",
+        )
+
+    @classmethod
+    def from_creators(cls, data: dict):
+        return cls(
+            name=data["name"]["nameText"]["text"],
+            imdb_id=data["name"]["id"].replace("nm", ""),
+            id=data["name"]["id"].replace("nm", ""),
+            imdbId=data["name"]["id"],
+            url=f"https://www.imdb.com/name/{data['name']['id']}",
+            job="Creator",
         )
 
     @classmethod
@@ -117,6 +103,56 @@ class Person(BaseModel):
 
     def __str__(self):
         return f"{self.name} ({self.job})"
+
+
+class SeriesMixin:
+    def is_series(self) -> bool:
+        """
+        Check if this movie title is a series, the main title of a series.
+        If True, it means that this is a series, not a movie, not an episode, but the main reference for the series itself, and series details can be found in the self.info_series property.
+        """
+        return getattr(self, "kind", None) in SERIES_IDENTIFIERS
+
+    def is_episode(self) -> bool:
+        """
+        Check if this movie title is an episode of a series.
+        If True, means that this is the episode of a series and episode details can be found in the self.info_episode property
+        """
+        return getattr(self, "kind", None) in EPISODE_IDENTIFIERS
+
+
+class InfoSeries(BaseModel):
+    display_years: List[str] = []  # e.g. ['2013', '2014', '2015']
+    display_seasons: List[str] = []  # e.g. ['1', '2', '3']
+    creators: List[Person] = []  # eg. [Person(...), Person(...)]
+
+    @field_validator("display_years", mode="before")
+    def filter_years(cls, value):
+        if value is None:
+            return []
+        return [
+            str(y) for y in value if isinstance(y, str) and len(y) == 4 and y.isdigit()
+        ]
+
+    def get_creators(self) -> List[Person]:
+        return self.creators or []
+
+    def __str__(self):
+        return f"Years: {self.display_years[-1] if self.display_years else ''}-{self.display_years[0] if self.display_years else ''}, Seasons: {len(self.display_seasons)}"
+
+
+class InfoEpisode(BaseModel):
+    season_n: Optional[int] = None
+    episode_n: Optional[int] = None
+    series_imdbId: Optional[str] = None
+    series_title: Optional[str] = None
+    series_title_localized: Optional[str] = None
+
+    def __str__(self):
+        # print in S01E01 format
+        season_str = f"S{self.season_n:02d}" if self.season_n is not None else "S??"
+        episode_str = f"E{self.episode_n:02d}" if self.episode_n is not None else "E??"
+        return f"{self.series_title} - {season_str}{episode_str} ({self.series_imdbId})"
 
 
 class CastMember(Person):

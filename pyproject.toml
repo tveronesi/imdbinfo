@@ -5,10 +5,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "imdbinfo"
-version = "0.5.7"
+version = "0.5.8"
 description = "A Python service for querying IMDb data"
 readme = "README.md"
-license = { file = "LICENSE.txt" }
+license = { file = "LICENSE" }
 authors = [
     { name = "@tveronesi", email = "tveronesi+imdbinfo@gmail.com" }
 ]
@@ -30,9 +30,9 @@ keywords = [
 ]
 
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU General Public License (GPL)",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",

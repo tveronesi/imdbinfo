@@ -1,3 +1,24 @@
+# MIT License
+# Copyright (c) 2025 tveronesi+imdbinfo@gmail.com
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import re
 from typing import Optional, Dict, Union, List
 from functools import lru_cache
@@ -172,7 +193,6 @@ def get_episodes(
     return get_season_episodes(imdb_id, season, locale)
 
 
-@lru_cache(maxsize=128)
 def get_akas(imdb_id: str) -> Union[AkasData, list]:
     imdb_id, _ = normalize_imdb_id(imdb_id)
     raw_json = _get_extended_title_info(imdb_id)
@@ -182,6 +202,34 @@ def get_akas(imdb_id: str) -> Union[AkasData, list]:
     akas = parse_json_akas(raw_json)
     logger.debug("Fetched %d AKAs for title %s", len(akas), imdb_id)
     return akas
+
+
+def get_all_interests(imdb_id: str):
+    """
+        Fetch all 'interests' for a title using the provided IMDb ID.
+
+    In the context of IMDb data, 'interests' are thematic tags, topics, or metadata associated with a title,
+    such as genres, themes, or other descriptors that go beyond the standard genre classification.
+    These interests are extracted from the extended title information returned by IMDb's GraphQL API.
+
+    Note: This function makes an additional request to IMDb's GraphQL endpoint, which may be slower and
+    more resource-intensive than standard API calls. Use this function only if you require interests
+    beyond what is available in movie.genres, as it can impact performance.
+    """
+    imdb_id, _ = normalize_imdb_id(imdb_id)
+    raw_json = _get_extended_title_info(imdb_id)
+    if not raw_json:
+        logger.warning("No interests found for title %s", imdb_id)
+        return []
+    interests = []
+    interests_edges = raw_json.get("interests", {}).get("edges", [])
+    for edge in interests_edges:
+        node = edge.get("node", {})
+        primary_text = node.get("primaryText", {}).get("text", "")
+        if primary_text:
+            interests.append(primary_text)
+    logger.debug("Fetched %d interests for title %s", len(interests), imdb_id)
+    return interests
 
 
 def get_trivia(imdb_id: str) -> List[Dict]:
@@ -228,6 +276,9 @@ def _get_extended_title_info(imdb_id) -> dict:
         originalTitle: originalTitleText {
           text
         }
+          interests(first:20){
+            edges{node{primaryText{text}}}
+       }
         akas(first: 200) {
           edges {
             node {

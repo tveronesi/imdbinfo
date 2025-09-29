@@ -64,8 +64,8 @@ The `movie` object provides helpful methods to identify its type:
 
 Depending on the type, you can access additional information:
 
-- For series: use `movie.info_series` to get series details.
-- For episodes: use `movie.info_episode` to get episode details.
+- For series: use `movie.info_series` to get series details (creators, seasons, episodes, ...)
+- For episodes: use `movie.info_episode` to get episode details 
 
 #### Example: Working with Series and Episodes
 
@@ -199,7 +199,7 @@ from imdbinfo.locale import set_locale
 set_locale("it")  # Set default locale to Italian
 movie_it = get_movie("tt0133093")  # The Matrix in Italian
 ```
-### 🆕 New: get filmography with images 🎬🖼️
+### Get filmography with images 🎬🖼️
 You can now get filmography for actors, directors and writers and all credits with images:
 ```python
 from imdbinfo import get_filmography
@@ -212,6 +212,21 @@ if filmography:
             print(f" - {film.title} ({film.year}) [{film.imdbId}]")
 
 ```
+🆕 New: get all interests for a title
+
+_Fetch all interests for a title using the provided IMDb ID. Most time it returns the same as genres. 
+    It requires a new request and parsing. Use it only if you really need it._
+
+```python
+from imdbinfo import get_all_interests
+
+movies = ["tt1490017", "tt0133093"]
+
+for imdb_id in movies:
+    interests = get_all_interests(imdb_id)
+    print(f"Interests for {imdb_id}: {interests}")
+```
+
 
 📝 For more examples see the [examples](examples/) folder.
 
@@ -230,11 +245,6 @@ if filmography:
 This project and its authors are not affiliated in any way with IMDb Inc. or its affiliates. 
 For more information, please refer to the [DISCLAIMER](DISCLAIMER.txt) file.
 
-## License
-
-imdbinfo is released under the MIT License.
-See the [LICENSE](LICENSE) file for details.
-
 ## Contributing
 
 Contributions are welcome! Open an issue or pull request on GitHub.
@@ -243,3 +253,7 @@ If you find this project useful, please consider giving it a ⭐ on GitHub!
 
 Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 
+## License
+
+imdbinfo is released under the MIT License.
+See the [LICENSE](LICENSE) file for details.

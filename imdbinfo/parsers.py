@@ -1,3 +1,24 @@
+# MIT License
+# Copyright (c) 2025 tveronesi+imdbinfo@gmail.com
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 from typing import Optional, List, Dict, Union, Any
 import logging
 
@@ -52,6 +73,16 @@ def _parse_directors(result):
         return []
     return [
         Person.from_directors(a)
+        for a in result
+        if a.get("name") and a.get("name").get("id")
+    ]
+
+
+def _parse_creators(result):
+    if result is None:
+        return []
+    return [
+        Person.from_creators(a)
         for a in result
         if a.get("name") and a.get("name").get("id")
     ]
@@ -144,7 +175,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         "props.pageProps.mainColumnData.ratingsSummary.voteCount", raw_json
     )
     data["genres"] = pjmespatch(
-        "props.pageProps.mainColumnData.titleGenres.genres[].genre.text", raw_json
+        "props.pageProps.mainColumnData.genres.genres[].text", raw_json
     )
     data["worldwide_gross"] = pjmespatch(
         "props.pageProps.mainColumnData.worldwideGross.total.[amount,currency]",
@@ -299,10 +330,17 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             display_years=pjmespatch(
                 "props.pageProps.mainColumnData.episodes.displayableYears.edges[].node.year",
                 raw_json,
-            ),
+            )
+            or [],
             display_seasons=pjmespatch(
                 "props.pageProps.mainColumnData.episodes.displayableSeasons.edges[].node.season",
                 raw_json,
+            )
+            or [],
+            creators=pjmespatch(
+                "props.pageProps.mainColumnData.creatorsPageTitle[0].credits[]",
+                raw_json,
+                _parse_creators,
             ),
         )
         logger.info("Parsed series %s", data["imdbId"])
