@@ -64,8 +64,8 @@ The `movie` object provides helpful methods to identify its type:
 
 Depending on the type, you can access additional information:
 
-- For series: use `movie.info_series` to get series details.
-- For episodes: use `movie.info_episode` to get episode details.
+- For series: use `movie.info_series` to get series details (creators, seasons, episodes, ...)
+- For episodes: use `movie.info_episode` to get episode details 
 
 #### Example: Working with Series and Episodes
 

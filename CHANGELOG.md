@@ -120,3 +120,4 @@
 - Adding new service `get_all_interests` Fetch all interests for a title using the provided IMDb ID.
     It requires a new request and parsing. Use it only if you really need it and movie.genres is not enough.
 - Update genre retrieval and add interests fetching functionality
+- Add info_series creators list to MovieDetail for series creators
