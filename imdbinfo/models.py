@@ -47,7 +47,7 @@ class Person(BaseModel):
     job: Optional[str] = None
 
     @classmethod
-    def from_directors(cls, data: dict):
+    def from_directors_creators(cls, data: dict):
         return cls(
             name=data["name"]["nameText"]["text"],
             imdb_id=data["name"]["id"].replace("nm", ""),
