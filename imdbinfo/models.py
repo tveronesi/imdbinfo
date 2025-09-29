@@ -32,52 +32,6 @@ SERIES_IDENTIFIERS = ("tvSeries", "tvMiniSeries", "podcastSeries")
 logger = logging.getLogger(__name__)
 
 
-class SeriesMixin:
-    def is_series(self) -> bool:
-        """
-        Check if this movie title is a series, the main title of a series.
-        If True, it means that this is a series, not a movie, not an episode, but the main reference for the series itself, and series details can be found in the self.info_series property.
-        """
-        return getattr(self, "kind", None) in SERIES_IDENTIFIERS
-
-    def is_episode(self) -> bool:
-        """
-        Check if this movie title is an episode of a series.
-        If True, means that this is the episode of a series and episode details can be found in the self.info_episode property
-        """
-        return getattr(self, "kind", None) in EPISODE_IDENTIFIERS
-
-
-class InfoSeries(BaseModel):
-    display_years: List[str] = []  # e.g. ['2013', '2014', '2015']
-    display_seasons: List[str] = []  # e.g. ['1', '2', '3']
-
-    @field_validator("display_years", mode="before")
-    def filter_years(cls, value):
-        if value is None:
-            return []
-        return [
-            str(y) for y in value if isinstance(y, str) and len(y) == 4 and y.isdigit()
-        ]
-
-    def __str__(self):
-        return f"Years: {self.display_years[-1] if self.display_years else ''}-{self.display_years[0] if self.display_years else ''}, Seasons: {len(self.display_seasons)}"
-
-
-class InfoEpisode(BaseModel):
-    season_n: Optional[int] = None
-    episode_n: Optional[int] = None
-    series_imdbId: Optional[str] = None
-    series_title: Optional[str] = None
-    series_title_localized: Optional[str] = None
-
-    def __str__(self):
-        # print in S01E01 format
-        season_str = f"S{self.season_n:02d}" if self.season_n is not None else "S??"
-        episode_str = f"E{self.episode_n:02d}" if self.episode_n is not None else "E??"
-        return f"{self.series_title} - {season_str}{episode_str} ({self.series_imdbId})"
-
-
 class Person(BaseModel):
     """person model for directors, cast and search results.
     This model is used to represent a person in the IMDb database.
@@ -138,6 +92,53 @@ class Person(BaseModel):
 
     def __str__(self):
         return f"{self.name} ({self.job})"
+
+
+class SeriesMixin:
+    def is_series(self) -> bool:
+        """
+        Check if this movie title is a series, the main title of a series.
+        If True, it means that this is a series, not a movie, not an episode, but the main reference for the series itself, and series details can be found in the self.info_series property.
+        """
+        return getattr(self, "kind", None) in SERIES_IDENTIFIERS
+
+    def is_episode(self) -> bool:
+        """
+        Check if this movie title is an episode of a series.
+        If True, means that this is the episode of a series and episode details can be found in the self.info_episode property
+        """
+        return getattr(self, "kind", None) in EPISODE_IDENTIFIERS
+
+
+class InfoSeries(BaseModel):
+    display_years: List[str] = []  # e.g. ['2013', '2014', '2015']
+    display_seasons: List[str] = []  # e.g. ['1', '2', '3']
+    creators: List[Person] = []
+
+    @field_validator("display_years", mode="before")
+    def filter_years(cls, value):
+        if value is None:
+            return []
+        return [
+            str(y) for y in value if isinstance(y, str) and len(y) == 4 and y.isdigit()
+        ]
+
+    def __str__(self):
+        return f"Years: {self.display_years[-1] if self.display_years else ''}-{self.display_years[0] if self.display_years else ''}, Seasons: {len(self.display_seasons)}"
+
+
+class InfoEpisode(BaseModel):
+    season_n: Optional[int] = None
+    episode_n: Optional[int] = None
+    series_imdbId: Optional[str] = None
+    series_title: Optional[str] = None
+    series_title_localized: Optional[str] = None
+
+    def __str__(self):
+        # print in S01E01 format
+        season_str = f"S{self.season_n:02d}" if self.season_n is not None else "S??"
+        episode_str = f"E{self.episode_n:02d}" if self.episode_n is not None else "E??"
+        return f"{self.series_title} - {season_str}{episode_str} ({self.series_imdbId})"
 
 
 class CastMember(Person):
