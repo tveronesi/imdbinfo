@@ -5,7 +5,7 @@ from imdbinfo.models import InfoSeries, InfoEpisode
 
 def test_person_from_directors():
     data = {"name": {"nameText": {"text": "Lana Wachowski"}, "id": "nm0905154"}}
-    person = Person.from_directors(data)
+    person = Person.from_directors_creators(data)
     assert person.name == "Lana Wachowski"
     assert person.imdb_id == "0905154"
     assert person.job == "Director"
