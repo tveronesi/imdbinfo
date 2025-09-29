@@ -18,6 +18,9 @@ for series_id in series_ids:
     print(f"Movie Title: {series.title} ({series.year}) - {series.imdbId}")
     print(f"Kind: {series.kind}")
     print(f"Series Info: {series.info_series or 'N/A'}")
+    # creators
+    creators = series.info_series.get_creators()
+    print(f"Creators: {', '.join([str(creator) for creator in creators]) or 'N/A'}")
     print("----------------------------------------------")
 
     all_episodes = get_all_episodes(series_id)

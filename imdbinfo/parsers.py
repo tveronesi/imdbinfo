@@ -68,11 +68,21 @@ def pjmespatch(query, data, post_process=None, *args, **kwargs):
     return result
 
 
-def _parse_directors_creators(result):
+def _parse_directors(result):
     if result is None:
         return []
     return [
-        Person.from_directors_creators(a)
+        Person.from_directors(a)
+        for a in result
+        if a.get("name") and a.get("name").get("id")
+    ]
+
+
+def _parse_creators(result):
+    if result is None:
+        return []
+    return [
+        Person.from_creators(a)
         for a in result
         if a.get("name") and a.get("name").get("id")
     ]
@@ -205,7 +215,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data["directors"] = pjmespatch(
         "props.pageProps.mainColumnData.directorsPageTitle[0].credits[]",
         raw_json,
-        _parse_directors_creators,
+        _parse_directors,
     )
     data["filming_locations"] = pjmespatch(
         "props.pageProps.mainColumnData.filmingLocations.edges[].node.text", raw_json
@@ -320,15 +330,17 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             display_years=pjmespatch(
                 "props.pageProps.mainColumnData.episodes.displayableYears.edges[].node.year",
                 raw_json,
-            ) or [],
+            )
+            or [],
             display_seasons=pjmespatch(
                 "props.pageProps.mainColumnData.episodes.displayableSeasons.edges[].node.season",
                 raw_json,
-            ) or [],
+            )
+            or [],
             creators=pjmespatch(
                 "props.pageProps.mainColumnData.creatorsPageTitle[0].credits[]",
                 raw_json,
-                _parse_directors_creators,
+                _parse_creators,
             ),
         )
         logger.info("Parsed series %s", data["imdbId"])

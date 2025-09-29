@@ -47,7 +47,7 @@ class Person(BaseModel):
     job: Optional[str] = None
 
     @classmethod
-    def from_directors_creators(cls, data: dict):
+    def from_directors(cls, data: dict):
         return cls(
             name=data["name"]["nameText"]["text"],
             imdb_id=data["name"]["id"].replace("nm", ""),
@@ -55,6 +55,17 @@ class Person(BaseModel):
             imdbId=data["name"]["id"],
             url=f"https://www.imdb.com/name/{data['name']['id']}",
             job="Director",
+        )
+
+    @classmethod
+    def from_creators(cls, data: dict):
+        return cls(
+            name=data["name"]["nameText"]["text"],
+            imdb_id=data["name"]["id"].replace("nm", ""),
+            id=data["name"]["id"].replace("nm", ""),
+            imdbId=data["name"]["id"],
+            url=f"https://www.imdb.com/name/{data['name']['id']}",
+            job="Creator",
         )
 
     @classmethod
@@ -113,7 +124,7 @@ class SeriesMixin:
 class InfoSeries(BaseModel):
     display_years: List[str] = []  # e.g. ['2013', '2014', '2015']
     display_seasons: List[str] = []  # e.g. ['1', '2', '3']
-    creators: List[Person] = []
+    creators: List[Person] = []  # eg. [Person(...), Person(...)]
 
     @field_validator("display_years", mode="before")
     def filter_years(cls, value):
@@ -122,6 +133,9 @@ class InfoSeries(BaseModel):
         return [
             str(y) for y in value if isinstance(y, str) and len(y) == 4 and y.isdigit()
         ]
+
+    def get_creators(self) -> List[Person]:
+        return self.creators or []
 
     def __str__(self):
         return f"Years: {self.display_years[-1] if self.display_years else ''}-{self.display_years[0] if self.display_years else ''}, Seasons: {len(self.display_seasons)}"
