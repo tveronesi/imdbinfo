@@ -72,7 +72,7 @@ def _parse_directors_creators(result):
     if result is None:
         return []
     return [
-        Person.from_directors(a)
+        Person.from_directors_creators(a)
         for a in result
         if a.get("name") and a.get("name").get("id")
     ]
@@ -320,11 +320,11 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             display_years=pjmespatch(
                 "props.pageProps.mainColumnData.episodes.displayableYears.edges[].node.year",
                 raw_json,
-            ),
+            ) or [],
             display_seasons=pjmespatch(
                 "props.pageProps.mainColumnData.episodes.displayableSeasons.edges[].node.season",
                 raw_json,
-            ),
+            ) or [],
             creators=pjmespatch(
                 "props.pageProps.mainColumnData.creatorsPageTitle[0].credits[]",
                 raw_json,

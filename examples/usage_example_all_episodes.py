@@ -1,14 +1,14 @@
 from imdbinfo import get_movie, get_all_episodes
 
 series_ids = [
-     'tt1520211',  # The Walking Dead
-     'tt0944947',  # Game of Thrones
-     'tt0903747',  # Breaking Bad
+    'tt1520211',  # The Walking Dead
+    'tt0944947',  # Game of Thrones
+    'tt0903747',  # Breaking Bad
     'tt1838556',  # a movie ... skip it
-     'tt4574334',  # The Mandalorian
-     'tt0071007'   # little house on the prairie
+    'tt4574334',  # The Mandalorian
+    'tt0071007',  # little house on the prairie
+    'tt35373097'  # seires with no episodes
 ]
-
 
 for series_id in series_ids:
     series = get_movie(series_id)
@@ -24,4 +24,4 @@ for series_id in series_ids:
     print(f"\nTotal Episodes in Series: {len(all_episodes)}")
     for episode in all_episodes:
         print(f"{episode}")
-    print("\n" + "="*50 + "\n")
+    print("\n" + "=" * 50 + "\n")
