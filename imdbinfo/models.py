@@ -23,7 +23,7 @@ from typing import Optional, List, Dict, Tuple, Union
 from pydantic import BaseModel, field_validator
 import logging
 
-from imdbinfo.transformers import _release_date
+from .transformers import _release_date
 
 EPISODE_IDENTIFIERS = ("tvEpisode", "podcastEpisode")
 
