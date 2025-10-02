@@ -59,6 +59,55 @@ COMPANY_URL = "https://www.imdb.com/company/"
 
 logger = logging.getLogger(__name__)
 
+newCreditCategoryIdToOldCategoryIdObject = {
+    "amzn1.imdb.concept.name_credit_category.a9ab2a8b-9153-4edb-a27a-7c2346830d77": "actor",
+    "amzn1.imdb.concept.name_credit_category.7f6d81aa-23aa-4503-844d-38201eb08761": "actress",
+    "amzn1.imdb.concept.name_credit_category.44d5f7aa-fe79-46e8-a72a-0f861c37bfff": "animation_department",
+    "amzn1.imdb.concept.name_credit_category.d782ea94-18fe-4513-a71c-7cdd652ef2d8": "art_department",
+    "amzn1.imdb.concept.name_credit_category.60a44752-af76-44f7-9de0-ec51aea2180d": "art_director",
+    "amzn1.imdb.concept.name_credit_category.306aa45f-30d6-4786-a7f9-b3103ebca806": "assistant_director",
+    "amzn1.imdb.concept.name_credit_category.daf5bc70-1a41-413b-af5a-af1e285bf049": "camera_department",
+    "amzn1.imdb.concept.name_credit_category.5c60f6fa-29f1-40a4-8fe5-b4c26a6a7db4": "casting_department",
+    "amzn1.imdb.concept.name_credit_category.67b6990c-f7de-4882-916b-dad87ec4406a": "casting_director",
+    "amzn1.imdb.concept.name_credit_category.73ffe317-963e-4c19-b4fd-54a9a596c959": "choreographer",
+    "amzn1.imdb.concept.name_credit_category.e2bf7217-c947-461b-aa58-47e27da1c78e": "cinematographer",
+    "amzn1.imdb.concept.name_credit_category.00f5faa0-5f76-4eb5-87a1-ec8d484d1779": "composer",
+    "amzn1.imdb.concept.name_credit_category.19e9f38d-89a0-4963-91c1-e3958f1d4534": "costume_department",
+    "amzn1.imdb.concept.name_credit_category.a2d21716-45de-40e2-9f7d-9de01fc34a71": "costume_designer",
+    "amzn1.imdb.concept.name_credit_category.92fde7c9-50a1-4ec5-9897-4514ea9851b2": "costume_supervisor",
+    "amzn1.imdb.concept.name_credit_category.ace5cb4c-8708-4238-9542-04641e7c8171": "director",
+    "amzn1.imdb.concept.name_credit_category.63b1f9c6-9d3b-4be6-88fc-6321c9fa5ae2": "editor",
+    "amzn1.imdb.concept.name_credit_category.2677b7dc-373c-41d1-8b13-7bdc171ca372": "editorial_department",
+    "amzn1.imdb.concept.name_credit_category.7f9c1f9d-8d79-461b-8b1e-31aecbc810fb": "electrical_department",
+    "amzn1.imdb.concept.name_credit_category.672aa0f4-3d77-4a51-ac8f-2318eb03c2a2": "hair_stylist",
+    "amzn1.imdb.concept.name_credit_category.14374461-bf01-43c1-b3b7-da298b97880d": "intimacy_coordinator",
+    "amzn1.imdb.concept.name_credit_category.95338d09-b2a1-4188-ac9f-55f5255bb437": "location_management",
+    "amzn1.imdb.concept.name_credit_category.6d7dae61-5a76-4127-82db-acbbb5ecd768": "make_up_artist",
+    "amzn1.imdb.concept.name_credit_category.c3f25a53-cdb2-4260-ab78-1ef0a6052ee1": "make_up_department",
+    "amzn1.imdb.concept.name_credit_category.a7c2d410-e513-4bd7-85d5-73060ec46a84": "miscellaneous",
+    "amzn1.imdb.concept.name_credit_category.aad1533c-6974-45a4-ba98-5f2f43286cfc": "music_department",
+    "amzn1.imdb.concept.name_credit_category.7a3df188-0e65-41f9-a15e-1c363c7093eb": "music_supervisor",
+    "amzn1.imdb.concept.name_credit_category.0af123ce-1605-4a51-93cf-7ad477b11832": "producer",
+    "amzn1.imdb.concept.name_credit_category.990a90e2-4761-41d9-bfd6-3bd90e122762": "production_department",
+    "amzn1.imdb.concept.name_credit_category.ce558628-5755-438c-92d7-757518864a00": "production_designer",
+    "amzn1.imdb.concept.name_credit_category.b3eac1a6-a62b-4f46-8b93-5331b94f6af3": "production_manager",
+    "amzn1.imdb.concept.name_credit_category.1305c1a1-04bc-4cde-a6ac-dad9c9a6e11d": "property_master",
+    "amzn1.imdb.concept.name_credit_category.bf32c344-897c-4e0a-b401-36bfa2c3669e": "script_department",
+    "amzn1.imdb.concept.name_credit_category.15403c03-b2d7-46b6-9c57-058f1659fd14": "script_supervisor",
+    "amzn1.imdb.concept.name_credit_category.d6017bdb-c3e7-4ca5-944b-68d74b9de6b6": "self",
+    "amzn1.imdb.concept.name_credit_category.359a8a76-1c15-4fd1-bd31-26c7e2a046f8": "set_decorator",
+    "amzn1.imdb.concept.name_credit_category.4cdb8a99-4f08-4cfe-9db5-ee31f23f7db3": "showrunner",
+    "amzn1.imdb.concept.name_credit_category.ce258419-131b-41f0-b2c5-227f5d9b719f": "sound_department",
+    "amzn1.imdb.concept.name_credit_category.4df03a1e-b90d-4c4a-8638-29eea26a156b": "soundtrack",
+    "amzn1.imdb.concept.name_credit_category.856eb49a-7610-47d5-9a07-c7df3f715075": "special_effects",
+    "amzn1.imdb.concept.name_credit_category.15c98c24-1815-4935-a958-ed747aeffee4": "stunt_coordinator",
+    "amzn1.imdb.concept.name_credit_category.79cc5241-902a-4d4b-971d-27a3590fa1f4": "stunts",
+    "amzn1.imdb.concept.name_credit_category.90de891d-6d5e-4711-9179-3eda18bd18e1": "thanks",
+    "amzn1.imdb.concept.name_credit_category.8c952a79-f27c-4e5a-be85-b114b0ecd04e": "transportation_department",
+    "amzn1.imdb.concept.name_credit_category.fcb0b804-e618-4044-8a74-79e94d17e3cd": "visual_effects",
+    "amzn1.imdb.concept.name_credit_category.c84ecaff-add5-4f2e-81db-102a41881fe3": "writer"
+}
+
 
 def pjmespatch(query, data, post_process=None, *args, **kwargs):
     result = jmespath.search(query, data)
@@ -284,18 +333,25 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     # categories
     data["categories"] = {}
     for category in pjmespatch("props.pageProps.mainColumnData.categories[]", raw_json):
-        data["categories"].setdefault(category["id"], [])
         jobtitle = category["name"]
         category_id = category["id"]
+
+        if category_id not in newCreditCategoryIdToOldCategoryIdObject.values():
+            category_id = newCreditCategoryIdToOldCategoryIdObject.get(category_id)
+            if not category_id:
+                logger.warning(f"Unknown category id {category['id']} for job title '{jobtitle}'")
+                continue
+        data["categories"].setdefault(category_id, [])
+
         for category_person in category["section"]["items"]:
-            if category_id == "cast":
+            if category_person.get('isCast', False):
                 # cast is a special case, it has character and order
                 person = CastMember.from_cast(category_person)
             else:
                 category_person["jobTitle"] = jobtitle
                 person = Person.from_category(category_person)
             person = person
-            data["categories"][category["id"]].append(person)
+            data["categories"][category_id].append(person)
 
     # company_credits [ distributors , production_companies, special_effects_companies, etc ]
     data["company_credits"] = {}
