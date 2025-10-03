@@ -122,3 +122,6 @@
 - Update genre retrieval and add interests fetching functionality
 - Add info_series creators list to MovieDetail for series creators
 - FIX unhandled exception for series without episodes (ex. tt35373097)
+
+## v0.6.0
+- Making changes to support new IMDb data structure for `person.credits` , `person.unreleased_credits`, `person.jobs`, `movie.categories`
