@@ -147,6 +147,8 @@ def _parse_creators(result):
 def _parse_credits(result) -> dict:
     """feed credits from the page 'name' to the PersonDetail model"""
 
+    if result is None:
+        return {}
     res: Dict[str, List[MovieBriefInfo]] = {}
     for itemCast in result:
         # ['writer', 'tt27665778', 'Horizon: An American Saga - Chapter 2', 'Movie', 'https://m.media-amazon.com/images/M/MV5BMDg1OWI3NTYtY2IwMy00NmQ4LTk5YWUtZmViNmU5YTFkNGU5XkEyXkFqcGc@._V1_.jpg', 2024, None]
@@ -170,6 +172,42 @@ def _parse_credits(result) -> dict:
                 year=year,
             )
         )
+    return res
+
+def _parse_credits_v2(result) -> dict:
+    """feed credits from the page 'name' to the PersonDetail model"""
+
+    if result is None:
+        return {}
+    res: Dict[str, List[MovieBriefInfo]] = {}
+    for itemCastGroup in result:
+        category = itemCastGroup['grouping']['groupingId']
+        #categoryTextLocalized = itemCastGroup['grouping']['text']
+
+        # map new category ids to old ones
+
+
+        for item_ in itemCastGroup['credits']['edges']:
+            titleData = item_['node']['title']
+            imdbId = titleData['id']  # 'tt27665778'
+            titleOriginal = titleData['originalTitleText']['text']  # 'Horizon: An American Saga - Chapter 2'
+            title_type = titleData['titleType']['id']  # 'movie'
+            imageUrl = titleData['primaryImage']['url'] if titleData.get('primaryImage') else None
+            year =  titleData['releaseYear']['year'] if titleData.get('releaseYear') else None
+
+            res.setdefault(category, [])
+            res[category].append(
+                MovieBriefInfo(
+                    id=imdbId.replace("tt", ""),
+                    imdbId=imdbId,
+                    imdb_id=imdbId.replace("tt", ""),
+                    title=titleOriginal,
+                    kind=title_type,
+                    cover_url=imageUrl,
+                    url=f"{TITLE_URL}{imdbId}/",
+                    year=year,
+                )
+            )
     return res
 
 
@@ -528,16 +566,36 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
             "props.pageProps.mainColumnData.jobs[].category.id", raw_json
         )
 
+
+    # Released credits v2
     data["credits"] = pjmespatch(
-        "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.id,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
+        "props.pageProps.mainColumnData.released.edges[].node",
         raw_json,
-        _parse_credits,
+        _parse_credits_v2,
     )
+
+    if not data["credits"]:
+        # fallback to old credits path if released is empty
+        data["credits"] = pjmespatch(
+            "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.id,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
+            raw_json,
+            _parse_credits,
+        )
+
+    # Unreleased credits v2
     data["unreleased_credits"] = pjmespatch(
-        "props.pageProps.mainColumnData.unreleasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.id,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
+        "props.pageProps.mainColumnData.unreleased.edges[].node",
         raw_json,
-        _parse_credits,
+        _parse_credits_v2,
     )
+
+    if not data["unreleased_credits"]:
+        # fallback to old unreleased credits path if unreleased is empty
+        data["credits"] = pjmespatch(
+            "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.id,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
+            raw_json,
+            _parse_credits,
+        )
 
     person = PersonDetail.model_validate(data)
     logger.info("Parsed person %s", person.name)
