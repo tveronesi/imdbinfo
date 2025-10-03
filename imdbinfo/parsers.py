@@ -117,6 +117,13 @@ def pjmespatch(query, data, post_process=None, *args, **kwargs):
     return result
 
 
+def get_newCreditCategoryIdToOldCategoryIdObject(raw_json) -> Dict[str, str]:
+    map = pjmespatch(
+        "props.pageProps.mainColumnData.newCreditCategoryIdToOldCategoryIdObject", raw_json
+    )
+    return map
+
+
 def _parse_directors(result):
     if result is None:
         return []
@@ -460,38 +467,28 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
     data["name"] = pjmespatch("props.pageProps.aboveTheFold.nameText.text", raw_json)
     data["url"] = f"https://www.imdb.com/name/{data['imdbId']}/"
     data["knownfor"] = pjmespatch(
-        "props.pageProps.mainColumnData.knownForFeature.edges[].node.title.titleText.text",
+        "props.pageProps.mainColumnData.knownForFeatureV2.credits[*].title.titleText.text",
         raw_json,
     )
 
     if not data["knownfor"]:
-        # fallback to knownfor_v2 if knownfor is empty
+        # fallback to old knownForFeature if knownForFeatureV2 is empty
         data["knownfor"] = pjmespatch(
-            "props.pageProps.mainColumnData.knownForFeatureV2.credits[*].title.titleText.text",
+            "props.pageProps.mainColumnData.knownForFeature.edges[].node.title.titleText.text",
             raw_json,
         )
 
-    # data["knownfor_v2"] = pjmespatch(
-    #     "props.pageProps.mainColumnData.knownForFeatureV2.credits[*].title.titleText.text",
-    #     raw_json,
-    # )
-
     data["knownfor2"] = pjmespatch(
-        "props.pageProps.mainColumnData.knownForFeature.edges[].node.[title.id,title.titleText.text,credit.characters[].name]",
+        "props.pageProps.mainColumnData.knownForFeatureV2.credits[].[title.id,title.titleText.text,creditedRoles.edges[].node.text]",
         raw_json,
     )
 
     if not data["knownfor2"]:
-        # fallback to knownfor_v2 if knownfor2 is empty
+        # fallback to old knownForFeature if knownForFeatureV2 is empty
         data["knownfor2"] = pjmespatch(
-            "props.pageProps.mainColumnData.knownForFeatureV2.credits[].[title.id,title.titleText.text,creditedRoles.edges[].node.text]",
+            "props.pageProps.mainColumnData.knownForFeature.edges[].node.[title.id,title.titleText.text,credit.characters[].name]",
             raw_json,
         )
-    #
-    # data["knownfor2_v2"] = pjmespatch(
-    #     "props.pageProps.mainColumnData.knownForFeatureV2.credits[].[title.id,title.titleText.text,creditedRoles.edges[].node.text]",
-    #     raw_json,
-    # )
 
     data["image_url"] = pjmespatch(
         "props.pageProps.aboveTheFold.primaryImage.url", raw_json
@@ -522,8 +519,14 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
         "props.pageProps.mainColumnData.deathReason.text", raw_json
     )
     data["jobs"] = pjmespatch(
-        "props.pageProps.mainColumnData.jobs[].category.id", raw_json
+        "props.pageProps.mainColumnData.professions[*].professionCategory.linkedCreditCategory.categoryId", raw_json
     )
+
+    if not data["jobs"]:
+        # fallback to old jobs path if professions is empty
+        data["jobs"] = pjmespatch(
+            "props.pageProps.mainColumnData.jobs[].category.id", raw_json
+        )
 
     data["credits"] = pjmespatch(
         "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.id,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
