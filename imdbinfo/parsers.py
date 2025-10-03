@@ -117,13 +117,6 @@ def pjmespatch(query, data, post_process=None, *args, **kwargs):
     return result
 
 
-def get_newCreditCategoryIdToOldCategoryIdObject(raw_json) -> Dict[str, str]:
-    map = pjmespatch(
-        "props.pageProps.mainColumnData.newCreditCategoryIdToOldCategoryIdObject", raw_json
-    )
-    return map
-
-
 def _parse_directors(result):
     if result is None:
         return []
