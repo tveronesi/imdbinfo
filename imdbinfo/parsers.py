@@ -181,12 +181,12 @@ def _parse_credits_v2(result) -> dict:
         return {}
     res: Dict[str, List[MovieBriefInfo]] = {}
     for itemCastGroup in result:
-        category = itemCastGroup['grouping']['groupingId']
+        _category_ = itemCastGroup['grouping']['groupingId']
         #categoryTextLocalized = itemCastGroup['grouping']['text']
 
         # map new category ids to old ones
-
-
+        category_id = newCreditCategoryIdToOldCategoryIdObject.get(_category_, _category_)
+        res.setdefault(category_id, [])
         for item_ in itemCastGroup['credits']['edges']:
             titleData = item_['node']['title']
             imdbId = titleData['id']  # 'tt27665778'
@@ -195,8 +195,8 @@ def _parse_credits_v2(result) -> dict:
             imageUrl = titleData['primaryImage']['url'] if titleData.get('primaryImage') else None
             year =  titleData['releaseYear']['year'] if titleData.get('releaseYear') else None
 
-            res.setdefault(category, [])
-            res[category].append(
+
+            res[category_id].append(
                 MovieBriefInfo(
                     id=imdbId.replace("tt", ""),
                     imdbId=imdbId,
@@ -379,23 +379,20 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data["categories"] = {}
     for category in pjmespatch("props.pageProps.mainColumnData.categories[]", raw_json):
         jobtitle = category["name"]
-        category_id = category["id"]
+        _category_id_ = category["id"] # AWARE: can be new version like amzn1.imdb.concept.name_credit_category.a9ab2a8b-9153-4edb-a27a-7c2346830d77 or old one like 'actor'
 
-        if category_id not in newCreditCategoryIdToOldCategoryIdObject.values():
-            category_id = newCreditCategoryIdToOldCategoryIdObject.get(category_id)
-            if not category_id:
-                logger.warning(f"Unknown category id {category['id']} for job title '{jobtitle}'")
-                continue
-        data["categories"].setdefault(category_id, [])
-
+        category_id = newCreditCategoryIdToOldCategoryIdObject.get(_category_id_, _category_id_)
         for category_person in category["section"]["items"]:
             if category_person.get('isCast', False):
                 # cast is a special case, it has character and order
                 person = CastMember.from_cast(category_person)
+                category_id = "cast"  # override category to 'cast'
             else:
                 category_person["jobTitle"] = jobtitle
                 person = Person.from_category(category_person)
             person = person
+
+            data["categories"].setdefault(category_id, [])
             data["categories"][category_id].append(person)
 
     # company_credits [ distributors , production_companies, special_effects_companies, etc ]
