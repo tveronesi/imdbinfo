@@ -210,6 +210,14 @@ def _parse_credits_v2(result) -> dict:
             )
     return res
 
+def _parse_jobs_v2(raw_jobs) -> List[str]:
+    if raw_jobs is None:
+        return []
+    jobs = []
+    for job in raw_jobs:
+        job_name = newCreditCategoryIdToOldCategoryIdObject.get(job, job)
+        jobs.append(job_name)
+    return jobs
 
 def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     logger.debug("Parsing movie JSON")
@@ -383,7 +391,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
 
     for category in pjmespatch("props.pageProps.mainColumnData.categories[]", raw_json):
         jobtitle = category["name"]
-        _category_id_ = category["id"] # AWARE: can be new version like amzn1.imdb.concept.name_credit_category.a9ab2a8b-9153-4edb-a27a-7c2346830d77 or old one like 'actor'
+        _category_id_ = category["id"]
 
         category_id = newCreditCategoryIdToOldCategoryIdObject.get(_category_id_, _category_id_)
         for category_person in category["section"]["items"]:
@@ -560,7 +568,9 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
         "props.pageProps.mainColumnData.deathReason.text", raw_json
     )
     data["jobs"] = pjmespatch(
-        "props.pageProps.mainColumnData.professions[*].professionCategory.linkedCreditCategory.categoryId", raw_json
+        "props.pageProps.mainColumnData.professions[*].professionCategory.linkedCreditCategory.categoryId",
+        raw_json,
+        _parse_jobs_v2
     )
 
     if not data["jobs"]:
