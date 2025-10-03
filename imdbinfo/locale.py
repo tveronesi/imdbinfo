@@ -45,7 +45,7 @@ def get_locale():
         logger.warning("Locale '%s' is not supported. Using '%s'", lcl, DEFAULT_LOCALE)
         lcl = DEFAULT_LOCALE
     if lcl == "en":
-        return ""
+        return "" # used to build the url and en is the default one the url doesn't contain it
     return lcl
 
 
