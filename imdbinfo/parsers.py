@@ -111,7 +111,7 @@ newCreditCategoryIdToOldCategoryIdObject = {
 
 def pjmespatch(query, data, post_process=None, *args, **kwargs):
     result = jmespath.search(query, data)
-    logger.debug("Query %s -> %s", query, result)
+    #logger.debug("Query %s -> %s", query, result)
     if post_process:
         return post_process(result, *args, **kwargs)
     return result
@@ -182,16 +182,16 @@ def _parse_credits_v2(result) -> dict:
     res: Dict[str, List[MovieBriefInfo]] = {}
     for itemCastGroup in result:
         _category_ = itemCastGroup['grouping']['groupingId']
-        #categoryTextLocalized = itemCastGroup['grouping']['text']
+        categoryTextLocalized = itemCastGroup['grouping']['text']
 
         # map new category ids to old ones
         category_id = newCreditCategoryIdToOldCategoryIdObject.get(_category_, _category_)
         res.setdefault(category_id, [])
         for item_ in itemCastGroup['credits']['edges']:
             titleData = item_['node']['title']
-            imdbId = titleData['id']  # 'tt27665778'
-            titleOriginal = titleData['originalTitleText']['text']  # 'Horizon: An American Saga - Chapter 2'
-            title_type = titleData['titleType']['id']  # 'movie'
+            imdbId = titleData['id']
+            titleOriginal = titleData['originalTitleText']['text']
+            title_type = titleData['titleType']['id']
             imageUrl = titleData['primaryImage']['url'] if titleData.get('primaryImage') else None
             year =  titleData['releaseYear']['year'] if titleData.get('releaseYear') else None
 
@@ -508,6 +508,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if not data["knownfor"]:
         # fallback to old knownForFeature if knownForFeatureV2 is empty
+        logger.debug("******** Falling back to old  knownForFeature path")
         data["knownfor"] = pjmespatch(
             "props.pageProps.mainColumnData.knownForFeature.edges[].node.title.titleText.text",
             raw_json,
@@ -520,6 +521,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if not data["knownfor2"]:
         # fallback to old knownForFeature if knownForFeatureV2 is empty
+        logger.debug("******** Falling back to old  knownForFeature2 path")
         data["knownfor2"] = pjmespatch(
             "props.pageProps.mainColumnData.knownForFeature.edges[].node.[title.id,title.titleText.text,credit.characters[].name]",
             raw_json,
@@ -559,6 +561,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if not data["jobs"]:
         # fallback to old jobs path if professions is empty
+        logger.debug("******** Falling back to old  jobs path")
         data["jobs"] = pjmespatch(
             "props.pageProps.mainColumnData.jobs[].category.id", raw_json
         )
@@ -573,6 +576,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if not data["credits"]:
         # fallback to old credits path if released is empty
+        logger.debug("******** Falling back to old  credits path")
         data["credits"] = pjmespatch(
             "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.id,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
             raw_json,
@@ -588,6 +592,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if not data["unreleased_credits"]:
         # fallback to old unreleased credits path if unreleased is empty
+        logger.debug("******** Falling back to old  unreleased credits path")
         data["credits"] = pjmespatch(
             "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.id,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
             raw_json,
