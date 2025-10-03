@@ -463,10 +463,36 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
         "props.pageProps.mainColumnData.knownForFeature.edges[].node.title.titleText.text",
         raw_json,
     )
+
+    if not data["knownfor"]:
+        # fallback to knownfor_v2 if knownfor is empty
+        data["knownfor"] = pjmespatch(
+            "props.pageProps.mainColumnData.knownForFeatureV2.credits[*].title.titleText.text",
+            raw_json,
+        )
+
+    # data["knownfor_v2"] = pjmespatch(
+    #     "props.pageProps.mainColumnData.knownForFeatureV2.credits[*].title.titleText.text",
+    #     raw_json,
+    # )
+
     data["knownfor2"] = pjmespatch(
         "props.pageProps.mainColumnData.knownForFeature.edges[].node.[title.id,title.titleText.text,credit.characters[].name]",
         raw_json,
     )
+
+    if not data["knownfor2"]:
+        # fallback to knownfor_v2 if knownfor2 is empty
+        data["knownfor2"] = pjmespatch(
+            "props.pageProps.mainColumnData.knownForFeatureV2.credits[].[title.id,title.titleText.text,creditedRoles.edges[].node.text]",
+            raw_json,
+        )
+    #
+    # data["knownfor2_v2"] = pjmespatch(
+    #     "props.pageProps.mainColumnData.knownForFeatureV2.credits[].[title.id,title.titleText.text,creditedRoles.edges[].node.text]",
+    #     raw_json,
+    # )
+
     data["image_url"] = pjmespatch(
         "props.pageProps.aboveTheFold.primaryImage.url", raw_json
     )
