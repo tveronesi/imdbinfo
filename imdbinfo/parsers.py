@@ -376,7 +376,11 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         raw_json,
     )
     # categories
-    data["categories"] = {}
+
+    data["categories"] = {'cast': []}  # init with cast to avoid keyerror
+    # ensure all categories are present
+    [data["categories"].setdefault(c, []) for c in newCreditCategoryIdToOldCategoryIdObject.values()]
+
     for category in pjmespatch("props.pageProps.mainColumnData.categories[]", raw_json):
         jobtitle = category["name"]
         _category_id_ = category["id"] # AWARE: can be new version like amzn1.imdb.concept.name_credit_category.a9ab2a8b-9153-4edb-a27a-7c2346830d77 or old one like 'actor'
