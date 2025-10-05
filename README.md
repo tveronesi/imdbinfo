@@ -22,7 +22,7 @@
 - 📊 **Ratings** from IMDb and other sources
 - 📝 **User reviews and ratings** via `get_reviews`
 - 🎭 **Movie trivia and interesting facts** via `get_trivia`
-- 🗂️ **Full filmography** for actors, directors and writers
+- 🗂️ **Full filmography** for actors, directors and writers via `get_filmography`
 - 📝 **Typed Pydantic models** for predictable responses
 - ⚡ **Built-in caching** for faster repeated requests
 - ✅ **No API keys required**
