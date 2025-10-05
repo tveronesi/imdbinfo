@@ -9,6 +9,17 @@
 
 **Your personal gateway to IMDb data**. Search for movies, series and people and get structured information in seconds.
 
+
+## ⚠️ Important Notice: IMDB Data Changes Impacting imdbinfo
+
+Recently, IMDB has made significant changes to their data structure and availability. As a result, critical information that was previously accessible may now be missing or restricted. These updates are affecting the reliability and functionality of third-party tools, including imdbinfo.
+
+As IMDB introduces these limitations, our project is committed to adapting and maintaining access to valuable information wherever possible.
+
+If you are experiencing issues, please consider contributing, reporting problems, or joining the discussion. Your support helps.
+
+
+
 ## Features
 
 - 🔍 **Search movies, series, miniseries and people** by name or title
@@ -22,7 +33,7 @@
 - 📊 **Ratings** from IMDb and other sources
 - 📝 **User reviews and ratings** via `get_reviews`
 - 🎭 **Movie trivia and interesting facts** via `get_trivia`
-- 🗂️ **Full filmography** for actors, directors and writers
+- 🗂️ **Full filmography** for actors, directors and writers via `get_filmography`
 - 📝 **Typed Pydantic models** for predictable responses
 - ⚡ **Built-in caching** for faster repeated requests
 - ✅ **No API keys required**
