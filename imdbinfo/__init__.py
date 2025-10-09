@@ -34,6 +34,11 @@ from .services import (
     get_filmography,
     get_all_interests,
 )
+from .plugin_manager import (
+    register_field_parser,
+    unregister_field_parser,
+    list_registered_plugins,
+)
 
 __all__ = [
     "get_movie",
@@ -47,6 +52,9 @@ __all__ = [
     "get_trivia",
     "get_filmography",
     "get_all_interests",
+    "register_field_parser",
+    "unregister_field_parser",
+    "list_registered_plugins",
 ]
 
 # setup library logging

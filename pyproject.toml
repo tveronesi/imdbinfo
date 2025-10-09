@@ -17,7 +17,8 @@ dependencies = [
     "lxml",
     "pydantic",
     "jmespath",
-    "deprecated"
+    "deprecated",
+    "pluggy"
 ]
 
 urls = {Homepage = "https://tveronesi.github.io/imdbinfo/"}

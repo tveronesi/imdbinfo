@@ -52,6 +52,7 @@ from .transformers import (
     _certificates_to_dict,
     _parse_mpaa,
 )
+from .plugin_manager import parse_field_with_plugins
 
 VIDEO_URL = "https://www.imdb.com/video/"
 TITLE_URL = "https://www.imdb.com/title/"
@@ -109,11 +110,16 @@ newCreditCategoryIdToOldCategoryIdObject = {
 }
 
 
-def pjmespatch(query, data, post_process=None, *args, **kwargs):
+def pjmespatch(query, data, post_process=None, field_name=None, *args, **kwargs):
     result = jmespath.search(query, data)
     #logger.debug("Query %s -> %s", query, result)
     if post_process:
-        return post_process(result, *args, **kwargs)
+        result = post_process(result, *args, **kwargs)
+    
+    # Apply plugin system if field_name is provided
+    if field_name is not None:
+        result = parse_field_with_plugins(field_name, result, data)
+    
     return result
 
 
@@ -230,7 +236,8 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data["id"] = data["imdb_id"]  # same as imdb_id
     data["url"] = f"{TITLE_URL}{data['imdbId']}/"
     data["title"] = pjmespatch(
-        "props.pageProps.aboveTheFoldData.originalTitleText.text", raw_json
+        "props.pageProps.aboveTheFoldData.originalTitleText.text", raw_json,
+        field_name="title"
     )
     data["title_localized"] = pjmespatch(
         "props.pageProps.aboveTheFoldData.titleText.text", raw_json
@@ -264,13 +271,16 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         lambda x: x / 60 if x else None,
     )
     data["rating"] = pjmespatch(
-        "props.pageProps.mainColumnData.ratingsSummary.aggregateRating", raw_json
+        "props.pageProps.mainColumnData.ratingsSummary.aggregateRating", raw_json,
+        field_name="rating"
     )
     data["votes"] = pjmespatch(
-        "props.pageProps.mainColumnData.ratingsSummary.voteCount", raw_json
+        "props.pageProps.mainColumnData.ratingsSummary.voteCount", raw_json,
+        field_name="votes"
     )
     data["genres"] = pjmespatch(
-        "props.pageProps.mainColumnData.genres.genres[].text", raw_json
+        "props.pageProps.mainColumnData.genres.genres[].text", raw_json,
+        field_name="genres"
     )
     data["worldwide_gross"] = pjmespatch(
         "props.pageProps.mainColumnData.worldwideGross.total.[amount,currency]",
