@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 from typing import Optional, List, Dict, Tuple, Union
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 import logging
 
 from .transformers import _release_date
@@ -122,9 +122,9 @@ class SeriesMixin:
 
 
 class InfoSeries(BaseModel):
-    display_years: List[str] = []  # e.g. ['2013', '2014', '2015']
-    display_seasons: List[str] = []  # e.g. ['1', '2', '3']
-    creators: List[Person] = []  # eg. [Person(...), Person(...)]
+    display_years: List[str] = Field(default_factory=list)  # e.g. ['2013', '2014', '2015']
+    display_seasons: List[str] = Field(default_factory=list)  # e.g. ['1', '2', '3']
+    creators: List[Person] = Field(default_factory=list)  # eg. [Person(...), Person(...)]
 
     @field_validator("display_years", mode="before")
     def filter_years(cls, value):
@@ -161,7 +161,7 @@ class CastMember(Person):
     It includes the characters they played in the movie and their picture URL.
     """
 
-    characters: List[str] = []
+    characters: List[str] = Field(default_factory=list)
     picture_url: Optional[str] = None
     attributes: Optional[str] = None  # e.g. '(as John Doe)'
 
@@ -217,46 +217,46 @@ class MovieDetail(SeriesMixin, BaseModel):
     imdbId: str  # id with 'tt' prefix, e.g. 'tt0133093'
     title: str
     title_localized: Optional[str] = None
-    title_akas: List[str] = []
+    title_akas: List[str] = Field(default_factory=list)
     kind: Optional[str] = None
     url: str = ""
     cover_url: Optional[str] = None
     plot: Optional[str] = None
     release_date: Optional[str] = None
-    languages: List[str] = []
-    languages_text: List[str] = []
-    certificates: Dict[str, Tuple[str, str]] = {}
+    languages: List[str] = Field(default_factory=list)
+    languages_text: List[str] = Field(default_factory=list)
+    certificates: Dict[str, Tuple[str, str]] = Field(default_factory=dict)
     mpaa: Optional[str] = None
-    directors: List[Person] = []
-    stars: List[Person] = []
+    directors: List[Person] = Field(default_factory=list)
+    stars: List[Person] = Field(default_factory=list)
     year: Optional[int] = None
     year_end: Optional[int] = None
     duration: Optional[int] = None
-    country_codes: List[str] = []
-    countries: List[str] = []
+    country_codes: List[str] = Field(default_factory=list)
+    countries: List[str] = Field(default_factory=list)
     rating: Optional[float] = None
     metacritic_rating: Optional[int] = None
     votes: Optional[int] = None
-    trailers: List[str] = []
-    genres: List[str] = []
-    interests: List[str] = []
+    trailers: List[str] = Field(default_factory=list)
+    genres: List[str] = Field(default_factory=list)
+    interests: List[str] = Field(default_factory=list)
     worldwide_gross: Optional[str] = None
     production_budget: Optional[str] = None
-    storyline_keywords: List[str] = []
-    filming_locations: List[str] = []
-    sound_mixes: List[str] = []
-    processes: List[str] = []
-    printed_formats: List[str] = []
-    negative_formats: List[str] = []
-    laboratories: List[str] = []
-    colorations: List[str] = []
-    cameras: List[str] = []
-    aspect_ratios: List[Tuple[Optional[str], Optional[str]]] = []
-    summaries: List[str] = []
-    synopses: List[str] = []
-    production: List[str] = []
-    categories: Dict[str, List[Union[Person, CastMember]]] = {}
-    company_credits: Dict[str, List[CompanyInfo]] = {}
+    storyline_keywords: List[str] = Field(default_factory=list)
+    filming_locations: List[str] = Field(default_factory=list)
+    sound_mixes: List[str] = Field(default_factory=list)
+    processes: List[str] = Field(default_factory=list)
+    printed_formats: List[str] = Field(default_factory=list)
+    negative_formats: List[str] = Field(default_factory=list)
+    laboratories: List[str] = Field(default_factory=list)
+    colorations: List[str] = Field(default_factory=list)
+    cameras: List[str] = Field(default_factory=list)
+    aspect_ratios: List[Tuple[Optional[str], Optional[str]]] = Field(default_factory=list)
+    summaries: List[str] = Field(default_factory=list)
+    synopses: List[str] = Field(default_factory=list)
+    production: List[str] = Field(default_factory=list)
+    categories: Dict[str, List[Union[Person, CastMember]]] = Field(default_factory=dict)
+    company_credits: Dict[str, List[CompanyInfo]] = Field(default_factory=dict)
 
     @field_validator(
         "languages",
@@ -364,8 +364,8 @@ class SearchResult(BaseModel):
     It includes a list of MovieBriefInfo objects for titles and a list of Person objects for names.
     """
 
-    titles: List[MovieBriefInfo] = []
-    names: List[Person] = []
+    titles: List[MovieBriefInfo] = Field(default_factory=list)
+    names: List[Person] = Field(default_factory=list)
 
 
 class PersonDetail(BaseModel):
@@ -381,19 +381,19 @@ class PersonDetail(BaseModel):
     imdbId: str  # id with 'nm' prefix
     name: str
     url: str
-    knownfor: List[str] = []
+    knownfor: List[str] = Field(default_factory=list)
     image_url: Optional[str] = None
     bio: Optional[str] = None
     height: Optional[str] = None
-    primary_profession: List[str] = []
+    primary_profession: List[str] = Field(default_factory=list)
     birth_date: Optional[str] = None
     birth_place: Optional[str] = None
     death_date: Optional[str] = None
     death_place: Optional[str] = None
     death_reason: Optional[str] = None
-    jobs: List[str] = []
-    credits: Dict[str, List[MovieBriefInfo]] = {}
-    unreleased_credits: Dict[str, List[MovieBriefInfo]] = {}
+    jobs: List[str] = Field(default_factory=list)
+    credits: Dict[str, List[MovieBriefInfo]] = Field(default_factory=dict)
+    unreleased_credits: Dict[str, List[MovieBriefInfo]] = Field(default_factory=dict)
 
     def __str__(self):
         return f"{self.name} ({', '.join(self.knownfor)})"
@@ -497,7 +497,7 @@ class SeasonEpisodesList(BaseModel):
     top_ten_episodes: Optional[List[dict]] = (
         None  # List of top ten episodes based on rating
     )
-    episodes: List[SeasonEpisode] = []
+    episodes: List[SeasonEpisode] = Field(default_factory=list)
 
     @property
     def count(self) -> int:
