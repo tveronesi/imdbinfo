@@ -125,3 +125,33 @@ def test_parse_json_person_detail():
     assert person is not None
     assert person.name == "Kevin Costner"
     assert "Guardia del corpo" in person.knownfor
+
+
+def test_parse_json_series():
+    raw_json = load_sample("sample_series.json")
+    series = parsers.parse_json_movie(raw_json)
+    assert series is not None
+
+    # basic checks for a series
+    assert series.is_series()
+    assert series.imdbId == "tt1520211"
+    assert series.url == "https://www.imdb.com/title/tt1520211/"
+
+    # info_series must be present and contain lists
+    assert hasattr(series, "info_series")
+    assert series.info_series is not None
+    assert isinstance(series.info_series.display_seasons, list)
+    assert len(series.info_series.display_seasons) == 11
+    assert isinstance(series.info_series.display_years, list)
+    assert len(series.info_series.display_years) == 13
+    assert isinstance(series.info_series.creators, list)
+    assert series.info_series.creators[0].id == "0001104"
+
+
+
+    # at least seasons or years should be present
+    assert len(series.info_series.display_seasons) >= 1 or len(series.info_series.display_years) >= 1
+
+    # categories should include cast
+    # '0005342' id first cast member
+    assert "cast" in series.categories
