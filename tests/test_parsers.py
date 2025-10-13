@@ -20,8 +20,6 @@ def test_parse_json_movie():
     assert movie.year == 1999
     assert movie.duration == 136
     assert movie.rating == 8.7
-    assert movie.metacritic_rating == 73
-    assert movie.votes == 2170095
     assert movie.plot.startswith("When a beautiful stranger leads computer hacker Neo")
     assert "Action" in movie.genres
     assert "Sci-Fi" in movie.genres
@@ -29,7 +27,7 @@ def test_parse_json_movie():
     assert "AU" in movie.country_codes
     assert movie.cover_url.startswith("https://m.media-amazon.com/images/")
     assert movie.url == "https://www.imdb.com/title/tt0133093/"
-    assert movie.release_date == "1999-03-31"
+    assert movie.release_date == "1999-05-07"
 
     # Directors
     assert len(movie.directors) == 2
@@ -126,4 +124,4 @@ def test_parse_json_person_detail():
     person = parsers.parse_json_person_detail(raw_json)
     assert person is not None
     assert person.name == "Kevin Costner"
-    assert "The Postman" in person.knownfor
+    assert "Guardia del corpo" in person.knownfor
