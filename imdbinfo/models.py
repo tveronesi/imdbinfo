@@ -104,6 +104,9 @@ class Person(BaseModel):
     def __str__(self):
         return f"{self.name} ({self.job})"
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.name} - {self.job})"
+
 
 class SeriesMixin:
     def is_series(self) -> bool:
