@@ -125,3 +125,7 @@
 
 ## v0.6.0
 - Making changes to support new IMDb data structure for `person.credits` , `person.unreleased_credits`, `person.jobs`, `movie.categories`
+
+## v0.6.1
+- Fix tvSeries Creators list parsing bug in MovieDetail for series creators due to new imdb data structure
+- update model field defaults to use Pydantic's Field for mutable types

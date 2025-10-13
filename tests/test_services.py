@@ -39,4 +39,4 @@ def test_get_name(monkeypatch):
     monkeypatch.setattr(services.niquests, "get", mock_get_factory("sample_person.json"))
     person = services.get_name("nm0000126")
     assert person.name == "Kevin Costner"
-    assert "The Postman" in person.knownfor
+    assert "Balla coi lupi" in person.knownfor
