@@ -441,7 +441,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             )
             or [],
             creators=pjmespatch(
-                "props.pageProps.mainColumnData.creatorsPageTitle[0].credits[]",
+                "props.pageProps.mainColumnData.principalCreditsV2[0].credits[]",
                 raw_json,
                 _parse_creators,
             ),
