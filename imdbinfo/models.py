@@ -240,6 +240,10 @@ class MovieDetail(SeriesMixin, BaseModel):
     rating: Optional[float] = None
     metacritic_rating: Optional[int] = None
     votes: Optional[int] = None
+    award_nominations: Optional[int] = None
+    award_wins: Optional[int] = None
+    award_prestigious_wins: Optional[int] = None
+    award_prestigious_nominations: Optional[int] = None
     trailers: List[str] = Field(default_factory=list)
     genres: List[str] = Field(default_factory=list)
     interests: List[str] = Field(default_factory=list)

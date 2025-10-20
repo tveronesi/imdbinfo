@@ -232,6 +232,10 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data["title"] = pjmespatch(
         "props.pageProps.aboveTheFoldData.originalTitleText.text", raw_json
     )
+    data['award_wins'] =  pjmespatch("props.pageProps.mainColumnData.wins.total", raw_json )
+    data['award_nominations'] = pjmespatch("props.pageProps.mainColumnData.nominationsExcludeWins.total", raw_json )
+    data['award_prestigious_nominations'] = pjmespatch("props.pageProps.mainColumnData.prestigiousAwardSummary.nominations", raw_json )
+    data['award_prestigious_wins'] = pjmespatch("props.pageProps.mainColumnData.prestigiousAwardSummary.wins", raw_json )
     data["title_localized"] = pjmespatch(
         "props.pageProps.aboveTheFoldData.titleText.text", raw_json
     )
