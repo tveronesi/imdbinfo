@@ -206,3 +206,14 @@ def test_parse_awards_with_partial_prestigious_award():
     assert awards.prestigious_award["name"] == ""
     assert awards.prestigious_award["wins"] == 0
     assert awards.prestigious_award["nominations"] == 1
+
+def test_parse_awards_with_partial_prestigious_award_none():
+    awards_node = [
+        1,  # wins
+        2,  # nominations
+        None  # incomplete prestigious award
+    ]
+    awards = parsers._parse_awards(awards_node)
+    assert awards.wins == 1
+    assert awards.nominations == 2
+    assert "prestigious_award" not in awards
