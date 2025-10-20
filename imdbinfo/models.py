@@ -206,6 +206,33 @@ class CompanyInfo(BaseModel):
         return f"{self.name} ({self.imdbId})"
 
 
+class AwardInfo(BaseModel):
+    """Model to group award-related counts for a title.
+
+    Fields:
+    - wins: number of award wins
+    - nominations: number of award nominations (excluding wins)
+    - all_nominations: derived field = wins + nominations (computed when at least one of wins/nominations is present)
+    - prestigious_award:  { number of prestigious award wins , number of prestigious award nominations }
+    """
+
+    wins: Optional[int] = None
+    nominations: Optional[int] = None
+    prestigious_award: Optional[dict] = None
+
+    def __str__(self):
+        parts = []
+        if self.wins is not None:
+            parts.append(f"Wins: {self.wins}")
+        if self.nominations is not None:
+            parts.append(f"Nominations: {self.nominations}")
+        if self.prestigious_award is not None:
+            parts.append(
+                f"Prestigious Awards: Wins: {self.prestigious_award.get('wins', 0)}, Nominations: {self.prestigious_award.get('nominations', 0)}"
+            )
+        return ", ".join(parts) if parts else "No awards information"
+
+
 class MovieDetail(SeriesMixin, BaseModel):
     """MovieDetail model for detailed information about a movie.
     This model contains all the information about a movie such as title, id, imdb_id, imdbId, url, cover_url, plot, release_date, languages, certificates, directors, stars,
@@ -240,10 +267,7 @@ class MovieDetail(SeriesMixin, BaseModel):
     rating: Optional[float] = None
     metacritic_rating: Optional[int] = None
     votes: Optional[int] = None
-    award_nominations: Optional[int] = None
-    award_wins: Optional[int] = None
-    award_prestigious_wins: Optional[int] = None
-    award_prestigious_nominations: Optional[int] = None
+    awards: Optional[AwardInfo] = None
     trailers: List[str] = Field(default_factory=list)
     genres: List[str] = Field(default_factory=list)
     interests: List[str] = Field(default_factory=list)

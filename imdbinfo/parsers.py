@@ -42,7 +42,7 @@ from .models import (
     EPISODE_IDENTIFIERS,
     AkaInfo,
     CompanyInfo,
-    AkasData,
+    AkasData, AwardInfo,
 )
 from .transformers import (
     _release_date,
@@ -50,7 +50,7 @@ from .transformers import (
     _none_to_string_in_list,
     _join,
     _certificates_to_dict,
-    _parse_mpaa,
+    _parse_mpaa
 )
 
 VIDEO_URL = "https://www.imdb.com/video/"
@@ -212,6 +212,21 @@ def _parse_jobs_v2(raw_jobs) -> List[str]:
         jobs.append(job_name)
     return jobs
 
+def _parse_awards(awards_node) -> AwardInfo:
+    if awards_node is None:
+        return AwardInfo(wins=0, nominations=0)
+    awards_dict = {}
+    if len(awards_node) > 2:
+        prestigious_award = awards_node[2]
+        award_name = prestigious_award.get("award", {}).get("text", "")
+        wins = prestigious_award.get("wins", 0)
+        nominations = prestigious_award.get("nominations", 0)
+        awards_dict['prestigious_award'] = {"wins": wins, "nominations": nominations, "name": award_name}
+    awards_dict['wins'] = awards_node[0] if len(awards_node) > 0 else 0
+    awards_dict['nominations'] = awards_node[1] if len(awards_node) > 1 else 0
+    awards = AwardInfo(**awards_dict)
+    return awards
+
 def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     logger.debug("Parsing movie JSON")
     data = {}
@@ -232,10 +247,15 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data["title"] = pjmespatch(
         "props.pageProps.aboveTheFoldData.originalTitleText.text", raw_json
     )
-    data['award_wins'] =  pjmespatch("props.pageProps.mainColumnData.wins.total", raw_json )
-    data['award_nominations'] = pjmespatch("props.pageProps.mainColumnData.nominationsExcludeWins.total", raw_json )
-    data['award_prestigious_nominations'] = pjmespatch("props.pageProps.mainColumnData.prestigiousAwardSummary.nominations", raw_json )
-    data['award_prestigious_wins'] = pjmespatch("props.pageProps.mainColumnData.prestigiousAwardSummary.wins", raw_json )
+    # populate awards grouped structure to match models.AwardInfo
+    data_awards = {
+        "wins": pjmespatch("props.pageProps.mainColumnData.wins.total", raw_json),
+        "nominations": pjmespatch("props.pageProps.mainColumnData.nominationsExcludeWins.total", raw_json),
+        "prestige_nominations": pjmespatch("props.pageProps.mainColumnData.prestigiousAwardSummary.nominations",raw_json, ),
+        "prestige_wins": pjmespatch("props.pageProps.mainColumnData.prestigiousAwardSummary.wins",raw_json,),
+    }
+    data["awards"] = pjmespatch("props.pageProps.mainColumnData.[wins.total,nominationsExcludeWins.total,prestigiousAwardSummary ]",
+            raw_json, _parse_awards)
     data["title_localized"] = pjmespatch(
         "props.pageProps.aboveTheFoldData.titleText.text", raw_json
     )
