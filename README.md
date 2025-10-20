@@ -257,3 +257,38 @@ Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct]
 
 imdbinfo is released under the MIT License.
 See the [LICENSE](LICENSE) file for details.
+
+#### Awards
+
+The package groups award-related counts in the `MovieDetail.awards` object (an `AwardInfo` instance). The model currently exposes:
+
+- `wins` — number of award wins
+- `nominations` — number of nominations (excluding wins)
+- `prestigious_award` — optional dict containing details of a prestigious award (may include `wins` and `nominations` keys)
+
+Example showing how to safely read `MovieDetail.awards` using the current model shape:
+
+```python
+from imdbinfo import get_movie
+
+movie = get_movie("tt0133093")  # The Matrix
+aw = movie.awards
+if not aw:
+    print("No award information available for this title")
+else:
+    # basic counts
+    print("wins:", aw.wins)
+    print("nominations:", aw.nominations)
+
+    # prestigious award (may be None or a dict)
+    if aw.prestigious_award:
+        pa = aw.prestigious_award
+        print("prestigious wins:", pa.get("wins"))
+        print("prestigious nominations:", pa.get("nominations"))
+    else:
+        print("No prestigious award summary available")
+```
+
+Notes:
+- The JSON parser maps page data into `movie.awards` (a dict turned into an `AwardInfo` instance). Depending on the source data, `prestigious_award` can be None or a dict with `wins` and `nominations`.
+- Use `if movie.awards:` to check presence before reading attributes.
