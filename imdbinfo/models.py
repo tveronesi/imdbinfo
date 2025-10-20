@@ -210,10 +210,9 @@ class AwardInfo(BaseModel):
     """Model to group award-related counts for a title.
 
     Fields:
-    - wins: number of award wins
-    - nominations: number of award nominations (excluding wins)
-    - all_nominations: derived field = wins + nominations (computed when at least one of wins/nominations is present)
-    - prestigious_award:  { number of prestigious award wins , number of prestigious award nominations }
+        wins (Optional[int]): Number of wins.
+        nominations (Optional[int]): Number of nominations.
+        prestigious_award (Optional[dict]): Details of a prestigious award, if any.
     """
 
     wins: Optional[int] = None
@@ -228,7 +227,7 @@ class AwardInfo(BaseModel):
             parts.append(f"Nominations: {self.nominations}")
         if self.prestigious_award is not None:
             parts.append(
-                f"Prestigious Awards: Wins: {self.prestigious_award.get('wins', 0)}, Nominations: {self.prestigious_award.get('nominations', 0)}"
+                f"{self.prestigious_award.get('name', 'ND')}: Wins: {self.prestigious_award.get('wins', 0)}, Nominations: {self.prestigious_award.get('nominations', 0)}"
             )
         return ", ".join(parts) if parts else "No awards information"
 

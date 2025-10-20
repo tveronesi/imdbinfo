@@ -216,7 +216,7 @@ def _parse_awards(awards_node) -> AwardInfo:
     if awards_node is None:
         return AwardInfo(wins=0, nominations=0)
     awards_dict = {}
-    if len(awards_node) > 2:
+    if len(awards_node) > 2 and awards_node[2]:
         prestigious_award = awards_node[2]
         award_name = prestigious_award.get("award", {}).get("text", "")
         wins = prestigious_award.get("wins", 0)
@@ -247,13 +247,6 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data["title"] = pjmespatch(
         "props.pageProps.aboveTheFoldData.originalTitleText.text", raw_json
     )
-    # populate awards grouped structure to match models.AwardInfo
-    data_awards = {
-        "wins": pjmespatch("props.pageProps.mainColumnData.wins.total", raw_json),
-        "nominations": pjmespatch("props.pageProps.mainColumnData.nominationsExcludeWins.total", raw_json),
-        "prestige_nominations": pjmespatch("props.pageProps.mainColumnData.prestigiousAwardSummary.nominations",raw_json, ),
-        "prestige_wins": pjmespatch("props.pageProps.mainColumnData.prestigiousAwardSummary.wins",raw_json,),
-    }
     data["awards"] = pjmespatch("props.pageProps.mainColumnData.[wins.total,nominationsExcludeWins.total,prestigiousAwardSummary ]",
             raw_json, _parse_awards)
     data["title_localized"] = pjmespatch(
