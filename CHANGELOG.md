@@ -129,3 +129,9 @@
 ## v0.6.1
 - Fix tvSeries Creators list parsing bug in MovieDetail for series creators due to new imdb data structure
 - update model field defaults to use Pydantic's Field for mutable types
+
+## v0.6.2
+- Fix: Corrected JSON parsing paths for search results (use `results[].listItem`) to avoid KeyError when IMDb changed the search payload structure.
+- Fix: Handle missing profession data when parsing name results to prevent KeyError and improve robustness against incomplete person entries.
+- Tests: Updated unit tests and `tests/sample_json_source/sample_search.json` to reflect the new JSON structure and to cover missing fields.
+
