@@ -82,12 +82,12 @@ class Person(BaseModel):
     @classmethod
     def from_search(cls, data: dict):
         return cls(
-            name=data["displayNameText"],
-            imdb_id=data["id"].replace("nm", ""),
-            id=data["id"].replace("nm", ""),  # id without 'nm' prefix, e.g. '0000126'
-            imdbId=data["id"],  # same as id without 'nm' prefix
-            url=f"https://www.imdb.com/name/{data['id']}",
-            job=str(data["knownForJobCategory"]),
+            name=data["nameText"],
+            imdb_id=data["nameId"].replace("nm", ""),
+            id=data["nameId"].replace("nm", ""),  # id without 'nm' prefix, e.g. '0000126'
+            imdbId=data["nameId"],
+            url=f"https://www.imdb.com/name/{data['nameId']}",
+            job=str((data.get("professions") or [""])[0]),
         )
 
     @classmethod
@@ -206,6 +206,32 @@ class CompanyInfo(BaseModel):
         return f"{self.name} ({self.imdbId})"
 
 
+class AwardInfo(BaseModel):
+    """Model to group award-related counts for a title.
+
+    Fields:
+        wins (Optional[int]): Number of wins.
+        nominations (Optional[int]): Number of nominations.
+        prestigious_award (Optional[dict]): Details of a prestigious award, if any.
+    """
+
+    wins: Optional[int] = None
+    nominations: Optional[int] = None
+    prestigious_award: Optional[dict] = None
+
+    def __str__(self):
+        parts = []
+        if self.wins is not None:
+            parts.append(f"Wins: {self.wins}")
+        if self.nominations is not None:
+            parts.append(f"Nominations: {self.nominations}")
+        if self.prestigious_award is not None:
+            parts.append(
+                f"{self.prestigious_award.get('name', 'ND')}: Wins: {self.prestigious_award.get('wins', 0)}, Nominations: {self.prestigious_award.get('nominations', 0)}"
+            )
+        return ", ".join(parts) if parts else "No awards information"
+
+
 class MovieDetail(SeriesMixin, BaseModel):
     """MovieDetail model for detailed information about a movie.
     This model contains all the information about a movie such as title, id, imdb_id, imdbId, url, cover_url, plot, release_date, languages, certificates, directors, stars,
@@ -240,6 +266,7 @@ class MovieDetail(SeriesMixin, BaseModel):
     rating: Optional[float] = None
     metacritic_rating: Optional[int] = None
     votes: Optional[int] = None
+    awards: Optional[AwardInfo] = None
     trailers: List[str] = Field(default_factory=list)
     genres: List[str] = Field(default_factory=list)
     interests: List[str] = Field(default_factory=list)
@@ -310,17 +337,15 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
 
     @classmethod
     def from_movie_search(cls, data: dict):
-        year = data.get("titleReleaseText")
-        year = year.split("–")[0] if year else None
         return cls(
-            imdbId=data["id"],
-            imdb_id=str(data["id"].replace("tt", "")),
-            id=str(data["id"].replace("tt", "")),
-            title=data["titleNameText"],
-            cover_url=data.get("titlePosterImageModel", {}).get("url", None),
-            url=f"https://www.imdb.com/title/{data['id']}/",
-            year=year,
-            kind=data.get("imageType", None),
+            imdbId=data["titleId"],
+            imdb_id=str(data["titleId"].replace("tt", "")),
+            id=str(data["titleId"].replace("tt", "")),
+            title=data["titleText"],
+            cover_url=data.get("primaryImage", {}).get("url", None),
+            url=f"https://www.imdb.com/title/{data['titleId']}/",
+            year=data.get('releaseYear',None),
+            kind=data.get("titleType", {}).get('id', None),
         )
 
     @classmethod
@@ -357,6 +382,12 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             year=year,
             kind=data.get("titleType", {}).get("id", None),
         )
+
+    def __str__(self):
+        return f"{self.title} ({self.year}) - {self.imdbId} ({self.kind})"
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.title} - {self.year} - {self.imdbId} - {self.kind})"
 
 
 class SearchResult(BaseModel):

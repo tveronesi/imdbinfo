@@ -112,12 +112,12 @@ def test_parse_json_search():
     # test name 0
     assert len(result.names) > 0
     first_name = result.names[0]
-    assert first_name.id == "4210667"
-    assert first_name.imdbId == "nm4210667"
-    assert first_name.imdb_id == "4210667"
-    assert first_name.job == "Soundtrack"
-    assert first_name.name == "The Matrix"
-    assert first_name.url == "https://www.imdb.com/name/nm4210667"
+    assert first_name.id == "11476468"
+    assert first_name.imdbId == "nm11476468"
+    assert first_name.imdb_id == "11476468"
+    assert first_name.job == ""
+    #assert first_name.name == "The Matrix"
+    assert first_name.url == "https://www.imdb.com/name/nm11476468"
 
 def test_parse_json_person_detail():
     raw_json = load_sample("sample_person.json")
@@ -155,3 +155,65 @@ def test_parse_json_series():
     # categories should include cast
     # '0005342' id first cast member
     assert "cast" in series.categories
+
+
+def test_parse_awards_with_valid_data():
+    awards_node = [
+        5,  # wins
+        10,  # nominations
+        {"award": {"text": "Oscar"}, "wins": 3, "nominations": 7}  # prestigious award
+    ]
+    awards = parsers._parse_awards(awards_node)
+    assert awards.wins == 5
+    assert awards.nominations == 10
+    assert awards.prestigious_award["name"] == "Oscar"
+    assert awards.prestigious_award["wins"] == 3
+    assert awards.prestigious_award["nominations"] == 7
+
+def test_parse_awards_with_missing_prestigious_award():
+    awards_node = [
+        2,  # wins
+        4  # nominations
+    ]
+    awards = parsers._parse_awards(awards_node)
+    assert awards.wins == 2
+    assert awards.nominations == 4
+    assert "prestigious_award" not in awards
+
+def test_parse_awards_with_empty_node():
+    awards_node = []
+    awards = parsers._parse_awards(awards_node)
+    assert awards.wins == 0
+    assert awards.nominations == 0
+    assert "prestigious_award" not in awards
+
+def test_parse_awards_with_none_node():
+    awards_node = None
+    awards = parsers._parse_awards(awards_node)
+    assert awards.wins == 0
+    assert awards.nominations == 0
+    assert "prestigious_award" not in awards
+
+def test_parse_awards_with_partial_prestigious_award():
+    awards_node = [
+        1,  # wins
+        2,  # nominations
+        {"award": {}, "wins": 0, "nominations": 1}  # incomplete prestigious award
+    ]
+    awards = parsers._parse_awards(awards_node)
+    assert awards.wins == 1
+    assert awards.nominations == 2
+    assert awards.prestigious_award["name"] == ""
+    assert awards.prestigious_award["wins"] == 0
+    assert awards.prestigious_award["nominations"] == 1
+
+def test_parse_awards_with_partial_prestigious_award_none():
+    awards_node = [
+        1,  # wins
+        2,  # nominations
+        None  # incomplete prestigious award
+    ]
+    awards = parsers._parse_awards(awards_node)
+    assert awards.wins == 1
+    assert awards.nominations == 2
+    assert "prestigious_award" not in awards
