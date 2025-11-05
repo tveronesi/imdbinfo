@@ -81,13 +81,19 @@ class Person(BaseModel):
 
     @classmethod
     def from_search(cls, data: dict):
+        if "listItem" not in data:
+            raise ValueError(
+                "Data structure changed, movie from search does not contain 'listItem'.")
+        item: dict = data["listItem"]
         return cls(
-            name=data["displayNameText"],
-            imdb_id=data["id"].replace("nm", ""),
-            id=data["id"].replace("nm", ""),  # id without 'nm' prefix, e.g. '0000126'
-            imdbId=data["id"],  # same as id without 'nm' prefix
-            url=f"https://www.imdb.com/name/{data['id']}",
-            job=str(data["knownForJobCategory"]),
+            name=item["nameText"],
+            imdb_id=item["nameId"].replace("nm", ""),
+            # id without 'nm' prefix, e.g. '0000126'
+            id=item["nameId"].replace("nm", ""),
+            imdbId=item["nameId"],  # same as id without 'nm' prefix
+            url=f"https://www.imdb.com/name/{item['nameId']}",
+            # TODO: Not sure if expected to be singular, and if "professions" or "primaryProfessions" is the better pick
+            job=str(item["primaryProfessions"]),
         )
 
     @classmethod
@@ -310,17 +316,19 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
 
     @classmethod
     def from_movie_search(cls, data: dict):
-        year = data.get("titleReleaseText")
-        year = year.split("–")[0] if year else None
+        if "listItem" not in data:
+            raise ValueError(
+                "Data structure changed, movie from search does not contain 'listItem'.")
+        item: dict = data["listItem"]
         return cls(
-            imdbId=data["id"],
-            imdb_id=str(data["id"].replace("tt", "")),
-            id=str(data["id"].replace("tt", "")),
-            title=data["titleNameText"],
-            cover_url=data.get("titlePosterImageModel", {}).get("url", None),
-            url=f"https://www.imdb.com/title/{data['id']}/",
-            year=year,
-            kind=data.get("imageType", None),
+            imdbId=item["titleId"],
+            imdb_id=str(item["titleId"].replace("tt", "")),
+            id=str(item["titleId"].replace("tt", "")),
+            title=item["titleText"],
+            cover_url=item.get("primaryImage", {}).get("url", None),
+            url=f"https://www.imdb.com/title/{item['titleId']}/",
+            year=item.get("releaseYear", None),
+            kind=item.get("titleType", {}).get("id", None),
         )
 
     @classmethod
