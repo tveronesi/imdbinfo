@@ -87,7 +87,7 @@ class Person(BaseModel):
             id=data["nameId"].replace("nm", ""),  # id without 'nm' prefix, e.g. '0000126'
             imdbId=data["nameId"],
             url=f"https://www.imdb.com/name/{data['nameId']}",
-            job=str(data['professions'][0]),
+            job=str((data.get("professions") or [""])[0]),
         )
 
     @classmethod

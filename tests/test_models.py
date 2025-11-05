@@ -28,7 +28,7 @@ def test_cast_member_from_cast():
 def test_movieinfo_from_movie_search():
     data = {
         "titleId": "tt0133093",
-        "nameText": "The Matrix",
+        "titleText": "The Matrix",
         "primaryImage": {"url": "http://example.com/matrix.jpg"},
         "releaseYear": "1999",
         "titleType": {"id":"movie"},
