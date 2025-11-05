@@ -48,3 +48,8 @@ packages = ["imdbinfo"]
 
 [tool.setuptools.package-data]
 "sample_json_source" = ["*"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]
