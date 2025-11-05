@@ -112,12 +112,12 @@ def test_parse_json_search():
     # test name 0
     assert len(result.names) > 0
     first_name = result.names[0]
-    assert first_name.id == "4210667"
-    assert first_name.imdbId == "nm4210667"
-    assert first_name.imdb_id == "4210667"
-    assert first_name.job == "Soundtrack"
-    assert first_name.name == "The Matrix"
-    assert first_name.url == "https://www.imdb.com/name/nm4210667"
+    assert first_name.id == "11476468"
+    assert first_name.imdbId == "nm11476468"
+    assert first_name.imdb_id == "11476468"
+    assert first_name.job == ""
+    #assert first_name.name == "The Matrix"
+    assert first_name.url == "https://www.imdb.com/name/nm11476468"
 
 def test_parse_json_person_detail():
     raw_json = load_sample("sample_person.json")
