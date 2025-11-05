@@ -27,11 +27,11 @@ def test_cast_member_from_cast():
 
 def test_movieinfo_from_movie_search():
     data = {
-        "id": "tt0133093",
-        "titleNameText": "The Matrix",
-        "titlePosterImageModel": {"url": "http://example.com/matrix.jpg"},
-        "titleReleaseText": "1999",
-        "imageType": "movie",
+        "titleId": "tt0133093",
+        "nameText": "The Matrix",
+        "primaryImage": {"url": "http://example.com/matrix.jpg"},
+        "releaseYear": "1999",
+        "titleType": {"id":"movie"},
     }
     info = MovieBriefInfo.from_movie_search(data)
     assert info.title == "The Matrix"

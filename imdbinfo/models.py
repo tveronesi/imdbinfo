@@ -82,12 +82,12 @@ class Person(BaseModel):
     @classmethod
     def from_search(cls, data: dict):
         return cls(
-            name=data["displayNameText"],
-            imdb_id=data["id"].replace("nm", ""),
-            id=data["id"].replace("nm", ""),  # id without 'nm' prefix, e.g. '0000126'
-            imdbId=data["id"],  # same as id without 'nm' prefix
-            url=f"https://www.imdb.com/name/{data['id']}",
-            job=str(data["knownForJobCategory"]),
+            name=data["nameText"],
+            imdb_id=data["nameId"].replace("nm", ""),
+            id=data["nameId"].replace("nm", ""),  # id without 'nm' prefix, e.g. '0000126'
+            imdbId=data["nameId"],
+            url=f"https://www.imdb.com/name/{data['nameId']}",
+            job=str(data['professions'][0]),
         )
 
     @classmethod
@@ -310,17 +310,15 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
 
     @classmethod
     def from_movie_search(cls, data: dict):
-        year = data.get("titleReleaseText")
-        year = year.split("–")[0] if year else None
         return cls(
-            imdbId=data["id"],
-            imdb_id=str(data["id"].replace("tt", "")),
-            id=str(data["id"].replace("tt", "")),
-            title=data["titleNameText"],
-            cover_url=data.get("titlePosterImageModel", {}).get("url", None),
-            url=f"https://www.imdb.com/title/{data['id']}/",
-            year=year,
-            kind=data.get("imageType", None),
+            imdbId=data["titleId"],
+            imdb_id=str(data["titleId"].replace("tt", "")),
+            id=str(data["titleId"].replace("tt", "")),
+            title=data["titleText"],
+            cover_url=data.get("primaryImage", {}).get("url", None),
+            url=f"https://www.imdb.com/title/{data['titleId']}/",
+            year=data.get('releaseYear',None),
+            kind=data.get("titleType", {}).get('id', None),
         )
 
     @classmethod
