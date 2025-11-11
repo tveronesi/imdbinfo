@@ -8,7 +8,7 @@ title_query = "little house on the prairie"
 results = search_title(title_query)
 print(f"Search Results for {title_query} in titles:")
 for movie in results.titles:
-    print(f"Found a movie: {movie.title} ({movie.year}) - {movie.imdbId} of kind {movie.kind}")
+    print(f"Found a movie: {movie.title} ({movie.title_localized}) - {movie.imdbId} of kind {movie.kind}")
 print(f"Search Results for '{title_query}' in names:")
 for name in results.names:
     print(f"Name: {name.name} - {name.imdbId}")
