@@ -199,6 +199,21 @@ from imdbinfo.locale import set_locale
 set_locale("it")  # Set default locale to Italian
 movie_it = get_movie("tt0133093")  # The Matrix in Italian
 ```
+
+#### MovieInfoBrief.title_localized
+The `MovieInfoBrief` object (e.g., items in `results.titles` from `search_title`) now includes the `title_localized` property. This property contains the title in the requested locale, if available, and falls back to the default `title` when a localized version is not present.
+
+Example:
+```python
+from imdbinfo import search_title
+
+# Search for a title with a specific locale
+results = search_title("The Matrix", locale="it")
+for item in results.titles:
+    # Print the localized title if available, otherwise the default title
+    print(item.title, "->", getattr(item, "title_localized", item.title))
+```
+
 ### Get filmography with images 🎬🖼️
 You can now get filmography for actors, directors and writers and all credits with images:
 ```python
@@ -212,7 +227,8 @@ if filmography:
             print(f" - {film.title} ({film.year}) [{film.imdbId}]")
 
 ```
-🆕 New: get all interests for a title
+
+#### Get all interests for a title
 
 _Fetch all interests for a title using the provided IMDb ID. Most time it returns the same as genres. 
     It requires a new request and parsing. Use it only if you really need it._
