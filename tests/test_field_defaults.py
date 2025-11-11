@@ -77,7 +77,7 @@ def test_search_result_list_defaults_are_independent():
     
     # Modify result1's lists
     from imdbinfo.models import MovieBriefInfo
-    movie = MovieBriefInfo(id="1", imdb_id="1", imdbId="tt1", title="Test")
+    movie = MovieBriefInfo(id="1", imdb_id="1", imdbId="tt1", title="Test", title_localized="Test")
     result1.titles.append(movie)
     
     # result2 should not be affected
