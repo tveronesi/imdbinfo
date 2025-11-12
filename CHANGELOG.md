@@ -136,3 +136,6 @@
 - Fix: Handle missing profession data when parsing name results to prevent KeyError and improve robustness against incomplete person entries.
 - Tests: Updated unit tests and `tests/sample_json_source/sample_search.json` to reflect the new JSON structure and to cover missing fields.
 
+## v0.6.3
+- Enhance `MovieBriefInfo` model to include localized title and original title fields
+- Fix update User-Agent string in requests for improved compatibility

@@ -328,6 +328,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
     imdb_id: str
     imdbId: str
     title: str
+    title_localized: str
     cover_url: Optional[str] = None
     url: Optional[str] = None
     year: Optional[int] = (
@@ -341,24 +342,12 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             imdbId=data["titleId"],
             imdb_id=str(data["titleId"].replace("tt", "")),
             id=str(data["titleId"].replace("tt", "")),
-            title=data["titleText"],
+            title_localized=data["titleText"],
+            title=data["originalTitleText"],
             cover_url=data.get("primaryImage", {}).get("url", None),
             url=f"https://www.imdb.com/title/{data['titleId']}/",
             year=data.get('releaseYear',None),
             kind=data.get("titleType", {}).get('id', None),
-        )
-
-    @classmethod
-    def from_cast(cls, data: dict):
-        return cls(
-            id=str(data["id"].replace("tt", "")),
-            imdb_id=str(data["id"].replace("tt", "")),
-            imdbId=data["id"],
-            title=data["titleNameText"],
-            cover_url=data.get("titlePosterImageModel", {}).get("url", None),
-            url=f"https://www.imdb.com/title/{data['id']}/",
-            year=data.get("titleReleaseText", None),
-            kind=data.get("imageType", None),
         )
 
     @classmethod
@@ -377,6 +366,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             imdb_id=str(data["id"].replace("tt", "")),
             imdbId=data["id"],
             title=data.get("titleText", {}).get("text", ""),
+            title_localized=data.get("originalTitleText", {}).get("text", ""),
             cover_url=cover_url,
             url=f"https://www.imdb.com/title/{data['id']}/",
             year=year,

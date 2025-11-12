@@ -184,6 +184,7 @@ def _parse_credits_v2(result) -> dict:
             titleData = item_['node']['title']
             imdbId = titleData['id']
             titleOriginal = titleData['originalTitleText']['text']
+            titleLocalized = titleData['titleText']['text']
             title_type = titleData['titleType']['id']
             imageUrl = titleData['primaryImage']['url'] if titleData.get('primaryImage') else None
             year =  titleData['releaseYear']['year'] if titleData.get('releaseYear') else None
@@ -195,6 +196,7 @@ def _parse_credits_v2(result) -> dict:
                     imdbId=imdbId,
                     imdb_id=imdbId.replace("tt", ""),
                     title=titleOriginal,
+                    title_localized=titleLocalized,
                     kind=title_type,
                     cover_url=imageUrl,
                     url=f"{TITLE_URL}{imdbId}/",

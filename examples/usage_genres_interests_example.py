@@ -1,6 +1,10 @@
 from imdbinfo import get_movie, get_all_interests
 import logging
+
+from imdbinfo.locale import set_locale
+
 logging.basicConfig(level=logging.WARNING)
+
 # List of movie IMDb IDs with comments for maintainability
 MOVIE_IDS = [
     "tt1490017",   # Frozen (2013)
