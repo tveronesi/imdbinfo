@@ -7,18 +7,18 @@ from imdbinfo import services
 def test_user_agent_is_defined():
     """Test that USER_AGENT module variable is defined."""
     assert hasattr(services, "USER_AGENT")
-    assert isinstance(services.USER_AGENT, str)
-    assert len(services.USER_AGENT) > 0
+    assert isinstance(services.USER_AGENTS_LIST, str)
+    assert len(services.USER_AGENTS_LIST) > 0
 
 
 def test_user_agent_can_be_overridden(monkeypatch):
     """Test that USER_AGENT can be overridden by users."""
     # Store original USER_AGENT
-    original_ua = services.USER_AGENT
+    original_ua = services.USER_AGENTS_LIST
     
     # Override USER_AGENT
     custom_ua = "CustomUserAgent/1.0"
-    services.USER_AGENT = custom_ua
+    services.USER_AGENTS_LIST = custom_ua
     
     # Mock the niquests.get to capture the headers
     captured_headers = {}
@@ -41,7 +41,7 @@ def test_user_agent_can_be_overridden(monkeypatch):
     assert captured_headers.get("User-Agent") == custom_ua
     
     # Restore original USER_AGENT
-    services.USER_AGENT = original_ua
+    services.USER_AGENTS_LIST = original_ua
 
 
 def test_error_message_includes_status_code(monkeypatch):
