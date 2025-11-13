@@ -5,15 +5,16 @@ This example demonstrates how to override the default User-Agent
 used for HTTP requests to IMDb.
 """
 
-from imdbinfo import services, get_movie
+from imdbinfo import  get_movie
+from imdbinfo.services import USER_AGENTS_LIST
 
 # Check the default User-Agent
-print(f"Default User-Agent: {services.USER_AGENTS_LIST}")
+print(f"Default User-Agent: {USER_AGENTS_LIST}")
 
 # Override with a custom User-Agent
-services.USER_AGENTS_LIST = ["MyCustomApp/1.0 (Contact: myemail@example.com)"]
+USER_AGENTS_LIST = ["MyCustomApp/1.0 (Contact: myemail@example.com)"]
 
-print(f"Custom User-Agent: {services.USER_AGENTS_LIST}")
+print(f"Custom User-Agent: {USER_AGENTS_LIST}")
 
 # Now all requests will use the custom User-Agent
 try:
