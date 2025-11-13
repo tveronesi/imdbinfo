@@ -435,6 +435,7 @@ def _get_extended_name_info(person_id) -> dict:
         
                   title {
                     id
+                    ratingsSummary{aggregateRating}
                     primaryImage {
                       url
                     }
