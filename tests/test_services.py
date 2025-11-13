@@ -35,6 +35,14 @@ def test_search_title(monkeypatch):
     assert result.names
 
 
+def test_search_title_includes_rating(monkeypatch):
+    monkeypatch.setattr(services.niquests, "get", mock_get_factory("sample_search.json"))
+    result = services.search_title("matrix")
+    assert result.titles[0].rating == 8.7
+    assert result.titles[1].rating == 7.2
+    assert result.titles[2].rating == 7.4
+
+
 def test_get_name(monkeypatch):
     monkeypatch.setattr(services.niquests, "get", mock_get_factory("sample_person.json"))
     person = services.get_name("nm0000126")
