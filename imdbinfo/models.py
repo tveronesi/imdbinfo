@@ -319,7 +319,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
     """
     MovieBriefInfo model for search results and cast members.
     This model is used to represent a movie in search results and cast members.
-    It contains basic information about a movie such as title, id, imdb_id, imdbId, url, cover_url, year and kind.
+    It contains basic information about a movie such as title, id, imdb_id, imdbId, url, cover_url, year, rating and kind.
     It can be used to represent a movie in search results or as part of a cast member's credits.
     It includes class methods to create an instance from search results and cast data.
     """
@@ -335,6 +335,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
         None  # TODO series will have year as string 'from-to'. For now only movies are supported
     )
     kind: Optional[str] = None  # e.g. 'movie', 'tvSeries', 'tvSeriesEpisode' ...
+    rating: Optional[float] = None  # e.g. 8.7
 
     @classmethod
     def from_movie_search(cls, data: dict):
@@ -348,6 +349,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             url=f"https://www.imdb.com/title/{data['titleId']}/",
             year=data.get('releaseYear',None),
             kind=data.get("titleType", {}).get('id', None),
+            rating=data.get("ratingSummary", {}).get("aggregateRating", None),
         )
 
     @classmethod
@@ -371,6 +373,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             url=f"https://www.imdb.com/title/{data['id']}/",
             year=year,
             kind=data.get("titleType", {}).get("id", None),
+            rating=data.get("ratingSummary", {}).get("aggregateRating", None),
         )
 
     def __str__(self):
