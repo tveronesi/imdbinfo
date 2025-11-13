@@ -263,7 +263,6 @@ def _get_extended_title_info(imdb_id) -> dict:
     url = "https://api.graphql.imdb.com/"
     headers = {
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0",
     }
     query = (
         """
@@ -471,7 +470,6 @@ def _get_extended_name_info(person_id) -> dict:
     url = "https://api.graphql.imdb.com/"
     headers = {
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0",
     }
     payload = {"query": query}
     logger.info("Fetching person %s from GraphQL API", person_id)
