@@ -373,7 +373,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             url=f"https://www.imdb.com/title/{data['id']}/",
             year=year,
             kind=data.get("titleType", {}).get("id", None),
-            rating=data.get("ratingSummary", {}).get("aggregateRating", None),
+            rating=data.get("ratingsSummary", {}).get("aggregateRating", None),
         )
 
     def __str__(self):
