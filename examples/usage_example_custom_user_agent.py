@@ -9,12 +9,15 @@ from imdbinfo import  get_movie
 from imdbinfo.services import USER_AGENTS_LIST
 
 # Check the default User-Agent
-print(f"Default User-Agent: {USER_AGENTS_LIST}")
+print(f"Default User-Agent List: {USER_AGENTS_LIST}")
 
 # Override with a custom User-Agent
-USER_AGENTS_LIST = ["MyCustomApp/1.0 (Contact: myemail@example.com)"]
+USER_AGENTS_LIST = [
+    "MyCustomApp/1.0 (Contact: myemail@example.com)",
+    "AnotherUserAgent/2.0"
+    ]
 
-print(f"Custom User-Agent: {USER_AGENTS_LIST}")
+print(f"Custom User-Agent List: {USER_AGENTS_LIST}")
 
 # Now all requests will use the custom User-Agent
 try:

@@ -50,11 +50,8 @@ from .locale import _retrieve_url_lang
 
 logger = logging.getLogger(__name__)
 
-# User-Agent string used for HTTP requests to IMDb
-# Users can override this by setting: imdbinfo.services.USER_AGENT = "your-user-agent"
+# Users can override this by setting: imdbinfo.services.USER_AGENTS_LIST = [ "your-user-agent", ...]
 USER_AGENTS_LIST = ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"]
-
-
 
 def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
     imdb_id = str(imdb_id)
@@ -73,6 +70,7 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
     url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/reference"
     logger.info("Fetching movie %s", imdb_id)
     user_agent = random.choice(USER_AGENTS_LIST)
+    logger.debug("Using User-Agent: %s", user_agent)
     resp = niquests.get(url, headers={"User-Agent": user_agent})
     if resp.status_code != 200:
         logger.error("Error fetching %s: %s", url, resp.status_code)
@@ -99,6 +97,7 @@ def search_title(title: str, locale: Optional[str] = None) -> Optional[SearchRes
     url = f"https://www.imdb.com/{lang}/find?q={title}&ref_=nv_sr_sm"
     logger.info("Searching for title '%s'", title)
     user_agent = random.choice(USER_AGENTS_LIST)
+    logger.debug("Using User-Agent: %s", user_agent)
     resp = niquests.get(url, headers={"User-Agent": user_agent})
     if resp.status_code != 200:
         logger.warning("Search request failed: %s", resp.status_code)
@@ -129,6 +128,7 @@ def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDet
     logger.info("Fetching person %s", person_id)
     t0 = time()
     user_agent = random.choice(USER_AGENTS_LIST)
+    logger.debug("Using User-Agent: %s", user_agent)
     resp = niquests.get(url, headers={"User-Agent": user_agent})
     t1 = time()
     logger.debug("Fetched person %s in %.2f seconds", person_id, t1 - t0)
@@ -161,6 +161,7 @@ def get_season_episodes(
     logger.info("Fetching episodes for movie %s", imdb_id)
     user_agent = random.choice(USER_AGENTS_LIST)
     resp = niquests.get(url, headers={"User-Agent": user_agent})
+    logger.debug("Using User-Agent: %s", user_agent)
     if resp.status_code != 200:
         logger.error("Error fetching %s: %s", url, resp.status_code)
         error_msg = f"Error fetching {url}: HTTP {resp.status_code} using User-Agent {user_agent}"
@@ -184,6 +185,7 @@ def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
     url = f"https://www.imdb.com/{lang}/search/title/?count=250&series=tt{series_id}&sort=release_date,asc"
     logger.info("Fetching bulk episodes for series %s", imdb_id)
     user_agent = random.choice(USER_AGENTS_LIST)
+    logger.debug("Using User-Agent: %s", user_agent)
     resp = niquests.get(url, headers={"User-Agent": user_agent})
     if resp.status_code != 200:
         logger.error("Error fetching %s: %s", url, resp.status_code)
