@@ -11,7 +11,7 @@ from imdbinfo import services, get_movie
 print(f"Default User-Agent: {services.USER_AGENTS_LIST}")
 
 # Override with a custom User-Agent
-services.USER_AGENTS_LIST = "MyCustomApp/1.0 (Contact: myemail@example.com)"
+services.USER_AGENTS_LIST = ["MyCustomApp/1.0 (Contact: myemail@example.com)"]
 
 print(f"Custom User-Agent: {services.USER_AGENTS_LIST}")
 
