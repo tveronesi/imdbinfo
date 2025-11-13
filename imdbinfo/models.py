@@ -380,7 +380,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
         return f"{self.title} ({self.year}) - {self.imdbId} ({self.kind})"
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.title} - {self.year} - {self.imdbId} - {self.kind})"
+        return f"{self.__class__.__name__}({self.title} - {self.year} - {self.imdbId} - {self.kind} - {self.rating})"
 
 
 class SearchResult(BaseModel):
