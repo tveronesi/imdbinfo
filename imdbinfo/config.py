@@ -19,38 +19,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import logging
+import os
 
-from .services import (
-    get_movie,
-    search_title,
-    get_name,
-    get_episodes,
-    get_all_episodes,
-    get_season_episodes,
-    get_akas,
-    get_reviews,
-    get_trivia,
-    get_filmography,
-    get_all_interests,
-)
-from .config import set_ssl_verify, get_ssl_verify
+# SSL verification setting - can be controlled via environment variable
+# Set to False to disable SSL certificate verification (not recommended for production)
+_SSL_VERIFY = os.environ.get("IMDBINFO_VERIFY_SSL", "true").lower() != "false"
 
-__all__ = [
-    "get_movie",
-    "search_title",
-    "get_name",
-    "get_episodes",
-    "get_all_episodes",
-    "get_season_episodes",
-    "get_akas",
-    "get_reviews",
-    "get_trivia",
-    "get_filmography",
-    "get_all_interests",
-    "set_ssl_verify",
-    "get_ssl_verify",
-]
 
-# setup library logging
-logging.getLogger(__name__).addHandler(logging.NullHandler())
+def set_ssl_verify(verify: bool) -> None:
+    """
+    Set SSL verification for all HTTP requests.
+    
+    Args:
+        verify: True to verify SSL certificates (default), False to disable verification
+    
+    Warning:
+        Disabling SSL verification is not recommended for production use as it makes
+        connections vulnerable to man-in-the-middle attacks.
+    """
+    global _SSL_VERIFY
+    _SSL_VERIFY = verify
+
+
+def get_ssl_verify() -> bool:
+    """
+    Get the current SSL verification setting.
+    
+    Returns:
+        bool: True if SSL verification is enabled, False otherwise
+    """
+    return _SSL_VERIFY

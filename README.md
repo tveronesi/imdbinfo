@@ -55,6 +55,42 @@ print(movie.is_series())  # False
 person = get_name("nm0000206")  # or '0000206' 
 print(person.name, person.birth_date)
 ```
+
+## SSL/TLS Configuration
+
+By default, imdbinfo verifies SSL certificates for all HTTPS requests. If you encounter SSL certificate verification errors (such as "TLS over QUIC did not succeed" or certificate validation failures), you have two options to disable verification:
+
+### Option 1: Programmatically (Recommended for Testing Only)
+
+```python
+import imdbinfo
+
+# Disable SSL verification (not recommended for production)
+imdbinfo.set_ssl_verify(False)
+
+# Now you can use the library normally
+movie = imdbinfo.get_movie("0133093")
+
+# Re-enable SSL verification when done
+imdbinfo.set_ssl_verify(True)
+```
+
+### Option 2: Environment Variable
+
+Set the `IMDBINFO_VERIFY_SSL` environment variable to `false`:
+
+```bash
+# Linux/Mac
+export IMDBINFO_VERIFY_SSL=false
+python your_script.py
+
+# Windows
+set IMDBINFO_VERIFY_SSL=false
+python your_script.py
+```
+
+**⚠️ Security Warning:** Disabling SSL verification makes your connections vulnerable to man-in-the-middle attacks. Only disable it in trusted environments or for testing purposes. For production use, consider fixing the underlying SSL certificate issues in your system instead.
+
 #### Working with Series and Episodes
 
 The `movie` object provides helpful methods to identify its type:
