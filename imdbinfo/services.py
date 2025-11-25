@@ -97,8 +97,8 @@ def search_title(title: str, locale: Optional[str] = None, title_type: Optional[
     :param locale: Optional locale string (e.g., 'en', 'es').
     :param title_type: Optional filter for media type.
     """
-    lang = _retrieve_url_lang(locale)
-    url = f"https://www.imdb.com/{lang}/find?q={title}&s=tt"
+    lang = f"{_retrieve_url_lang(locale)}/" if locale else ""
+    url = f"https://www.imdb.com/{lang}find?q={title}&s=tt"
     
     if title_type:
         url += f"&ttype={title_type.value}"
@@ -500,4 +500,5 @@ def _get_extended_name_info(person_id) -> dict:
         raise Exception(f"GraphQL error: {data['errors']}")
     raw_json = data.get("data", {}).get("name", {})
     return raw_json
+
 
