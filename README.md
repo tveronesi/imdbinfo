@@ -214,6 +214,18 @@ for item in results.titles:
     print(item.title, "->", getattr(item, "title_localized", item.title))
 ```
 
+### Filtering results based on type (e.g. Movies, Series, Episodes) 🔽 
+You can filter results from `search_title`, done server-side.
+```python
+from imdbinfo import search_title, TitleType
+
+# Only search for movies (not series, episodes etc.)
+results = search_title("The Matrix", TitleType.Movies)
+for movie in results.titles:
+    print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
+
+```
+
 ### Get filmography with images 🎬🖼️
 You can now get filmography for actors, directors and writers and all credits with images:
 ```python
