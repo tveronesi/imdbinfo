@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 import re
-from typing import Optional, Dict, Union, List
+from typing import Optional, Dict, Union, List, Tuple
 from functools import lru_cache
 from time import time
 import logging
@@ -52,9 +52,18 @@ from .locale import _retrieve_url_lang
 logger = logging.getLogger(__name__)
 
 class TitleType(Enum):
+    """
+    Defines the valid 'ttype' filters for title searches on IMDb.
+    The values correspond to the URL parameter used in search queries.
+    """
     Movies = "ft"
     Series = "tv"
     Episodes = "ep"
+    Shorts = "sh"
+    TvMovie = "tvm"
+    Video = "v"
+
+TitleFilter = Union[TitleType, Tuple[TitleType, ...]]
 
 def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
     imdb_id = str(imdb_id)
@@ -89,21 +98,33 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
 
 
 @lru_cache(maxsize=128)
-def search_title(title: str, locale: Optional[str] = None, title_type: Optional[TitleType] = None) -> Optional[SearchResult]:
+def search_title(title: str, locale: Optional[str] = None, title_type: Optional[TitleFilter] = None) -> Optional[SearchResult]:
     """
     Search for a movie by title and return a list of titles and names.
 
     :param title: Title to search for.
     :param locale: Optional locale string (e.g., 'en', 'es').
-    :param title_type: Optional filter for media type.
+    :param title_type: Optional filter(s) for media type. Must be a single TitleType enum member or a hashable tuple of TitleType members.
     """
     lang = f"{_retrieve_url_lang(locale)}/" if locale else ""
     url = f"https://www.imdb.com/{lang}find?q={title}&s=tt"
+
+    if not title_type:
+        type_log = "All"
+    else:
+        if isinstance(title_type, tuple):
+            types_list = title_type
+        else:
+            types_list = [title_type]
+
+        ttype_values = [tt.value for tt in types_list]
+        ttype_names = [tt.name for tt in types_list]
+        
+        ttype_value = ",".join(ttype_values)
+        type_log = ", ".join(ttype_names)
+        
+        url += f"&ttype={ttype_value}"
     
-    if title_type:
-        url += f"&ttype={title_type.value}"
-    
-    type_log = title_type.name if title_type else "All"
     logger.info("Searching for title '%s' [Type: %s]", title, type_log)
     resp = niquests.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"})
     
@@ -500,5 +521,3 @@ def _get_extended_name_info(person_id) -> dict:
         raise Exception(f"GraphQL error: {data['errors']}")
     raw_json = data.get("data", {}).get("name", {})
     return raw_json
-
-
