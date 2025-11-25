@@ -27,6 +27,7 @@ import logging
 import niquests
 import json
 from lxml import html
+from enum import Enum
 
 from .models import (
     SearchResult,
@@ -50,6 +51,10 @@ from .locale import _retrieve_url_lang
 
 logger = logging.getLogger(__name__)
 
+class TitleType(Enum):
+    Movies = "ft"
+    Series = "tv"
+    Episodes = "ep"
 
 def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
     imdb_id = str(imdb_id)
@@ -84,24 +89,35 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
 
 
 @lru_cache(maxsize=128)
-def search_title(title: str, locale: Optional[str] = None) -> Optional[SearchResult]:
-    """Search for a movie by title and return a list of titles and names."""
+def search_title(title: str, locale: Optional[str] = None, title_type: Optional[TitleType] = None) -> Optional[SearchResult]:
+    """
+    Search for a movie by title and return a list of titles and names.
+
+    :param title: Title to search for.
+    :param locale: Optional locale string (e.g., 'en', 'es').
+    :param title_type: Optional filter for media type.
+    """
     lang = _retrieve_url_lang(locale)
-    url = f"https://www.imdb.com/{lang}/find?q={title}&ref_=nv_sr_sm"
-    logger.info("Searching for title '%s'", title)
+    url = f"https://www.imdb.com/{lang}/find?q={title}&s=tt"
+    
+    if title_type:
+        url += f"&ttype={title_type.value}"
+    
+    type_log = title_type.name if title_type else "All"
+    logger.info("Searching for title '%s' [Type: %s]", title, type_log)
     resp = niquests.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"})
+    
     if resp.status_code != 200:
         logger.warning("Search request failed: %s", resp.status_code)
         return None
+    
     tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
-    if not script or type(script) is not list:  # throw if no script found
+    
+    if not script or not isinstance(script, list) or len(script) == 0:
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
-    # if script is not indexeable throw
-    if len(script) == 0:
-        logger.error("No script found with id '__NEXT_DATA__'")
-        raise Exception("No script found with id '__NEXT_DATA__'")
+    
     raw_json = json.loads(str(script[0]))
 
     result = parse_json_search(raw_json)
@@ -484,3 +500,4 @@ def _get_extended_name_info(person_id) -> dict:
         raise Exception(f"GraphQL error: {data['errors']}")
     raw_json = data.get("data", {}).get("name", {})
     return raw_json
+
