@@ -220,7 +220,7 @@ You can filter results from `search_title`, done server-side.
 from imdbinfo import search_title, TitleType
 
 # Only search for movies (not series, episodes etc.)
-results = search_title("The Matrix", TitleType.Movies)
+results = search_title("The Matrix", title_type=TitleType.Movies)
 for movie in results.titles:
     print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
 
