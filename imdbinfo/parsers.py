@@ -585,7 +585,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
         _parse_jobs_v2
     )
 
-    if not data["jobs"]:
+    if data["jobs"] is None:
         # fallback to old jobs path if professions is empty
         logger.debug("******** Falling back to old  jobs path")
         data["jobs"] = pjmespatch(
