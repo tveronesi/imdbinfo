@@ -18,7 +18,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+import random
 import re
 from typing import Optional, Dict, Union, List, Tuple
 from functools import lru_cache
@@ -49,8 +49,6 @@ from .parsers import (
 )
 from .locale import _retrieve_url_lang
 
-logger = logging.getLogger(__name__)
-
 class TitleType(Enum):
     """
     Defines the valid 'ttype' filters for title searches on IMDb.
@@ -64,6 +62,11 @@ class TitleType(Enum):
     Video = "v"
 
 TitleFilter = Union[TitleType, Tuple[TitleType, ...]]
+
+logger = logging.getLogger(__name__)
+
+# Users can override this by setting: imdbinfo.services.USER_AGENTS_LIST = [ "your-user-agent", ...]
+USER_AGENTS_LIST = ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"]
 
 def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
     imdb_id = str(imdb_id)
@@ -81,10 +84,15 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/reference"
     logger.info("Fetching movie %s", imdb_id)
-    resp = niquests.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"})
+    user_agent = random.choice(USER_AGENTS_LIST)
+    logger.debug("Using User-Agent: %s", user_agent)
+    resp = niquests.get(url, headers={"User-Agent": user_agent})
     if resp.status_code != 200:
         logger.error("Error fetching %s: %s", url, resp.status_code)
-        raise Exception(f"Error fetching {url}")
+        error_msg = f"Error fetching {url}: HTTP {resp.status_code} using User-Agent {user_agent}"
+        if resp.text:
+            error_msg += f" - {resp.text[:200]}"
+        raise Exception(error_msg)
     tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
     if not script or type(script) is not list:
@@ -126,7 +134,9 @@ def search_title(title: str, locale: Optional[str] = None, title_type: Optional[
         url += f"&ttype={ttype_value}"
     
     logger.info("Searching for title '%s' [Type: %s]", title, type_log)
-    resp = niquests.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"})
+    user_agent = random.choice(USER_AGENTS_LIST)
+    logger.debug("Using User-Agent: %s", user_agent)
+    resp = niquests.get(url, headers={"User-Agent": user_agent})
     
     if resp.status_code != 200:
         logger.warning("Search request failed: %s", resp.status_code)
@@ -135,6 +145,7 @@ def search_title(title: str, locale: Optional[str] = None, title_type: Optional[
     tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
     
+    # if no script OR script is not indexeable throw
     if not script or not isinstance(script, list) or len(script) == 0:
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
@@ -145,7 +156,6 @@ def search_title(title: str, locale: Optional[str] = None, title_type: Optional[
     logger.debug("Search for '%s' returned %s titles", title, len(result.titles))
     return result
 
-
 @lru_cache(maxsize=128)
 def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDetail]:
     """Fetch person details from IMDb using the provided IMDb ID.
@@ -155,12 +165,17 @@ def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDet
     url = f"https://www.imdb.com/{lang}/name/nm{person_id}/"
     logger.info("Fetching person %s", person_id)
     t0 = time()
-    resp = niquests.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"})
+    user_agent = random.choice(USER_AGENTS_LIST)
+    logger.debug("Using User-Agent: %s", user_agent)
+    resp = niquests.get(url, headers={"User-Agent": user_agent})
     t1 = time()
     logger.debug("Fetched person %s in %.2f seconds", person_id, t1 - t0)
     if resp.status_code != 200:
         logger.error("Error fetching %s: %s", url, resp.status_code)
-        raise Exception(f"Error fetching {url}")
+        error_msg = f"Error fetching {url}: HTTP {resp.status_code} using User-Agent {user_agent}"
+        if resp.text:
+            error_msg += f" - {resp.text[:200]}"
+        raise Exception(error_msg)
     tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
     if not script or type(script) is not list:
@@ -182,10 +197,15 @@ def get_season_episodes(
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/episodes/?season={season}"
     logger.info("Fetching episodes for movie %s", imdb_id)
-    resp = niquests.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"})
+    user_agent = random.choice(USER_AGENTS_LIST)
+    resp = niquests.get(url, headers={"User-Agent": user_agent})
+    logger.debug("Using User-Agent: %s", user_agent)
     if resp.status_code != 200:
         logger.error("Error fetching %s: %s", url, resp.status_code)
-        raise Exception(f"Error fetching {url}")
+        error_msg = f"Error fetching {url}: HTTP {resp.status_code} using User-Agent {user_agent}"
+        if resp.text:
+            error_msg += f" - {resp.text[:200]}"
+        raise Exception(error_msg)
     tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
     if not script or type(script) is not list:
@@ -202,10 +222,15 @@ def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
     series_id, lang = normalize_imdb_id(imdb_id, locale)
     url = f"https://www.imdb.com/{lang}/search/title/?count=250&series=tt{series_id}&sort=release_date,asc"
     logger.info("Fetching bulk episodes for series %s", imdb_id)
-    resp = niquests.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"})
+    user_agent = random.choice(USER_AGENTS_LIST)
+    logger.debug("Using User-Agent: %s", user_agent)
+    resp = niquests.get(url, headers={"User-Agent": user_agent})
     if resp.status_code != 200:
         logger.error("Error fetching %s: %s", url, resp.status_code)
-        raise Exception(f"Error fetching {url}")
+        error_msg = f"Error fetching {url}: HTTP {resp.status_code} using User-Agent {user_agent}"
+        if resp.text:
+            error_msg += f" - {resp.text[:200]}"
+        raise Exception(error_msg)
     tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
     if not script or type(script) is not list:
@@ -300,7 +325,6 @@ def _get_extended_title_info(imdb_id) -> dict:
     url = "https://api.graphql.imdb.com/"
     headers = {
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0",
     }
     query = (
         """
@@ -377,11 +401,14 @@ def _get_extended_title_info(imdb_id) -> dict:
     resp = niquests.post(url, headers=headers, json=payload)
     if resp.status_code != 200:
         logger.error("GraphQL request failed: %s", resp.status_code)
-        raise Exception(f"GraphQL request failed: {resp.status_code}")
+        error_msg = f"GraphQL request failed for {imdbId}: HTTP {resp.status_code}"
+        if resp.text:
+            error_msg += f" - {resp.text[:200]}"
+        raise Exception(error_msg)
     data = resp.json()
     if "errors" in data:
         logger.error("GraphQL error: %s", data["errors"])
-        raise Exception(f"GraphQL error: {data['errors']}")
+        raise Exception(f"GraphQL error for {imdbId}: {data['errors']}")
     raw_json = data.get("data", {}).get("title", {})
     return raw_json
 
@@ -472,6 +499,7 @@ def _get_extended_name_info(person_id) -> dict:
         
                   title {
                     id
+                    ratingsSummary{aggregateRating}
                     primaryImage {
                       url
                     }
@@ -507,17 +535,19 @@ def _get_extended_name_info(person_id) -> dict:
     url = "https://api.graphql.imdb.com/"
     headers = {
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0",
     }
     payload = {"query": query}
     logger.info("Fetching person %s from GraphQL API", person_id)
     resp = niquests.post(url, headers=headers, json=payload)
     if resp.status_code != 200:
         logger.error("GraphQL request failed: %s", resp.status_code)
-        raise Exception(f"GraphQL request failed: {resp.status_code}")
+        error_msg = f"GraphQL request failed for {person_id}: HTTP {resp.status_code}"
+        if resp.text:
+            error_msg += f" - {resp.text[:200]}"
+        raise Exception(error_msg)
     data = resp.json()
     if "errors" in data:
         logger.error("GraphQL error: %s", data["errors"])
-        raise Exception(f"GraphQL error: {data['errors']}")
+        raise Exception(f"GraphQL error for {person_id}: {data['errors']}")
     raw_json = data.get("data", {}).get("name", {})
     return raw_json

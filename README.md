@@ -41,7 +41,7 @@ from imdbinfo import search_title, get_movie, get_name, get_season_episodes, get
 # Search for a title
 results = search_title("The Matrix")
 for movie in results.titles:
-    print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
+    print(f"{movie.title} ({movie.year}) - Rating: {movie.rating} - {movie.imdb_id}")
 
 # Get movie details
 movie = get_movie("0133093")  # or 'tt0133093'

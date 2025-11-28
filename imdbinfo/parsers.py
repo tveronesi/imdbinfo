@@ -401,7 +401,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     # ensure all categories are present
     [data["categories"].setdefault(c, []) for c in newCreditCategoryIdToOldCategoryIdObject.values()]
 
-    for category in pjmespatch("props.pageProps.mainColumnData.categories[]", raw_json):
+    for category in pjmespatch("props.pageProps.mainColumnData.categories[]", raw_json) or []:
         jobtitle = category["name"]
         _category_id_ = category["id"]
 
@@ -585,7 +585,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
         _parse_jobs_v2
     )
 
-    if not data["jobs"]:
+    if data["jobs"] is None:
         # fallback to old jobs path if professions is empty
         logger.debug("******** Falling back to old  jobs path")
         data["jobs"] = pjmespatch(
