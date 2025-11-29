@@ -127,29 +127,27 @@ def search_title(title: str, locale: Optional[str] = None, title_type: Optional[
 
         ttype_values = [tt.value for tt in types_list]
         ttype_names = [tt.name for tt in types_list]
-        
+
         ttype_value = ",".join(ttype_values)
         type_log = ", ".join(ttype_names)
-        
+
         url += f"&ttype={ttype_value}"
-    
+
     logger.info("Searching for title '%s' [Type: %s]", title, type_log)
     user_agent = random.choice(USER_AGENTS_LIST)
     logger.debug("Using User-Agent: %s", user_agent)
     resp = niquests.get(url, headers={"User-Agent": user_agent})
-    
     if resp.status_code != 200:
         logger.warning("Search request failed: %s", resp.status_code)
         return None
-    
+
     tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
-    
-    # if no script OR script is not indexeable throw
+
     if not script or not isinstance(script, list) or len(script) == 0:
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
-    
+
     raw_json = json.loads(str(script[0]))
 
     result = parse_json_search(raw_json)
