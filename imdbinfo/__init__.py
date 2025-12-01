@@ -33,6 +33,7 @@ from .services import (
     get_trivia,
     get_filmography,
     get_all_interests,
+    TitleType,
 )
 
 __all__ = [
@@ -47,6 +48,7 @@ __all__ = [
     "get_trivia",
     "get_filmography",
     "get_all_interests",
+    "TitleType",
 ]
 
 # setup library logging

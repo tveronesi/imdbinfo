@@ -20,13 +20,14 @@
 # SOFTWARE.
 import random
 import re
-from typing import Optional, Dict, Union, List
+from typing import Optional, Dict, Union, List, Tuple
 from functools import lru_cache
 from time import time
 import logging
 import niquests
 import json
 from lxml import html
+from enum import Enum
 
 from .models import (
     SearchResult,
@@ -47,6 +48,20 @@ from .parsers import (
     parse_json_filmography,
 )
 from .locale import _retrieve_url_lang
+
+class TitleType(Enum):
+    """
+    Defines the valid 'ttype' filters for title searches on IMDb.
+    The values correspond to the URL parameter used in search queries.
+    """
+    Movies = "ft"
+    Series = "tv"
+    Episodes = "ep"
+    Shorts = "sh"
+    TvMovie = "tvm"
+    Video = "v"
+
+TitleFilter = Union[TitleType, Tuple[TitleType, ...]]
 
 logger = logging.getLogger(__name__)
 
@@ -91,32 +106,53 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
 
 
 @lru_cache(maxsize=128)
-def search_title(title: str, locale: Optional[str] = None) -> Optional[SearchResult]:
-    """Search for a movie by title and return a list of titles and names."""
-    lang = _retrieve_url_lang(locale)
-    url = f"https://www.imdb.com/{lang}/find?q={title}&ref_=nv_sr_sm"
-    logger.info("Searching for title '%s'", title)
+def search_title(title: str, locale: Optional[str] = None, title_type: Optional[TitleFilter] = None) -> Optional[SearchResult]:
+    """
+    Search for a movie by title and return a list of titles and names.
+
+    :param title: Title to search for.
+    :param locale: Optional locale string (e.g., 'en', 'es').
+    :param title_type: Optional filter(s) for media type. Must be a single TitleType enum member or a hashable tuple of TitleType members.
+    """
+    lang = f"{_retrieve_url_lang(locale)}/" if locale else ""
+    url = f"https://www.imdb.com/{lang}find?q={title}&s=tt"
+
+    if not title_type:
+        type_log = "All"
+    else:
+        if isinstance(title_type, tuple):
+            types_list = title_type
+        else:
+            types_list = [title_type]
+
+        ttype_values = [tt.value for tt in types_list]
+        ttype_names = [tt.name for tt in types_list]
+
+        ttype_value = ",".join(ttype_values)
+        type_log = ", ".join(ttype_names)
+
+        url += f"&ttype={ttype_value}"
+
+    logger.info("Searching for title '%s' [Type: %s]", title, type_log)
     user_agent = random.choice(USER_AGENTS_LIST)
     logger.debug("Using User-Agent: %s", user_agent)
     resp = niquests.get(url, headers={"User-Agent": user_agent})
     if resp.status_code != 200:
         logger.warning("Search request failed: %s", resp.status_code)
         return None
+
     tree = html.fromstring(resp.content or b"")
     script = tree.xpath('//script[@id="__NEXT_DATA__"]/text()')
-    if not script or type(script) is not list:  # throw if no script found
+
+    if not script or not isinstance(script, list) or len(script) == 0:
         logger.error("No script found with id '__NEXT_DATA__'")
         raise Exception("No script found with id '__NEXT_DATA__'")
-    # if script is not indexeable throw
-    if len(script) == 0:
-        logger.error("No script found with id '__NEXT_DATA__'")
-        raise Exception("No script found with id '__NEXT_DATA__'")
+
     raw_json = json.loads(str(script[0]))
 
     result = parse_json_search(raw_json)
     logger.debug("Search for '%s' returned %s titles", title, len(result.titles))
     return result
-
 
 @lru_cache(maxsize=128)
 def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDetail]:
