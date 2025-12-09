@@ -29,12 +29,12 @@ jobs:
 
       - name: Build package
         run: python -m build
-
-      - name: Publish to PyPI TEST
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        run: twine upload --verbose --repository-url https://test.pypi.org/legacy/ dist/*
+#
+#      - name: Publish to PyPI TEST
+#        env:
+#          TWINE_USERNAME: __token__
+#          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+#        run: twine upload --verbose --repository-url https://test.pypi.org/legacy/ dist/*
 
 
 
