@@ -1,5 +1,5 @@
-FROM python:3.7-slim
+FROM python:3.8-slim
 RUN pip install --upgrade pip
 WORKDIR /app
 COPY . /app
-RUN pip install  .[dev]
+RUN pip install --no-cache .[dev]
