@@ -46,13 +46,18 @@ classifiers = [
 
 dev = [
     "pytest>=7.0",
+    "mypy",
     "ruff",
     "black",
-    "mypy",
+]
+
+build = [
     "build",
+    "twine",
+]
+
+test = [
     "pytest>=7.0",
-    "requests-mock",
-    "twine"
 ]
 
 [tool.setuptools]
