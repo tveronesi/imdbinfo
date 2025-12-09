@@ -20,7 +20,8 @@ dependencies = [
     "deprecated"
 ]
 
-urls = {Homepage = "https://tveronesi.github.io/imdbinfo/"}
+
+urls = { Homepage = "https://tveronesi.github.io/imdbinfo/" }
 
 keywords = [
     "imdb",
@@ -40,7 +41,18 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+]
+[project.optional-dependencies]
 
+dev = [
+    "pytest>=7.0",
+    "ruff",
+    "black",
+    "mypy",
+    "build",
+    "pytest>=7.0",
+    "requests-mock",
+    "twine"
 ]
 
 [tool.setuptools]
