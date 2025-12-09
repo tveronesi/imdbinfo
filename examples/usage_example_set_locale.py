@@ -1,8 +1,8 @@
+import logging
 from imdbinfo import search_title, get_movie
 from imdbinfo.locale import set_locale
 
 set_locale('es')
-import logging
 logging.basicConfig(level=logging.WARNING)
 list_q = "nobody was safe, and the confidants of queens".split(" ")
 

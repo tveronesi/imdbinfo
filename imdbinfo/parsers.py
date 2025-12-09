@@ -178,7 +178,7 @@ def _parse_credits_v2(result) -> dict:
         categoryTextLocalized = itemCastGroup['grouping']['text']
 
         # map new category ids to old ones
-        category_id = newCreditCategoryIdToOldCategoryIdObject.get(_category_, _category_)
+        category_id = newCreditCategoryIdToOldCategoryIdObject.get(_category_, categoryTextLocalized)
         res.setdefault(category_id, [])
         for item_ in itemCastGroup['credits']['edges']:
             titleData = item_['node']['title']
