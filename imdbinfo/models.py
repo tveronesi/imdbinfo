@@ -84,7 +84,9 @@ class Person(BaseModel):
         return cls(
             name=data["nameText"],
             imdb_id=data["nameId"].replace("nm", ""),
-            id=data["nameId"].replace("nm", ""),  # id without 'nm' prefix, e.g. '0000126'
+            id=data["nameId"].replace(
+                "nm", ""
+            ),  # id without 'nm' prefix, e.g. '0000126'
             imdbId=data["nameId"],
             url=f"https://www.imdb.com/name/{data['nameId']}",
             job=str((data.get("professions") or [""])[0]),
@@ -125,9 +127,13 @@ class SeriesMixin:
 
 
 class InfoSeries(BaseModel):
-    display_years: List[str] = Field(default_factory=list)  # e.g. ['2013', '2014', '2015']
+    display_years: List[str] = Field(
+        default_factory=list
+    )  # e.g. ['2013', '2014', '2015']
     display_seasons: List[str] = Field(default_factory=list)  # e.g. ['1', '2', '3']
-    creators: List[Person] = Field(default_factory=list)  # eg. [Person(...), Person(...)]
+    creators: List[Person] = Field(
+        default_factory=list
+    )  # eg. [Person(...), Person(...)]
 
     @field_validator("display_years", mode="before")
     def filter_years(cls, value):
@@ -281,7 +287,9 @@ class MovieDetail(SeriesMixin, BaseModel):
     laboratories: List[str] = Field(default_factory=list)
     colorations: List[str] = Field(default_factory=list)
     cameras: List[str] = Field(default_factory=list)
-    aspect_ratios: List[Tuple[Optional[str], Optional[str]]] = Field(default_factory=list)
+    aspect_ratios: List[Tuple[Optional[str], Optional[str]]] = Field(
+        default_factory=list
+    )
     summaries: List[str] = Field(default_factory=list)
     synopses: List[str] = Field(default_factory=list)
     production: List[str] = Field(default_factory=list)
@@ -331,9 +339,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
     title_localized: str
     cover_url: Optional[str] = None
     url: Optional[str] = None
-    year: Optional[int] = (
-        None  # TODO series will have year as string 'from-to'. For now only movies are supported
-    )
+    year: Optional[int] = None
     kind: Optional[str] = None  # e.g. 'movie', 'tvSeries', 'tvSeriesEpisode' ...
     rating: Optional[float] = None  # e.g. 8.7
 
@@ -347,8 +353,8 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             title=data["originalTitleText"],
             cover_url=data.get("primaryImage", {}).get("url", None),
             url=f"https://www.imdb.com/title/{data['titleId']}/",
-            year=data.get('releaseYear',None),
-            kind=data.get("titleType", {}).get('id', None),
+            year=data.get("releaseYear", None),
+            kind=data.get("titleType", {}).get("id", None),
             rating=data.get("ratingSummary", {}).get("aggregateRating", None),
         )
 

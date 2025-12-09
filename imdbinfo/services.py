@@ -56,6 +56,7 @@ class TitleType(Enum):
     Defines the valid 'ttype' filters for title searches on IMDb.
     The values correspond to the URL parameter used in search queries.
     """
+
     Movies = "ft"
     Series = "tv"
     Episodes = "ep"
@@ -70,7 +71,8 @@ logger = logging.getLogger(__name__)
 
 # Users can override this by setting: imdbinfo.services.USER_AGENTS_LIST = [ "your-user-agent", ...]
 USER_AGENTS_LIST = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (HTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"]
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (HTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+]
 
 
 def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
@@ -130,8 +132,9 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
 
 
 @lru_cache(maxsize=128)
-def search_title(title: str, locale: Optional[str] = None, title_type: Optional[TitleFilter] = None) -> Optional[
-    SearchResult]:
+def search_title(
+    title: str, locale: Optional[str] = None, title_type: Optional[TitleFilter] = None
+) -> Optional[SearchResult]:
     """
     Search for a movie by title and return a list of titles and names.
 
@@ -201,7 +204,7 @@ def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDet
 
 @lru_cache(maxsize=128)
 def get_season_episodes(
-        imdb_id: str, season=1, locale: Optional[str] = None
+    imdb_id: str, season=1, locale: Optional[str] = None
 ) -> SeasonEpisodesList:
     """Fetch episodes for a movie or series using the provided IMDb ID."""
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
@@ -226,7 +229,7 @@ def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
 
 @lru_cache(maxsize=128)
 def get_episodes(
-        imdb_id: str, season=1, locale: Optional[str] = None
+    imdb_id: str, season=1, locale: Optional[str] = None
 ) -> SeasonEpisodesList:
     """wrap until deprecation : use get_season_episodes instead for seasons
     or get_all_episodes for all episodes
@@ -309,7 +312,7 @@ def _get_extended_title_info(imdb_id) -> dict:
         "Content-Type": "application/json",
     }
     query = (
-            """
+        """
         query {
           title(id: "%s") {
             id
@@ -376,7 +379,7 @@ def _get_extended_title_info(imdb_id) -> dict:
           }
         }
         """
-            % imdbId
+        % imdbId
     )
     payload = {"query": query}
     logger.info("Fetching title %s from GraphQL API", imdb_id)
@@ -406,7 +409,7 @@ def _get_extended_name_info(person_id) -> dict:
     person_id = "nm" + person_id
 
     query = (
-            """
+        """
             query {
               name(id: "%s") {
                 nameText {
@@ -502,7 +505,7 @@ def _get_extended_name_info(person_id) -> dict:
             }
     
         """
-            % person_id
+        % person_id
     )
     url = "https://api.graphql.imdb.com/"
     headers = {
