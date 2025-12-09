@@ -1,5 +1,4 @@
-from time import time
-from imdbinfo import search_title, get_movie, get_name
+from imdbinfo import search_title, get_movie
 from imdbinfo.locale import set_locale
 
 set_locale('es')

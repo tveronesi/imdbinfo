@@ -131,7 +131,6 @@ def test_graphql_error_message_includes_title_id():
     """Test that GraphQL error messages include the title/person ID."""
     # Since we can't easily mock post in the stubbed niquests module,
     # we test this directly by calling the function with a mocked module
-    import sys
     from types import SimpleNamespace
     
     # Save the original module
@@ -170,7 +169,6 @@ def test_graphql_error_message_includes_title_id():
 
 def test_graphql_error_response_includes_details():
     """Test that GraphQL error responses include error details."""
-    import sys
     from types import SimpleNamespace
     
     # Save the original module

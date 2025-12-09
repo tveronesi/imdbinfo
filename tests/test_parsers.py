@@ -1,6 +1,5 @@
 import json
 import os
-import pytest
 from imdbinfo import parsers
 
 SAMPLE_DIR = os.path.join(os.path.dirname(__file__), "sample_json_source")

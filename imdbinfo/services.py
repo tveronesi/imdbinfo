@@ -29,7 +29,6 @@ import json
 from lxml import html
 from enum import Enum
 
-from typing_extensions import LiteralString
 
 from .models import (
     SearchResult,
