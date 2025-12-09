@@ -139,3 +139,15 @@
 ## v0.6.3
 - Enhance `MovieBriefInfo` model to include localized title and original title fields
 - Fix update User-Agent string in requests for improved compatibility
+
+## v0.6.4
+- Add TitleType filtering to `search_title` (support for Movies, Series, Episodes, Shorts, Video).
+- Introduce configurable User-Agent rotation (`USER_AGENTS_LIST`) and use random selection for requests.
+- Improve HTTP error handling: exceptions now include HTTP status and response text for easier debugging.
+- Add `rating` to `MovieBriefInfo` and include ratings in search results.
+- Introduce `request_json_url` and a GraphQL helper to centralize requests; expand GraphQL queries to include reviews, trivia and ratings for titles and richer filmography data.
+- Improve locale normalization and URL composition for localized requests.
+- Packaging and CI updates: add optional dependencies groups (`dev`, `build`, `test`) in `pyproject.toml`; add a CI workflow for branch `test` (`.github/workflows/push-test.yml`) mirroring publish/build steps.
+- Tests & examples: add unit tests covering user-agent, error messages and ratings; add example scripts and README updates demonstrating new features.
+- Dockerfile update: set `WORKDIR`, copy source into image and install development extras.
+
