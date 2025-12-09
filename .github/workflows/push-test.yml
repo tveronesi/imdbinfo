@@ -36,5 +36,8 @@ jobs:
 #          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
 #        run: twine upload --verbose --repository-url https://test.pypi.org/legacy/ dist/*
 
+      - name: Check twine installation
+        run: twine --version
+
 
 
