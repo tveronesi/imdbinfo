@@ -1,7 +1,6 @@
 from imdbinfo import get_movie, get_all_interests
 import logging
 
-from imdbinfo.locale import set_locale
 
 logging.basicConfig(level=logging.WARNING)
 

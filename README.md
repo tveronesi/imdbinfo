@@ -41,7 +41,7 @@ from imdbinfo import search_title, get_movie, get_name, get_season_episodes, get
 # Search for a title
 results = search_title("The Matrix")
 for movie in results.titles:
-    print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
+    print(f"{movie.title} ({movie.year}) - Rating: {movie.rating} - {movie.imdb_id}")
 
 # Get movie details
 movie = get_movie("0133093")  # or 'tt0133093'
@@ -212,6 +212,23 @@ results = search_title("The Matrix", locale="it")
 for item in results.titles:
     # Print the localized title if available, otherwise the default title
     print(item.title, "->", getattr(item, "title_localized", item.title))
+```
+
+### Filtering results based on type (e.g. Movies, Series, Episodes etc.) 🔽 
+You can filter results from `search_title`, done server-side.
+```python
+from imdbinfo import search_title, TitleType
+
+# Search for single type: movies
+results = search_title("The Matrix", title_type=TitleType.Movies)
+for movie in results.titles:
+    print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
+
+# Search for multiple types: movies, shorts and videos.
+results = search_title("The Matrix", title_type=(TitleType.Movies, TitleType.Shorts, TitleType.Video))
+for movie in results.titles:
+    print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
+
 ```
 
 ### Get filmography with images 🎬🖼️

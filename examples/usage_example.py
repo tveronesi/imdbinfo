@@ -43,19 +43,19 @@ movies_list = [
 for imdb_id in movies_list:
     movie = get_movie(imdb_id)
     if movie.is_series():
-        print(f"#########################################################################")
-        print(f"##### this is a SERIES: extra info available in movie.info_series  #####")
-        print(f"#########################################################################")
+        print("#########################################################################")
+        print("##### this is a SERIES: extra info available in movie.info_series  #####")
+        print("#########################################################################")
         print(f"Series: {movie.info_series or 'N/A'}")
     elif movie.is_episode():
-        print(f"##########################################################################")
-        print(f"##### this is an EPISODE: extra info available in movie.info_episode #####")
-        print(f"##########################################################################")
+        print("##########################################################################")
+        print("##### this is an EPISODE: extra info available in movie.info_episode #####")
+        print("##########################################################################")
         print(f"Episode: {movie.info_episode or 'N/A'}")
     else:
-        print(f"##########################################################################")
+        print("##########################################################################")
         print(f"##################################### {movie.kind.upper()} ##############################")
-        print(f"##########################################################################")
+        print("##########################################################################")
     print(f"Movie Title: {movie.title} ({movie.year}) - {movie.imdbId}")
     print(f"Kind: {movie.kind}")
     print(f"URL: {movie.url}")
