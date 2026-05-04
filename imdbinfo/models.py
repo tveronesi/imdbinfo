@@ -355,7 +355,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
     @classmethod
     def from_movie_search(cls, data: dict):
         # safely extract nested structures (preserve original behavior of returning None when missing)
-        release = data.get("releaseDate")
+        release = data.get("releaseYear")
         year = release.get("year") if isinstance(release, dict) else None
 
         primary = data.get("primaryImage")

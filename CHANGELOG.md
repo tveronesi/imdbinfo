@@ -195,3 +195,10 @@
  - Adding custom exception `WAFBlockException` to handle AWS WAF blocks more gracefully in the codebase. This allows for clearer error handling and potential retry logic in the future if desired.
  - Adding cookies cache to store generated cookies for reuse across requests, improving performance and reducing the likelihood of encountering AWS WAF blocks
  - Adding test cases to validate the new cookie generation and caching logic
+
+## v0.8.3
+  - Fix bug in movie.year parsing
+  - Fix bug person.knownfor parsing
+  
+## v0.8.4
+  - Updated README

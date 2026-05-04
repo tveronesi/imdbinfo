@@ -654,7 +654,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
         raw_json,
     )
 
-    if not data["knownfor"]:
+    if  data["knownfor"] is None:
         # fallback to old knownForFeature if knownForFeatureV2 is empty
         logger.debug("******** Falling back to old  knownForFeature path")
         data["knownfor"] = pjmespatch(
@@ -742,7 +742,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
     if not data["unreleased_credits"]:
         # fallback to old unreleased credits path if unreleased is empty
         logger.debug("******** Falling back to old  unreleased credits path")
-        data["credits"] = pjmespatch(
+        data["unreleased_credits"] = pjmespatch(
             "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.id,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
             raw_json,
             _parse_credits,

@@ -12,6 +12,9 @@
                 "text": "The Matrix"
               },
               "canonicalUrl": "https://www.imdb.com/title/tt0133093/",
+              "releaseYear": {
+                "year": 1999
+              },
               "originalTitleText": {
                 "text": "The Matrix"
               },
@@ -53,6 +56,9 @@
                 "text": "The Matrix Reloaded"
               },
               "canonicalUrl": "https://www.imdb.com/title/tt0234215/",
+              "releaseYear": {
+                "year": 2003
+              },
               "originalTitleText": {
                 "text": "The Matrix Reloaded"
               },
@@ -94,6 +100,9 @@
                 "text": "The Matrix Resurrections"
               },
               "canonicalUrl": "https://www.imdb.com/title/tt10838180/",
+              "releaseYear": {
+                "year": 2021
+              },
               "originalTitleText": {
                 "text": "The Matrix Resurrections"
               },
@@ -135,6 +144,9 @@
                 "text": "The Matrix Revolutions"
               },
               "canonicalUrl": "https://www.imdb.com/title/tt0242653/",
+              "releaseYear": {
+                "year": 2003
+              },
               "originalTitleText": {
                 "text": "The Matrix Revolutions"
               },
@@ -176,6 +188,7 @@
                 "text": "Matrix 5"
               },
               "canonicalUrl": "https://www.imdb.com/title/tt31998838/",
+              "releaseYear": null,
               "originalTitleText": {
                 "text": "Matrix 5"
               },
@@ -209,6 +222,9 @@
                 "text": "Matrix"
               },
               "canonicalUrl": "https://www.imdb.com/title/tt0106062/",
+              "releaseYear": {
+                "year": 1993
+              },
               "originalTitleText": {
                 "text": "Matrix"
               },
@@ -250,6 +266,9 @@
                 "text": "The Matrix Recalibrated"
               },
               "canonicalUrl": "https://www.imdb.com/title/tt0410519/",
+              "releaseYear": {
+                "year": 2004
+              },
               "originalTitleText": {
                 "text": "The Matrix Recalibrated"
               },
@@ -283,6 +302,50 @@
         },
         {
           "node": {
+            "imdbId": "tt0295432",
+            "entity": {
+              "__typename": "Title",
+              "id": "tt0295432",
+              "titleText": {
+                "text": "The Matrix Revisited"
+              },
+              "canonicalUrl": "https://www.imdb.com/title/tt0295432/",
+              "releaseYear": {
+                "year": 2001
+              },
+              "originalTitleText": {
+                "text": "The Matrix Revisited"
+              },
+              "releaseDate": {
+                "year": 2001,
+                "month": 11,
+                "day": 20
+              },
+              "primaryImage": {
+                "url": "https://m.media-amazon.com/images/M/MV5BMTkzNjg3NjE4N15BMl5BanBnXkFtZTgwNTc3NTAwNzE@._V1_.jpg"
+              },
+              "titleType": {
+                "id": "video",
+                "text": "Video",
+                "categories": [
+                  {
+                    "id": "video",
+                    "text": "Video",
+                    "value": "video"
+                  }
+                ]
+              },
+              "ratingsSummary": {
+                "aggregateRating": 7.4
+              },
+              "runtime": {
+                "seconds": 7380
+              }
+            }
+          }
+        },
+        {
+          "node": {
             "imdbId": "tt12355912",
             "entity": {
               "__typename": "Title",
@@ -291,6 +354,9 @@
                 "text": "The Matrix: Reborn"
               },
               "canonicalUrl": "https://www.imdb.com/title/tt12355912/",
+              "releaseYear": {
+                "year": 2020
+              },
               "originalTitleText": {
                 "text": "The Matrix: Reborn"
               },
@@ -332,6 +398,9 @@
                 "text": "A Glitch in the Matrix"
               },
               "canonicalUrl": "https://www.imdb.com/title/tt9847360/",
+              "releaseYear": {
+                "year": 2021
+              },
               "originalTitleText": {
                 "text": "A Glitch in the Matrix"
               },
@@ -355,10 +424,50 @@
                 ]
               },
               "ratingsSummary": {
-                "aggregateRating": 5.2
+                "aggregateRating": 5.3
               },
               "runtime": {
                 "seconds": 6480
+              }
+            }
+          }
+        },
+        {
+          "node": {
+            "imdbId": "tt0274085",
+            "entity": {
+              "__typename": "Title",
+              "id": "tt0274085",
+              "titleText": {
+                "text": "Sex and the Matrix"
+              },
+              "canonicalUrl": "https://www.imdb.com/title/tt0274085/",
+              "releaseYear": {
+                "year": 2000
+              },
+              "originalTitleText": {
+                "text": "Sex and the Matrix"
+              },
+              "releaseDate": null,
+              "primaryImage": {
+                "url": "https://m.media-amazon.com/images/M/MV5BYjhlNGI4YWItYWY0MC00MjQwLWEzZWEtYjY4ZDY5MzBjZTBlXkEyXkFqcGc@._V1_.jpg"
+              },
+              "titleType": {
+                "id": "tvShort",
+                "text": "TV Short",
+                "categories": [
+                  {
+                    "id": "tv",
+                    "text": "TV",
+                    "value": "tv"
+                  }
+                ]
+              },
+              "ratingsSummary": {
+                "aggregateRating": 7.2
+              },
+              "runtime": {
+                "seconds": 360
               }
             }
           }
@@ -373,6 +482,9 @@
                 "text": "Matrix: Generation"
               },
               "canonicalUrl": "https://www.imdb.com/title/tt30849138/",
+              "releaseYear": {
+                "year": 2024
+              },
               "originalTitleText": {
                 "text": "Matrix: Generation"
               },
@@ -414,6 +526,9 @@
                 "text": "Threat Matrix"
               },
               "canonicalUrl": "https://www.imdb.com/title/tt0364888/",
+              "releaseYear": {
+                "year": 2003
+              },
               "originalTitleText": {
                 "text": "Threat Matrix"
               },
@@ -441,125 +556,6 @@
               },
               "runtime": {
                 "seconds": 3600
-              }
-            }
-          }
-        },
-        {
-          "node": {
-            "imdbId": "tt0109151",
-            "entity": {
-              "__typename": "Title",
-              "id": "tt0109151",
-              "titleText": {
-                "text": "Armitage III: Poly-Matrix"
-              },
-              "canonicalUrl": "https://www.imdb.com/title/tt0109151/",
-              "originalTitleText": {
-                "text": "Armitage III: Poly-Matrix"
-              },
-              "releaseDate": {
-                "year": 1996,
-                "month": 6,
-                "day": 25
-              },
-              "primaryImage": {
-                "url": "https://m.media-amazon.com/images/M/MV5BNjFlOGE4YTItOGI2Yi00YTU5LThhNDctYjFkZjcyNWE4YmMwXkEyXkFqcGc@._V1_.jpg"
-              },
-              "titleType": {
-                "id": "video",
-                "text": "Video",
-                "categories": [
-                  {
-                    "id": "video",
-                    "text": "Video",
-                    "value": "video"
-                  }
-                ]
-              },
-              "ratingsSummary": {
-                "aggregateRating": 6.7
-              },
-              "runtime": {
-                "seconds": 5400
-              }
-            }
-          }
-        },
-        {
-          "node": {
-            "imdbId": "tt0274085",
-            "entity": {
-              "__typename": "Title",
-              "id": "tt0274085",
-              "titleText": {
-                "text": "Sex and the Matrix"
-              },
-              "canonicalUrl": "https://www.imdb.com/title/tt0274085/",
-              "originalTitleText": {
-                "text": "Sex and the Matrix"
-              },
-              "releaseDate": null,
-              "primaryImage": {
-                "url": "https://m.media-amazon.com/images/M/MV5BYjhlNGI4YWItYWY0MC00MjQwLWEzZWEtYjY4ZDY5MzBjZTBlXkEyXkFqcGc@._V1_.jpg"
-              },
-              "titleType": {
-                "id": "tvShort",
-                "text": "TV Short",
-                "categories": [
-                  {
-                    "id": "tv",
-                    "text": "TV",
-                    "value": "tv"
-                  }
-                ]
-              },
-              "ratingsSummary": {
-                "aggregateRating": 7.2
-              },
-              "runtime": {
-                "seconds": 360
-              }
-            }
-          }
-        },
-        {
-          "node": {
-            "imdbId": "tt30749809",
-            "entity": {
-              "__typename": "Title",
-              "id": "tt30749809",
-              "titleText": {
-                "text": "Free Your Mind: The Matrix Now"
-              },
-              "canonicalUrl": "https://www.imdb.com/title/tt30749809/",
-              "originalTitleText": {
-                "text": "Free Your Mind: The Matrix Now"
-              },
-              "releaseDate": {
-                "year": 2023,
-                "month": 12,
-                "day": 31
-              },
-              "primaryImage": {
-                "url": "https://m.media-amazon.com/images/M/MV5BYTJjOTA5MWYtOWIxMi00ODNlLThmZDktOGYxMGJjNDgzZjYzXkEyXkFqcGc@._V1_.jpg"
-              },
-              "titleType": {
-                "id": "tvSpecial",
-                "text": "TV Special",
-                "categories": [
-                  {
-                    "id": "tv",
-                    "text": "TV",
-                    "value": "tv"
-                  }
-                ]
-              },
-              "ratingsSummary": {
-                "aggregateRating": 6.2
-              },
-              "runtime": {
-                "seconds": 4860
               }
             }
           }
@@ -650,6 +646,9 @@
                 "text": "Armitage: Dual Matrix"
               },
               "canonicalUrl": "https://www.imdb.com/title/tt0303678/",
+              "releaseYear": {
+                "year": 2001
+              },
               "originalTitleText": {
                 "text": "Armitage: Dual Matrix"
               },
@@ -683,81 +682,43 @@
         },
         {
           "node": {
-            "imdbId": "tt0295432",
+            "imdbId": "tt0277828",
             "entity": {
               "__typename": "Title",
-              "id": "tt0295432",
+              "id": "tt0277828",
               "titleText": {
-                "text": "The Matrix Revisited"
+                "text": "Enter the Matrix"
               },
-              "canonicalUrl": "https://www.imdb.com/title/tt0295432/",
+              "canonicalUrl": "https://www.imdb.com/title/tt0277828/",
+              "releaseYear": {
+                "year": 2003
+              },
               "originalTitleText": {
-                "text": "The Matrix Revisited"
+                "text": "Enter the Matrix"
               },
               "releaseDate": {
-                "year": 2001,
-                "month": 11,
-                "day": 20
+                "year": 2003,
+                "month": 5,
+                "day": 15
               },
               "primaryImage": {
-                "url": "https://m.media-amazon.com/images/M/MV5BMTkzNjg3NjE4N15BMl5BanBnXkFtZTgwNTc3NTAwNzE@._V1_.jpg"
+                "url": "https://m.media-amazon.com/images/M/MV5BODRjMDNiY2MtZDlmMS00YTUwLTg0ZmMtNThmOGY3MDVkZmY3XkEyXkFqcGc@._V1_.jpg"
               },
               "titleType": {
-                "id": "video",
-                "text": "Video",
+                "id": "videoGame",
+                "text": "Video Game",
                 "categories": [
                   {
-                    "id": "video",
-                    "text": "Video",
-                    "value": "video"
+                    "id": "gaming",
+                    "text": "Gaming",
+                    "value": "gaming"
                   }
                 ]
               },
               "ratingsSummary": {
-                "aggregateRating": 7.4
+                "aggregateRating": 6.9
               },
-              "runtime": {
-                "seconds": 7380
-              }
-            }
-          }
-        },
-        {
-          "node": {
-            "imdbId": "tt29542010",
-            "entity": {
-              "__typename": "Title",
-              "id": "tt29542010",
-              "titleText": {
-                "text": "Illuminati Matrix"
-              },
-              "canonicalUrl": "https://www.imdb.com/title/tt29542010/",
-              "originalTitleText": {
-                "text": "Illuminati Matrix"
-              },
-              "releaseDate": {
-                "year": 2023,
-                "month": 12,
-                "day": 5
-              },
-              "primaryImage": null,
-              "titleType": {
-                "id": "video",
-                "text": "Video",
-                "categories": [
-                  {
-                    "id": "video",
-                    "text": "Video",
-                    "value": "video"
-                  }
-                ]
-              },
-              "ratingsSummary": {
-                "aggregateRating": 5.8
-              },
-              "runtime": {
-                "seconds": 4020
-              }
+              "runtime": null
             }
           }
         },
@@ -771,6 +732,9 @@
                 "text": "Making 'The Matrix'"
               },
               "canonicalUrl": "https://www.imdb.com/title/tt0365467/",
+              "releaseYear": {
+                "year": 1999
+              },
               "originalTitleText": {
                 "text": "Making 'The Matrix'"
               },
@@ -804,27 +768,110 @@
         },
         {
           "node": {
-            "imdbId": "nm2584122",
+            "imdbId": "tt30749809",
+            "entity": {
+              "__typename": "Title",
+              "id": "tt30749809",
+              "titleText": {
+                "text": "Free Your Mind: The Matrix Now"
+              },
+              "canonicalUrl": "https://www.imdb.com/title/tt30749809/",
+              "releaseYear": {
+                "year": 2023
+              },
+              "originalTitleText": {
+                "text": "Free Your Mind: The Matrix Now"
+              },
+              "releaseDate": {
+                "year": 2023,
+                "month": 12,
+                "day": 31
+              },
+              "primaryImage": {
+                "url": "https://m.media-amazon.com/images/M/MV5BYTJjOTA5MWYtOWIxMi00ODNlLThmZDktOGYxMGJjNDgzZjYzXkEyXkFqcGc@._V1_.jpg"
+              },
+              "titleType": {
+                "id": "tvSpecial",
+                "text": "TV Special",
+                "categories": [
+                  {
+                    "id": "tv",
+                    "text": "TV",
+                    "value": "tv"
+                  }
+                ]
+              },
+              "ratingsSummary": {
+                "aggregateRating": 6.2
+              },
+              "runtime": {
+                "seconds": 4860
+              }
+            }
+          }
+        },
+        {
+          "node": {
+            "imdbId": "tt0109151",
+            "entity": {
+              "__typename": "Title",
+              "id": "tt0109151",
+              "titleText": {
+                "text": "Armitage III: Poly-Matrix"
+              },
+              "canonicalUrl": "https://www.imdb.com/title/tt0109151/",
+              "releaseYear": {
+                "year": 1996
+              },
+              "originalTitleText": {
+                "text": "Armitage III: Poly-Matrix"
+              },
+              "releaseDate": {
+                "year": 1996,
+                "month": 6,
+                "day": 25
+              },
+              "primaryImage": {
+                "url": "https://m.media-amazon.com/images/M/MV5BNjFlOGE4YTItOGI2Yi00YTU5LThhNDctYjFkZjcyNWE4YmMwXkEyXkFqcGc@._V1_.jpg"
+              },
+              "titleType": {
+                "id": "video",
+                "text": "Video",
+                "categories": [
+                  {
+                    "id": "video",
+                    "text": "Video",
+                    "value": "video"
+                  }
+                ]
+              },
+              "ratingsSummary": {
+                "aggregateRating": 6.7
+              },
+              "runtime": {
+                "seconds": 5400
+              }
+            }
+          }
+        },
+        {
+          "node": {
+            "imdbId": "nm13482073",
             "entity": {
               "__typename": "Name",
-              "id": "nm2584122",
+              "id": "nm13482073",
               "nameText": {
-                "text": "Eddie Mariano"
+                "text": "Matrix Quevedo"
               },
               "professions": [
                 {
                   "profession": {
-                    "text": "Director"
+                    "text": "Production Department"
                   }
                 },
                 {
                   "profession": {
-                    "text": "Producer"
-                  }
-                },
-                {
-                  "profession": {
-                    "text": "Writer"
+                    "text": "Additional Crew"
                   }
                 }
               ],
@@ -832,49 +879,40 @@
                 "credits": [
                   {
                     "title": {
-                      "id": "tt1116851",
+                      "id": "tt1959374",
                       "titleText": {
-                        "text": "Triangle Blvd."
+                        "text": "The Dresden Sun"
                       },
                       "releaseYear": {
-                        "year": 2007
+                        "year": 2026
                       }
                     }
                   },
                   {
                     "title": {
-                      "id": "tt7589532",
+                      "id": "tt18689102",
                       "titleText": {
-                        "text": "Triangle Blvd."
-                      },
-                      "releaseYear": null
-                    }
-                  },
-                  {
-                    "title": {
-                      "id": "tt0430357",
-                      "titleText": {
-                        "text": "Miami Vice"
+                        "text": "Alessia Cara: Album Unboxing"
                       },
                       "releaseYear": {
-                        "year": 2006
+                        "year": 2021
                       }
                     }
                   },
                   {
                     "title": {
-                      "id": "tt2891574",
+                      "id": "tt18689012",
                       "titleText": {
-                        "text": "Ballers"
+                        "text": "Day in the Life: Alessia Cara's Best Day"
                       },
                       "releaseYear": {
-                        "year": 2015
+                        "year": 2022
                       }
                     }
                   }
                 ]
               },
-              "canonicalUrl": "https://www.imdb.com/name/nm2584122/"
+              "canonicalUrl": "https://www.imdb.com/name/nm13482073/"
             }
           }
         }
@@ -885,6 +923,7 @@
     "disclaimer": "Public, commercial, and/or non-private use of the IMDb data provided by this API is not allowed. For limited non-commercial use of IMDb data and the associated requirements see https://help.imdb.com/article/imdb/general-information/can-i-use-imdb-data-in-my-software/G5JTRESSHJBBHTGX#",
     "experimentalFields": {
       "search": [],
+      "ratings": [],
       "janet": []
     }
   }

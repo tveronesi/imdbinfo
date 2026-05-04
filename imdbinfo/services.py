@@ -311,6 +311,7 @@ def search_title(
             titleText { text }
             canonicalUrl
             originalTitleText { text }
+            releaseYear{ year }
             releaseDate { year month day }
             primaryImage { url }
             titleType { id text categories { id text value } }
