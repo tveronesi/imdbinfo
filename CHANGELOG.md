@@ -202,3 +202,4 @@
   
 ## v0.8.4
   - Updated README
+  - feat: add debug script for WAF solver with detailed error logging
