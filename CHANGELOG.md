@@ -197,5 +197,10 @@
  - Adding test cases to validate the new cookie generation and caching logic
 
 ## v0.8.3
-  Fix bug in movie.year parsing
-  Fix bug person.knownfor parsing
+  - Fix bug in movie.year parsing
+  - Fix bug person.knownfor parsing
+  
+## v0.8.4
+  - Updated README
+  - feat: add debug script for WAF solver with detailed error logging
+  - Fix WAF challenge extraction and cookie generation logic to handle edge cases and improve reliability

@@ -17,6 +17,7 @@ Covered behaviours
 8. request_handler — if the retry after WAF solve also fails the cookies
    are discarded (memory = None, file deleted).
 """
+
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -27,6 +28,7 @@ from imdbinfo import services
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
+
 
 def _reset_cookie_state(monkeypatch, cookie_file: Path):
     """Point the module at a temp file path and reset the in-memory cache."""
@@ -39,6 +41,7 @@ def _make_response(status_code: int, text: str = "", content: bytes = b""):
 
 
 # ── _load_waf_cookies ─────────────────────────────────────────────────────────
+
 
 def test_load_reads_disk_on_first_call(monkeypatch, tmp_path):
     """_UNSET triggers a single file read; result is stored in memory."""
@@ -80,6 +83,7 @@ def test_load_returns_none_when_no_file(monkeypatch, tmp_path):
 
 # ── _save_waf_cookies ─────────────────────────────────────────────────────────
 
+
 def test_save_updates_memory_and_disk(monkeypatch, tmp_path):
     """_save_waf_cookies must update both the module variable and the file."""
     cookie_file = tmp_path / "waf_cookies.json"
@@ -95,6 +99,7 @@ def test_save_updates_memory_and_disk(monkeypatch, tmp_path):
 
 # ── _delete_waf_cookie_file ───────────────────────────────────────────────────
 
+
 def test_delete_clears_memory_and_removes_file(monkeypatch, tmp_path):
     """_delete_waf_cookie_file must set in-memory to None and unlink the file."""
     cookie_file = tmp_path / "waf_cookies.json"
@@ -109,6 +114,7 @@ def test_delete_clears_memory_and_removes_file(monkeypatch, tmp_path):
 
 
 # ── request_handler ───────────────────────────────────────────────────────────
+
 
 def test_request_handler_sends_cached_cookies_on_200(monkeypatch, tmp_path):
     """Cached cookies are forwarded to niquests.get; a 200 leaves them intact."""
@@ -166,14 +172,17 @@ def test_request_handler_clears_cookies_when_retry_also_fails(monkeypatch, tmp_p
     monkeypatch.setattr(services, "_WAF_COOKIE_FILE", cookie_file)
     monkeypatch.setattr(services, "_waf_cookies", {"aws-waf-token": "old-token"})
 
-    monkeypatch.setattr(services.niquests, "get",
-                        lambda *a, **kw: _make_response(403, text="still blocked"))
-    monkeypatch.setattr(services, "get_cookies",
-                        lambda text, ua: {"aws-waf-token": "attempted-token"})
+    monkeypatch.setattr(
+        services.niquests,
+        "get",
+        lambda *a, **kw: _make_response(403, text="still blocked"),
+    )
+    monkeypatch.setattr(
+        services, "get_cookies", lambda text, ua: {"aws-waf-token": "attempted-token"}
+    )
 
     resp = services.request_handler("https://www.imdb.com/title/tt0133093/reference")
 
     assert resp.status_code == 403
     assert services._waf_cookies is None
     assert not cookie_file.exists()
-

@@ -11,15 +11,13 @@ import base64
 import json
 from datetime import timedelta
 import random
-from curl_cffi import requests , CurlMime
+from curl_cffi import requests, CurlMime
 
 # ====== CONSTANTS ======
 ALPHABET = "0123456789abcdef"
 IEEE_POLYNOMIAL = 0xEDB88320
 
-KEY = bytes.fromhex(
-    "6f71a512b1e035eaab53d8be73120d3fb68a0ca346b9560aab3e5cdf753d5e98"
-)
+KEY = bytes.fromhex("6f71a512b1e035eaab53d8be73120d3fb68a0ca346b9560aab3e5cdf753d5e98")
 AESGCM_INSTANCE = AESGCM(key=KEY)
 
 
@@ -129,12 +127,16 @@ def get_fp(user_agent) -> dict:
             "getRandomValues": True,
             "randomUUID": True,
         },
-        "canvas": {"hash": random.randrange(645172295, 735192295), "emailHash": None, "histogramBins": [random.randrange(0, 40) for _ in range(256)]},
+        "canvas": {
+            "hash": random.randrange(645172295, 735192295),
+            "emailHash": None,
+            "histogramBins": [random.randrange(0, 40) for _ in range(256)],
+        },
         "formDetected": False,
         "numForms": 0,
         "numFormElements": 0,
         "be": {"si": False},
-        "end": start + random.randint(1,5),
+        "end": start + random.randint(1, 5),
         "errors": [],
         "version": "2.4.0",
         "id": str(uuid.uuid4()),
@@ -195,7 +197,7 @@ def encode_fp(user_agent) -> tuple[str, str]:
 
 
 def build_everything(user_agent) -> dict:
-    
+
     encoded, checksum = encode_fp(user_agent)
     if isinstance(encoded, bytes):
         encoded_str = encoded.decode("utf-8", errors="strict")
@@ -209,38 +211,47 @@ def build_everything(user_agent) -> dict:
     out["encrypted"] = encrypt_payload(encoded_str)
     return out
 
+
 def _check(difficulty: int, hex_hash: str) -> bool:
     return int(hex_hash, 16) >> (len(hex_hash) * 4 - difficulty) == 0
+
 
 def sha256_hashcash(input_string: str) -> str:
     data = input_string.encode("utf-8")
     hash_bytes = hashlib.sha256(data).digest()
     parts = []
     for i in range(0, len(hash_bytes), 4):
-        uint32 = int.from_bytes(hash_bytes[i:i+4], byteorder="big")
+        uint32 = int.from_bytes(hash_bytes[i : i + 4], byteorder="big")
         parts.append(f"{uint32:08x}")
-    
+
     return "".join(parts)
+
 
 def compute_scrypt(challenge_b64: str, checksum: str, difficulty: int) -> str:
     salt = checksum.encode("utf-8")
-    
+
     for nonce in itertools.count(0):
         password = (challenge_b64 + checksum + str(nonce)).encode("utf-8")
         hash_hex = hashlib.scrypt(password, salt=salt, n=128, r=8, p=1, dklen=16).hex()
-        
+
         if _check(difficulty, hash_hex):
             return str(nonce)
 
-def compute_pow(input_str: str, checksum: str,difficulty: int,) -> str:
+
+def compute_pow(
+    input_str: str,
+    checksum: str,
+    difficulty: int,
+) -> str:
     base = input_str + checksum
     nonce = 0
-    
+
     while True:
         hash_hex = sha256_hashcash(base + str(nonce))
         if _check(difficulty, hash_hex):
             return str(nonce)
         nonce += 1
+
 
 def get_filter_bytes(difficulty: int) -> int:
 
@@ -253,134 +264,192 @@ def get_filter_bytes(difficulty: int) -> int:
     }
     return sizes.get(difficulty, 0)
 
+
 def compute_bandwidth(challenge_b64: str, checksum: str, difficulty: int) -> str:
     n = get_filter_bytes(difficulty)
     null_bytes = bytes(n)
     b64 = base64.b64encode(null_bytes).decode("utf-8")
     return b64
 
+
 CHALLENGES = {
     "h72f957df656e80ba55f5d8ce2e8c7ccb59687dba3bfb273d54b08a261b2f3002": compute_scrypt,
     "h7b0c470f0cfe3a80a9e26526ad185f484f6817d0832712a4a37a908786a6a67f": compute_pow,
-    "ha9faaffd31b4d5ede2a2e19d2d7fd525f66fee61911511960dcbb52d3c48ce25": compute_bandwidth
+    "ha9faaffd31b4d5ede2a2e19d2d7fd525f66fee61911511960dcbb52d3c48ce25": compute_bandwidth,
 }
 
-BANDWIDTH_CHALLENGE = "ha9faaffd31b4d5ede2a2e19d2d7fd525f66fee61911511960dcbb52d3c48ce25"
+BANDWIDTH_CHALLENGE = (
+    "ha9faaffd31b4d5ede2a2e19d2d7fd525f66fee61911511960dcbb52d3c48ce25"
+)
+
 
 class AwsSolver:
-
     def __init__(self, user_agent, domain):
-        
+
         self.headers = {
             "connection": "keep-alive",
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-            'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,fr;q=0.6',
-            'cache-control': 'no-cache',
-            'pragma': 'no-cache',
-            'priority': 'u=0, i',
-            'sec-ch-ua': '"Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"macOS"',
-            'sec-fetch-dest': 'document',
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'same-origin',
-            'upgrade-insecure-requests': '1',
-            'user-agent': f'{user_agent}',
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "accept-language": "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,fr;q=0.6",
+            "cache-control": "no-cache",
+            "pragma": "no-cache",
+            "priority": "u=0, i",
+            "sec-ch-ua": '"Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"',
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"macOS"',
+            "sec-fetch-dest": "document",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-site": "same-origin",
+            "upgrade-insecure-requests": "1",
+            "user-agent": f"{user_agent}",
         }
         self.user_agent = user_agent
         if "www" not in domain:
-            self.domain = f'www.{domain}'
+            self.domain = f"www.{domain}"
         else:
             self.domain = domain
 
-    def extract(self,html: str):
-        goku_props = json.loads(html.split("window.gokuProps = ")[1].split(";")[0])
-        host = html.split("src=\"https://")[1].split("/challenge.js")[0]
-        return goku_props, host
-    
+    def extract(self, html: str):
+        try:
+            if "window.gokuProps = " not in html:
+                raise ValueError("window.gokuProps not found in HTML response")
+            goku_props = json.loads(html.split("window.gokuProps = ")[1].split(";")[0])
+
+            if 'src="https://' not in html or "/challenge.js" not in html:
+                raise ValueError("Challenge script host not found in HTML response")
+            host = html.split('src="https://')[1].split("/challenge.js")[0]
+
+            return goku_props, host
+        except (ValueError, json.JSONDecodeError, IndexError) as e:
+            raise ValueError(f"Failed to extract challenge data from HTML: {e}")
 
     def _get_final_values(self, host_url):
 
-        response = requests.get(f"https://{host_url}/inputs?client=browser", headers=self.headers, timeout=10)
+        response = requests.get(
+            f"https://{host_url}/inputs?client=browser",
+            headers=self.headers,
+            timeout=10,
+        )
         return response.json()
-    
+
     def _build_payload(self, input: dict, goku_props):
-        verify = CHALLENGES[input["challenge_type"]]
+        challenge_type = input.get("challenge_type")
+        if challenge_type not in CHALLENGES:
+            raise ValueError(
+                f"Unknown challenge type: {challenge_type}. Supported: {list(CHALLENGES.keys())}"
+            )
+
+        verify = CHALLENGES[challenge_type]
         payload = build_everything(user_agent=self.user_agent)
-        is_bandwidth = input["challenge_type"] == BANDWIDTH_CHALLENGE
+        is_bandwidth = challenge_type == BANDWIDTH_CHALLENGE
 
         if is_bandwidth:
             solution_b64 = verify("", "", input["difficulty"])
             solution_metadata = {
                 "challenge": input["challenge"],
                 "solution": None,
-                "signals": [{"name": "Zoey", "value": {"Present": payload["encrypted"]}}],
+                "signals": [
+                    {"name": "Zoey", "value": {"Present": payload["encrypted"]}}
+                ],
                 "checksum": payload["checksum"],
                 "client": "Browser",
                 "domain": self.domain,
                 "metrics": self._build_metrics(),
-                "goku_props": goku_props
+                "goku_props": goku_props,
             }
             return {
                 "_is_bandwidth": True,
                 "solution_data": solution_b64,
                 "solution_metadata": solution_metadata,
             }
-    
+        else:
+            challenge_input = (
+                input["challenge"]["input"]
+                if isinstance(input["challenge"], dict)
+                else input["challenge"]
+            )
+            nonce = verify(challenge_input, payload["checksum"], input["difficulty"])
+            return {
+                "_is_bandwidth": False,
+                "challenge": input["challenge"],
+                "solution": nonce,
+                "signals": [
+                    {"name": "Zoey", "value": {"Present": payload["encrypted"]}}
+                ],
+                "checksum": payload["checksum"],
+                "client": "Browser",
+                "domain": self.domain,
+                "metrics": self._build_metrics(),
+                "goku_props": goku_props,
+            }
+
     def _build_metrics(self):
         return [
-            {"name": "2",         "value": random.uniform(0, 1),    "unit": "2"},
-            {"name": "100",       "value": 0,                        "unit": "2"},
-            {"name": "101",       "value": 0,                        "unit": "2"},
-            {"name": "102",       "value": 0,                        "unit": "2"},
-            {"name": "103",       "value": 8,                        "unit": "2"},
-            {"name": "104",       "value": 0,                        "unit": "2"},
-            {"name": "105",       "value": 0,                        "unit": "2"},
-            {"name": "106",       "value": 0,                        "unit": "2"},
-            {"name": "107",       "value": 0,                        "unit": "2"},
-            {"name": "108",       "value": 1,                        "unit": "2"},
-            {"name": "undefined", "value": 0,                        "unit": "2"},
-            {"name": "110",       "value": 0,                        "unit": "2"},
-            {"name": "111",       "value": 2,                        "unit": "2"},
-            {"name": "112",       "value": 0,                        "unit": "2"},
-            {"name": "undefined", "value": 0,                        "unit": "2"},
-            {"name": "3",         "value": 4,                        "unit": "2"},
-            {"name": "7",         "value": 0,                        "unit": "4"},
-            {"name": "1",         "value": random.uniform(5, 20),    "unit": "2"},
-            {"name": "4",         "value": 36.5,                     "unit": "2"},
-            {"name": "5",         "value": random.uniform(0, 1),     "unit": "2"},
-            {"name": "6",         "value": random.uniform(100, 500),   "unit": "2"},
-            {"name": "0",         "value": random.uniform(135, 500), "unit": "2"},
-            {"name": "8",         "value": 1,                        "unit": "4"},
+            {"name": "2", "value": random.uniform(0, 1), "unit": "2"},
+            {"name": "100", "value": 0, "unit": "2"},
+            {"name": "101", "value": 0, "unit": "2"},
+            {"name": "102", "value": 0, "unit": "2"},
+            {"name": "103", "value": 8, "unit": "2"},
+            {"name": "104", "value": 0, "unit": "2"},
+            {"name": "105", "value": 0, "unit": "2"},
+            {"name": "106", "value": 0, "unit": "2"},
+            {"name": "107", "value": 0, "unit": "2"},
+            {"name": "108", "value": 1, "unit": "2"},
+            {"name": "undefined", "value": 0, "unit": "2"},
+            {"name": "110", "value": 0, "unit": "2"},
+            {"name": "111", "value": 2, "unit": "2"},
+            {"name": "112", "value": 0, "unit": "2"},
+            {"name": "undefined", "value": 0, "unit": "2"},
+            {"name": "3", "value": 4, "unit": "2"},
+            {"name": "7", "value": 0, "unit": "4"},
+            {"name": "1", "value": random.uniform(5, 20), "unit": "2"},
+            {"name": "4", "value": 36.5, "unit": "2"},
+            {"name": "5", "value": random.uniform(0, 1), "unit": "2"},
+            {"name": "6", "value": random.uniform(100, 500), "unit": "2"},
+            {"name": "0", "value": random.uniform(135, 500), "unit": "2"},
+            {"name": "8", "value": 1, "unit": "4"},
         ]
 
-    
     def post_payload(self, payload, host_url):
+        if payload is None:
+            raise ValueError("Payload cannot be None")
+
         if payload.get("_is_bandwidth"):
             mp = CurlMime()
             mp.addpart(
-                name="solution_data",
-                data=payload["solution_data"].encode("utf-8")
+                name="solution_data", data=payload["solution_data"].encode("utf-8")
             )
             mp.addpart(
                 name="solution_metadata",
-                data=json.dumps(payload["solution_metadata"], separators=(",", ":")).encode("utf-8"),
+                data=json.dumps(
+                    payload["solution_metadata"], separators=(",", ":")
+                ).encode("utf-8"),
             )
-            response = requests.post(f"https://{host_url}/mp_verify", headers=self.headers, multipart=mp, timeout=10)
-    
+            response = requests.post(
+                f"https://{host_url}/mp_verify",
+                headers=self.headers,
+                multipart=mp,
+                timeout=10,
+            )
+
         else:
             payload.pop("_is_bandwidth", None)
-            response = requests.post(f"https://{host_url}/verify", headers=self.headers, json=payload, timeout=10)
+            response = requests.post(
+                f"https://{host_url}/verify",
+                headers=self.headers,
+                json=payload,
+                timeout=10,
+            )
 
         token = response.json()
         return token
 
-
-    
     def solve(self, site_html: str):
-
-        goku,host_url = self.extract(site_html)
-        values = self._get_final_values(host_url=host_url)
-        payload = self._build_payload(values, goku)
-        temp = self.post_payload(payload, host_url)
-        return temp["token"]
+        try:
+            goku, host_url = self.extract(site_html)
+            values = self._get_final_values(host_url=host_url)
+            payload = self._build_payload(values, goku)
+            temp = self.post_payload(payload, host_url)
+            return temp["token"]
+        except Exception as e:
+            # Re-raise with more context
+            raise RuntimeError(f"WAF challenge resolution failed: {e}") from e

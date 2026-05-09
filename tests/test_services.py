@@ -84,7 +84,13 @@ def test_get_name(monkeypatch):
 # ── Exception hierarchy tests ────────────────────────────────────────────────
 
 import pytest
-from imdbinfo.exceptions import ImdbinfoError, HTTPError, WAFError, GraphQLError, ParseError
+from imdbinfo.exceptions import (
+    ImdbinfoError,
+    HTTPError,
+    WAFError,
+    GraphQLError,
+    ParseError,
+)
 
 
 def _make_get_stub(status_code: int, text: str = "", content: bytes = b""):
@@ -94,6 +100,7 @@ def _make_get_stub(status_code: int, text: str = "", content: bytes = b""):
             text=text,
             content=content,
         )
+
     return stub
 
 
@@ -109,7 +116,9 @@ def test_http_error_raised_on_non_200(monkeypatch):
 
 
 def test_waf_error_raised_on_202(monkeypatch):
-    monkeypatch.setattr(services.niquests, "get", _make_get_stub(202, text="waf challenge"))
+    monkeypatch.setattr(
+        services.niquests, "get", _make_get_stub(202, text="waf challenge")
+    )
     with pytest.raises(WAFError) as exc_info:
         services.get_movie.cache_clear()
         services.get_movie("tt9999998")
@@ -145,7 +154,10 @@ def test_parse_error_raised_when_no_next_data(monkeypatch):
 
 def test_graphql_error_raised_on_non_200_post(monkeypatch):
     def stub_post(*args, **kwargs):
-        return SimpleNamespace(status_code=503, text="service unavailable", json=lambda: {})
+        return SimpleNamespace(
+            status_code=503, text="service unavailable", json=lambda: {}
+        )
+
     monkeypatch.setattr(services.niquests, "post", stub_post, raising=False)
     with pytest.raises(GraphQLError) as exc_info:
         services.search_title.cache_clear()
@@ -158,13 +170,16 @@ def test_graphql_error_raised_on_non_200_post(monkeypatch):
 
 def test_graphql_error_raised_on_errors_payload(monkeypatch):
     import json as _json
+
     payload = {"errors": [{"message": "some graphql error"}]}
+
     def stub_post(*args, **kwargs):
         return SimpleNamespace(
             status_code=200,
             text=_json.dumps(payload),
             json=lambda: payload,
         )
+
     monkeypatch.setattr(services.niquests, "post", stub_post, raising=False)
     with pytest.raises(GraphQLError) as exc_info:
         services.search_title.cache_clear()
@@ -176,7 +191,9 @@ def test_graphql_error_raised_on_errors_payload(monkeypatch):
 
 
 def test_http_error_metadata():
-    err = HTTPError("bad gateway", status_code=502, url="https://example.com", response_text="oops")
+    err = HTTPError(
+        "bad gateway", status_code=502, url="https://example.com", response_text="oops"
+    )
     assert err.status_code == 502
     assert err.url == "https://example.com"
     assert err.response_text == "oops"
@@ -185,7 +202,9 @@ def test_http_error_metadata():
 
 
 def test_waf_error_metadata():
-    err = WAFError("waf blocked", status_code=202, url="https://imdb.com/title/tt1/reference")
+    err = WAFError(
+        "waf blocked", status_code=202, url="https://imdb.com/title/tt1/reference"
+    )
     assert err.status_code == 202
     assert "tt1" in err.url
 
@@ -209,5 +228,3 @@ def test_parse_error_metadata():
     err = ParseError("no script", url="https://www.imdb.com/title/tt1/reference")
     assert "tt1" in err.url
     assert "tt1" in repr(err)
-
-
