@@ -50,7 +50,9 @@ class HTTPError(ImdbinfoError):
         The first 500 characters of the response body (may be empty).
     """
 
-    def __init__(self, message: str, status_code: int, url: str, response_text: str = ""):
+    def __init__(
+        self, message: str, status_code: int, url: str, response_text: str = ""
+    ):
         super().__init__(message)
         self.status_code: int = status_code
         self.url: str = url
@@ -145,9 +147,4 @@ class ParseError(ImdbinfoError):
         self.url: str = url
 
     def __repr__(self) -> str:
-        return (
-            f"{self.__class__.__name__}("
-            f"url={self.url!r}, "
-            f"message={str(self)!r})"
-        )
-
+        return f"{self.__class__.__name__}(url={self.url!r}, message={str(self)!r})"

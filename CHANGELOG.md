@@ -202,3 +202,5 @@
   
 ## v0.8.4
   - Updated README
+  - feat: add debug script for WAF solver with detailed error logging
+  - Fix WAF challenge extraction and cookie generation logic to handle edge cases and improve reliability
