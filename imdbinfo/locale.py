@@ -43,13 +43,21 @@ def set_locale(locale: str):
     global _configured_locale
     # accept only a single supported locale string
     if not isinstance(locale, str):
-        logger.warning("Invalid locale type: %r. Locale must be a string. Falling back to default '%s'.", locale, DEFAULT_LOCALE)
+        logger.warning(
+            "Invalid locale type: %r. Locale must be a string. Falling back to default '%s'.",
+            locale,
+            DEFAULT_LOCALE,
+        )
         _configured_locale = DEFAULT_LOCALE
         return
 
     l = locale.strip()
     if l not in SUPPORTED_LOCALES:
-        logger.warning("Locale '%s' is not supported. Falling back to default '%s'.", l, DEFAULT_LOCALE)
+        logger.warning(
+            "Locale '%s' is not supported. Falling back to default '%s'.",
+            l,
+            DEFAULT_LOCALE,
+        )
         _configured_locale = DEFAULT_LOCALE
         return
 

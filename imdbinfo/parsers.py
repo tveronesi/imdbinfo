@@ -654,7 +654,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
         raw_json,
     )
 
-    if  data["knownfor"] is None:
+    if data["knownfor"] is None:
         # fallback to old knownForFeature if knownForFeatureV2 is empty
         logger.debug("******** Falling back to old  knownForFeature path")
         data["knownfor"] = pjmespatch(

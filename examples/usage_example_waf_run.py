@@ -6,10 +6,7 @@ import logging
 import traceback
 
 # Enable detailed logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(levelname)s:%(name)s:%(message)s'
-)
+logging.basicConfig(level=logging.DEBUG, format="%(levelname)s:%(name)s:%(message)s")
 
 # Patch the request_handler to show WAF solver errors
 import imdbinfo.services as services
@@ -17,15 +14,16 @@ from imdbinfo.aws import AwsSolver
 
 original_get_cookies = services.get_cookies
 
+
 def patched_get_cookies(text, user_agent, force=False):
     """Patched version that shows full error details."""
     try:
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("DEBUG: WAF solver starting...")
-        print("="*80)
+        print("=" * 80)
         print(f"Response HTML length: {len(text)}")
         print(f"First 500 chars:\n{text[:500]}")
-        print("="*80)
+        print("=" * 80)
 
         solver = AwsSolver(user_agent=user_agent, domain="www.imdb.com")
 
@@ -33,7 +31,9 @@ def patched_get_cookies(text, user_agent, force=False):
         print("\nDEBUG: Attempting to extract goku and host...")
         try:
             goku, host = solver.extract(text)
-            print(f"SUCCESS: Extracted goku (keys: {list(goku.keys()) if isinstance(goku, dict) else 'not a dict'}) and host: {host}")
+            print(
+                f"SUCCESS: Extracted goku (keys: {list(goku.keys()) if isinstance(goku, dict) else 'not a dict'}) and host: {host}"
+            )
         except Exception as e:
             print(f"ERROR in extract(): {e}")
             traceback.print_exc()
@@ -64,7 +64,7 @@ def patched_get_cookies(text, user_agent, force=False):
         try:
             temp = solver.post_payload(payload, host)
             print(f"SUCCESS: Got response: {temp}")
-            return {'aws-waf-token': temp['token']}
+            return {"aws-waf-token": temp["token"]}
         except Exception as e:
             print(f"ERROR in post_payload(): {e}")
             traceback.print_exc()
@@ -74,6 +74,7 @@ def patched_get_cookies(text, user_agent, force=False):
         print(f"\nERROR: WAF solver failed: {e}")
         traceback.print_exc()
         raise
+
 
 # Monkey-patch
 services.get_cookies = patched_get_cookies
@@ -89,4 +90,3 @@ except Exception as e:
     print(f"FINAL ERROR: {e}")
     traceback.print_exc()
     sys.exit(1)
-
