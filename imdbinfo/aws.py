@@ -293,11 +293,20 @@ class AwsSolver:
         else:
             self.domain = domain
 
-    def extract(self,html: str):
-        goku_props = json.loads(html.split("window.gokuProps = ")[1].split(";")[0])
-        host = html.split("src=\"https://")[1].split("/challenge.js")[0]
-        return goku_props, host
-    
+    def extract(self, html: str):
+        try:
+            if "window.gokuProps = " not in html:
+                raise ValueError("window.gokuProps not found in HTML response")
+            goku_props = json.loads(html.split("window.gokuProps = ")[1].split(";")[0])
+
+            if "src=\"https://" not in html or "/challenge.js" not in html:
+                raise ValueError("Challenge script host not found in HTML response")
+            host = html.split("src=\"https://")[1].split("/challenge.js")[0]
+
+            return goku_props, host
+        except (ValueError, json.JSONDecodeError, IndexError) as e:
+            raise ValueError(f"Failed to extract challenge data from HTML: {e}")
+
 
     def _get_final_values(self, host_url):
 
@@ -305,9 +314,13 @@ class AwsSolver:
         return response.json()
     
     def _build_payload(self, input: dict, goku_props):
-        verify = CHALLENGES[input["challenge_type"]]
+        challenge_type = input.get("challenge_type")
+        if challenge_type not in CHALLENGES:
+            raise ValueError(f"Unknown challenge type: {challenge_type}. Supported: {list(CHALLENGES.keys())}")
+
+        verify = CHALLENGES[challenge_type]
         payload = build_everything(user_agent=self.user_agent)
-        is_bandwidth = input["challenge_type"] == BANDWIDTH_CHALLENGE
+        is_bandwidth = challenge_type == BANDWIDTH_CHALLENGE
 
         if is_bandwidth:
             solution_b64 = verify("", "", input["difficulty"])
@@ -326,7 +339,21 @@ class AwsSolver:
                 "solution_data": solution_b64,
                 "solution_metadata": solution_metadata,
             }
-    
+        else:
+            challenge_input = input["challenge"]["input"] if isinstance(input["challenge"], dict) else input["challenge"]
+            nonce = verify(challenge_input, payload["checksum"], input["difficulty"])
+            return {
+                "_is_bandwidth": False,
+                "challenge": input["challenge"],
+                "solution": nonce,
+                "signals": [{"name": "Zoey", "value": {"Present": payload["encrypted"]}}],
+                "checksum": payload["checksum"],
+                "client": "Browser",
+                "domain": self.domain,
+                "metrics": self._build_metrics(),
+                "goku_props": goku_props
+            }
+
     def _build_metrics(self):
         return [
             {"name": "2",         "value": random.uniform(0, 1),    "unit": "2"},
@@ -356,6 +383,9 @@ class AwsSolver:
 
     
     def post_payload(self, payload, host_url):
+        if payload is None:
+            raise ValueError("Payload cannot be None")
+
         if payload.get("_is_bandwidth"):
             mp = CurlMime()
             mp.addpart(
@@ -378,9 +408,12 @@ class AwsSolver:
 
     
     def solve(self, site_html: str):
-
-        goku,host_url = self.extract(site_html)
-        values = self._get_final_values(host_url=host_url)
-        payload = self._build_payload(values, goku)
-        temp = self.post_payload(payload, host_url)
-        return temp["token"]
+        try:
+            goku, host_url = self.extract(site_html)
+            values = self._get_final_values(host_url=host_url)
+            payload = self._build_payload(values, goku)
+            temp = self.post_payload(payload, host_url)
+            return temp["token"]
+        except Exception as e:
+            # Re-raise with more context
+            raise RuntimeError(f"WAF challenge resolution failed: {e}") from e

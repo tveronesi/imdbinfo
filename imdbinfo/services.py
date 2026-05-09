@@ -145,11 +145,17 @@ def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
 
 
 def get_cookies(text , user_agent, force = False):
-    solver = AwsSolver(user_agent=user_agent , domain = "www.imdb.com")
-    token = solver.solve(text)
-    return {
-        'aws-waf-token': token,
-    }
+    logger.debug("Starting WAF challenge solver...")
+    try:
+        solver = AwsSolver(user_agent=user_agent , domain = "www.imdb.com")
+        token = solver.solve(text)
+        logger.debug("WAF token successfully obtained")
+        return {
+            'aws-waf-token': token,
+        }
+    except Exception as e:
+        logger.error("WAF challenge resolution failed: %s", e, exc_info=True)
+        raise
 
 
 def request_json_url(url: str) -> Any:
