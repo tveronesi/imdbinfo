@@ -204,3 +204,6 @@
   - Updated README
   - feat: add debug script for WAF solver with detailed error logging
   - Fix WAF challenge extraction and cookie generation logic to handle edge cases and improve reliability
+
+## v0.9.0
+  - move aws waf module to external package 
