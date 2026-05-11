@@ -51,7 +51,7 @@ from .parsers import (
     parse_json_filmography,
     parse_json_parental_guide,
 )
-from .aws import AwsSolver
+from imdbinfo.aws import AwsSolver
 
 logger = logging.getLogger(__name__)
 
