@@ -7,6 +7,8 @@ __pycache__/
 # C extensions
 *.so
 
+imdbinfo_aws
+
 # Distribution / packaging
 .Python
 build/
