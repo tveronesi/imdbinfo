@@ -533,7 +533,7 @@ class BulkedEpisode(BaseModel):
         )
 
     def __str__(self):
-        return f"{self.title} ({self.release_date or 'N/A'}) - {self.imdbId} ({self.kind or 'N/A'})"
+        return f"{self.title} S{str(self.season_number).zfill(2)}-E{str(self.episode_number).zfill(2)}({self.release_date or 'N/A'}) - {self.imdbId} ({self.kind or 'N/A'})"
 
 
 class SeasonEpisodesList(BaseModel):
