@@ -26,7 +26,7 @@
 - 🛡️ **Parental guide** including content advisories via `get_parental_guide`
 - 📝 **Typed Pydantic models** for predictable responses
 - ⚡ **Built-in caching** for faster repeated requests
-- 🛡️ AWS WAF solver in CPython for better performance
+- 🛡️**AWS WAF** solver in CPython for better performance
 - ✅ **No API keys required**
 
 ## Installation
