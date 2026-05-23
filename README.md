@@ -337,6 +337,16 @@ If you find this project useful, please consider giving it a ⭐ on GitHub!
 
 Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 
+## Star History
+
+<a href="https://www.star-history.com/?repos=tveronesi%2Fimdbinfo&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=tveronesi/imdbinfo&type=date&theme=dark&logscale&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=tveronesi/imdbinfo&type=date&logscale&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=tveronesi/imdbinfo&type=date&logscale&legend=top-left" />
+ </picture>
+</a>
+
 ## License
 
 imdbinfo is released under the MIT License.
