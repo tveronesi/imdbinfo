@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(levelname)s:%(name)s:%(messag
 
 # Patch the request_handler to show WAF solver errors
 import imdbinfo.services as services
-from imdbinfo.aws import AwsSolver
+from imdbinfo_aws.aws import AwsSolver
 
 original_get_cookies = services.get_cookies
 
