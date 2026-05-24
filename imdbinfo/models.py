@@ -495,6 +495,8 @@ class BulkedEpisode(BaseModel):
     id: str  # id without 'tt' prefix, e.g. '1234567'
     imdbId: str
     imdb_id: str
+    season_number: Optional[int] = None
+    episode_number: Optional[int] = None
     title: str
     plot: str
     image_url: Optional[str] = None
@@ -516,6 +518,8 @@ class BulkedEpisode(BaseModel):
             id=data["titleId"].replace("tt", ""),
             imdbId=data["titleId"],
             imdb_id=data["titleId"].replace("tt", ""),
+            season_number=data.get("series", {}).get("seasonNumber", None),
+            episode_number=data.get("series", {}).get("episodeNumber", None),
             title=data["titleText"],
             genres=data.get("genres") or [],
             plot=data.get("plot", ""),
@@ -529,7 +533,7 @@ class BulkedEpisode(BaseModel):
         )
 
     def __str__(self):
-        return f"{self.title} ({self.release_date or 'N/A'}) - {self.imdbId} ({self.kind or 'N/A'})"
+        return f"{self.title} S{str(self.season_number).zfill(2)}-E{str(self.episode_number).zfill(2)}({self.release_date or 'N/A'}) - {self.imdbId} ({self.kind or 'N/A'})"
 
 
 class SeasonEpisodesList(BaseModel):
