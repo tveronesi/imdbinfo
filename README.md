@@ -27,6 +27,7 @@
 - 📝 **Typed Pydantic models** for predictable responses
 - ⚡ **Built-in caching** for faster repeated requests
 - 🛡️**AWS WAF** solver in CPython for better performance
+- 🔗 **Proxy support** route all requests through HTTP/HTTPS/SOCKS proxies
 - ✅ **No API keys required**
 
 ## Installation
@@ -265,6 +266,23 @@ for item in results.titles:
     print(item.title, "->", getattr(item, "title_localized", item.title))
 ```
 
+### Proxy support
+
+Route all IMDb requests through a proxy by setting it globally. The proxy dict uses the same format as `requests` (keys `"http"` and `"https"`):
+
+```python
+from imdbinfo import set_proxy, get_movie
+
+# Set a proxy (HTTP, HTTPS, or SOCKS)
+set_proxy({"http": "http://proxy:8080", "https": "http://proxy:8080"})
+
+# All requests now go through the proxy
+movie = get_movie("tt0133093")
+
+# Disable proxy
+set_proxy(None)
+```
+
 ### Filtering results based on type (e.g. Movies, Series, Episodes etc.) 🔽 
 You can filter results from `search_title`, done server-side.
 ```python
@@ -323,6 +341,7 @@ for imdb_id in movies:
 - Powered by niquests and lxml
 - Uses Pydantic for type safety
 - No external dependencies or API keys required
+- Built-in proxy support for all requests
 - Ideal for quick scripts and data analysis
 
 ## Disclaimer

@@ -36,6 +36,7 @@ from .services import (
     get_all_interests,
     TitleType,
 )
+from .proxy import set_proxy, get_proxy
 from .exceptions import (
     ImdbinfoError,
     HTTPError,
@@ -58,6 +59,8 @@ __all__ = [
     "get_filmography",
     "get_all_interests",
     "TitleType",
+    "set_proxy",
+    "get_proxy",
     # exceptions
     "ImdbinfoError",
     "HTTPError",

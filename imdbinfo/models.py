@@ -571,7 +571,7 @@ class SeasonEpisodesList(BaseModel):
         return self.episodes[idx]
 
     def __str__(self):
-        return "Season"
+        return f"Season {self.season_number} of series {self.series_imdbId} has {len(self.episodes)} episodes"
 
 
 class AkaInfo(BaseModel):
