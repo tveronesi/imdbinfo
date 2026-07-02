@@ -306,7 +306,7 @@ def search_title(
     first: 50
     options: {
       searchTerm: "__SEARCH_TERM__"
-      isExactMatch: "__EXACT_MATCH__"
+      isExactMatch: __EXACT_MATCH__
       type: [TITLE, NAME]
       titleSearchOptions: { type: [__TYPES__] }
     }
