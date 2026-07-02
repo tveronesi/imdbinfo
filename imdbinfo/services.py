@@ -283,6 +283,7 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
 def search_title(
     search_term: str,
     locale: Optional[str] = None,
+    exact_match: bool = False,
     title_type: Optional[TitleFilter] = None,
 ) -> Optional[SearchResult]:
     lang = _retrieve_url_lang(locale)
@@ -305,7 +306,7 @@ def search_title(
     first: 50
     options: {
       searchTerm: "__SEARCH_TERM__"
-      isExactMatch: false
+      isExactMatch: "__EXACT_MATCH__"
       type: [TITLE, NAME]
       titleSearchOptions: { type: [__TYPES__] }
     }
@@ -356,7 +357,7 @@ def search_title(
 
     query = query_template.replace("__SEARCH_TERM__", search_term).replace(
         "__TYPES__", search_options_types
-    )
+    ).replace("__EXACT_MATCH__", str(exact_match).lower())
     payload = {"query": query}
     headers = {"Content-Type": "application/json", "x-imdb-user-country": country_code}
 
