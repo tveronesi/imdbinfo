@@ -282,6 +282,8 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
 @lru_cache(maxsize=128)
 def search_title(
     search_term: str,
+    year: int | None = None,
+    exact_match: bool = False,
     locale: Optional[str] = None,
     title_type: Optional[TitleFilter] = None,
 ) -> Optional[SearchResult]:
@@ -298,16 +300,29 @@ def search_title(
         ]
         search_options_types = ",".join(filter(None, types))
 
-    url = GRAPHQL_URL
+    year_filter = (
+        f"""
+        releaseDateRange: {{
+          start: "{year}-01-01"
+          end: "{year}-12-31"
+        }}
+        """
+        if year is not None
+        else ""
+    )
 
-    query_template = """query {
+    query_template = """
+query {
   mainSearch(
     first: 50
     options: {
       searchTerm: "__SEARCH_TERM__"
-      isExactMatch: false
+      isExactMatch: __EXACT_MATCH__
       type: [TITLE, NAME]
-      titleSearchOptions: { type: [__TYPES__] }
+      titleSearchOptions: {
+        type: [__TYPES__]
+        __YEAR_FILTER__
+      }
     }
   ) {
     edges {
@@ -319,13 +334,26 @@ def search_title(
             titleText { text }
             canonicalUrl
             originalTitleText { text }
-            releaseYear{ year }
+            releaseYear { year }
             releaseDate { year month day }
             primaryImage { url }
-            titleType { id text categories { id text value } }
-            ratingsSummary { aggregateRating }
-            runtime { seconds }
+            titleType {
+              id
+              text
+              categories {
+                id
+                text
+                value
+              }
+            }
+            ratingsSummary {
+              aggregateRating
+            }
+            runtime {
+              seconds
+            }
           }
+
           ... on Name {
             __typename
             id
@@ -334,7 +362,10 @@ def search_title(
               profession { text }
               professionCategory {
                 traits
-                text { text id }
+                text {
+                  text
+                  id
+                }
               }
             }
             knownForV2 {
@@ -352,21 +383,33 @@ def search_title(
       }
     }
   }
-}"""
+}
+"""
 
-    query = query_template.replace("__SEARCH_TERM__", search_term).replace(
-        "__TYPES__", search_options_types
+    query = (
+        query_template
+        .replace("__SEARCH_TERM__", search_term)
+        .replace("__EXACT_MATCH__", str(exact_match).lower())
+        .replace("__TYPES__", search_options_types)
+        .replace("__YEAR_FILTER__", year_filter)
     )
+
     payload = {"query": query}
-    headers = {"Content-Type": "application/json", "x-imdb-user-country": country_code}
+    headers = {
+        "Content-Type": "application/json",
+        "x-imdb-user-country": country_code,
+    }
 
     logger.info("Searching for '%s' using GraphQL API", search_term)
-    data = request_graphql_url(
-        headers=headers, search_term=search_term, payload=payload, url=url
-    )
-    result = parse_json_search(data)
 
-    return result
+    data = request_graphql_url(
+        headers=headers,
+        search_term=search_term,
+        payload=payload,
+        url=GRAPHQL_URL,
+    )
+
+    return parse_json_search(data)
 
 
 @lru_cache(maxsize=128)
