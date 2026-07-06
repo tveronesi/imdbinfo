@@ -46,6 +46,16 @@ results = search_title("The Matrix")
 for movie in results.titles:
     print(f"{movie.title} ({movie.year}) - Rating: {movie.rating} - {movie.imdb_id}")
 
+# Search for an exact title match
+results = search_title("The Matrix", exact_match=True)
+for movie in results.titles:
+    print(f"{movie.title} ({movie.year})")
+
+# Search by title and year
+results = search_title("The Matrix", year=1999)
+for movie in results.titles:
+    print(f"{movie.title} ({movie.year})")
+
 # Get movie details
 movie = get_movie("0133093")  # or 'tt0133093'
 print(movie.title, movie.year, movie.rating)
@@ -295,6 +305,11 @@ for movie in results.titles:
 
 # Search for multiple types: movies, shorts and videos.
 results = search_title("The Matrix", title_type=(TitleType.Movies, TitleType.Shorts, TitleType.Video))
+for movie in results.titles:
+    print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
+
+# Exact match and year filtering
+results = search_title("The Matrix", exact_match=True, year=1999)
 for movie in results.titles:
     print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
 
