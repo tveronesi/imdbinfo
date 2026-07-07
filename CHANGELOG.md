@@ -211,3 +211,6 @@
 
 ## v0.9.1
   - Added `season_number` and `episode_number` as optional integer fields to the `BulkedEpisode` model to explicitly represent episode positioning within a series.
+
+## v0.9.2
+  - Added proxy support: `set_proxy(dict)` / `get_proxy()` in `imdbinfo/proxy.py` to route all HTTP requests through HTTP/HTTPS/SOCKS proxies. Follows the same global configuration pattern as `set_locale()`.
