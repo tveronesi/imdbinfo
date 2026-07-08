@@ -45,6 +45,8 @@ from .models import (
     AkasData,
     AwardInfo,
     ParentalGuideList,
+    MediaItem,
+    MediaGallery,
 )
 from .transformers import (
     _release_date,
@@ -861,3 +863,72 @@ def parse_json_filmography(raw_json) -> Dict[str, List[MovieBriefInfo]]:
 def parse_json_parental_guide(raw_json):
     """Return ParentalGuideData or None."""
     return ParentalGuideList.from_raw(raw_json.get("parentsGuide"))
+
+
+def parse_json_media_gallery(raw_json: dict) -> Optional[MediaGallery]:
+    images_data = raw_json.get("images")
+    if not images_data:
+        return None
+
+    edges = images_data.get("edges", [])
+    if not edges:
+        return None
+
+    items = []
+    for edge in edges:
+        node = edge.get("node", {})
+        if not node.get("id") or not node.get("url"):
+            continue
+
+        caption = None
+        caption_node = node.get("caption")
+        if isinstance(caption_node, dict):
+            caption = caption_node.get("plainText")
+
+        source_name = None
+        source_url = None
+        source_node = node.get("source")
+        if isinstance(source_node, dict):
+            source_name = source_node.get("text")
+            source_url = source_node.get("attributionUrl")
+
+        names = [
+            {"id": n.get("id"), "name": n.get("nameText", {}).get("text")}
+            for n in node.get("names", []) or []
+            if n.get("id")
+        ]
+
+        titles = [
+            {"id": t.get("id"), "title": t.get("titleText", {}).get("text")}
+            for t in node.get("titles", []) or []
+            if t.get("id")
+        ]
+
+        items.append(
+            MediaItem(
+                id=node["id"],
+                url=node["url"],
+                width=node.get("width"),
+                height=node.get("height"),
+                caption=caption,
+                type=node.get("type"),
+                copyright=node.get("copyright"),
+                created_by=node.get("createdBy"),
+                source_name=source_name,
+                source_url=source_url,
+                names=names,
+                titles=titles,
+            )
+        )
+
+    imdb_id = raw_json.get("id", "")
+    imdb_id = imdb_id.replace("tt", "") if imdb_id else ""
+
+    page_info = images_data.get("pageInfo", {}) or {}
+    return MediaGallery(
+        imdb_id=imdb_id,
+        total=images_data.get("total", 0),
+        items=items,
+        has_next_page=page_info.get("hasNextPage", False),
+        end_cursor=page_info.get("endCursor"),
+    )

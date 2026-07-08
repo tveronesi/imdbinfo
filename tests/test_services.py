@@ -228,3 +228,48 @@ def test_parse_error_metadata():
     err = ParseError("no script", url="https://www.imdb.com/title/tt1/reference")
     assert "tt1" in err.url
     assert "tt1" in repr(err)
+
+
+def test_get_media_gallery(monkeypatch):
+    monkeypatch.setattr(
+        services.niquests,
+        "post",
+        mock_post_factory("sample_media_gallery.json"),
+        raising=False,
+    )
+    services.get_media_gallery.cache_clear()
+    gallery = services.get_media_gallery("tt0133093")
+    assert gallery is not None
+    assert gallery.total == 266
+    assert len(gallery.items) == 20
+    assert gallery.has_next_page is True
+    assert gallery.end_cursor is not None
+    assert gallery.imdb_id == "0133093"
+
+    first = gallery[0]
+    assert first.id == "rm3470144001"
+    assert first.url.startswith("https://m.media-amazon.com/images/")
+    assert first.type == "still_frame"
+    assert "Keanu Reeves" in first.caption
+
+
+def test_get_media_gallery_caches(monkeypatch):
+    call_count = 0
+
+    def counting_post(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        json_text = load_sample_text("sample_media_gallery.json")
+        return SimpleNamespace(
+            status_code=200,
+            content=json_text,
+            json=lambda: json.loads(json_text),
+        )
+
+    monkeypatch.setattr(services.niquests, "post", counting_post, raising=False)
+    services.get_media_gallery.cache_clear()
+
+    g1 = services.get_media_gallery("tt0133093")
+    g2 = services.get_media_gallery("tt0133093")
+    assert g1.total == g2.total
+    assert call_count == 1

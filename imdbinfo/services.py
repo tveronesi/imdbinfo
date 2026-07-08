@@ -38,6 +38,7 @@ from .models import (
     SeasonEpisodesList,
     PersonDetail,
     AkasData,
+    MediaGallery,
 )
 from .parsers import (
     parse_json_movie,
@@ -50,6 +51,7 @@ from .parsers import (
     parse_json_reviews,
     parse_json_filmography,
     parse_json_parental_guide,
+    parse_json_media_gallery,
 )
 from imdbinfo_aws.aws import AwsSolver
 
@@ -753,3 +755,86 @@ def _get_extended_name_info(person_id, locale=None) -> dict:
     data = request_graphql_url(headers, person_id, payload, url)
     raw_json = data.get("data", {}).get("name", {})
     return raw_json
+
+
+@lru_cache(maxsize=128)
+def get_media_gallery(
+    imdb_id: str,
+    locale: Optional[str] = None,
+    first: int = 50,
+    after: Optional[str] = None,
+) -> Optional[MediaGallery]:
+    imdbId = "tt" + imdb_id.replace("tt", "")
+    lang = _retrieve_url_lang(locale)
+    country = _get_country_code_from_lang_locale(lang)
+
+    after_clause = f'after: "{after}", ' if after else ""
+    query = (
+        """
+        query {
+          title(id: "%s") {
+            id
+            images(first: %s, %s) {
+              total
+              pageInfo {
+                endCursor
+                hasNextPage
+                hasPreviousPage
+                startCursor
+              }
+              edges {
+                position
+                cursor
+                node {
+                  id
+                  url
+                  height
+                  width
+                  caption {
+                    plainText
+                  }
+                  type
+                  copyright
+                  createdBy
+                  source {
+                    id
+                    text
+                    attributionUrl
+                  }
+                  names {
+                    id
+                    nameText {
+                      text
+                    }
+                  }
+                  titles {
+                    id
+                    titleText {
+                      text
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+        % (imdbId, first, after_clause)
+    )
+    url = GRAPHQL_URL
+    headers = {
+        "Content-Type": "application/json",
+        "x-imdb-user-country": country,
+    }
+    payload = {"query": query}
+    logger.info("Fetching media gallery for title %s", imdbId)
+    data = request_graphql_url(headers, imdbId, payload, url)
+    raw_json = data.get("data", {}).get("title", {})
+    if not raw_json:
+        logger.warning("No media gallery data found for title %s", imdbId)
+        return None
+    gallery = parse_json_media_gallery(raw_json)
+    if gallery:
+        gallery.imdb_id = imdb_id.replace("tt", "")
+    logger.debug("Fetched %d/%d images for title %s", gallery.count if gallery else 0, (raw_json.get("images", {}) or {}).get("total", 0), imdbId)
+    return gallery
