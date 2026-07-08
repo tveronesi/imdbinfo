@@ -211,3 +211,8 @@
 
 ## v0.9.1
   - Added `season_number` and `episode_number` as optional integer fields to the `BulkedEpisode` model to explicitly represent episode positioning within a series.
+
+## v0.9.2
+  - Add `year` and `exact_match` parameters to `search_title` for filtering by release year and exact title matching
+  - Improve `BulkedEpisode.__str__` to include season number and episode count
+  - Updated GraphQL search query formatting for better readability
