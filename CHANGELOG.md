@@ -219,3 +219,5 @@
   - Add `get_media_gallery` function to fetch poster images and backdrops for any IMDb title
   - New `MediaGallery` and `MediaItem` models for structured media data (image URLs, dimensions, captions, types, sources)
   - Media gallery uses the shared GraphQL endpoint via `_get_extended_title_info`
+  - Updated `docs/index.md` to include all features from README.md (reviews, trivia, media gallery, company credits, awards, localized results, filtering by type, filmography, all interests, AWS WAF mention)
+  - Synchronized GitHub static page documentation with current feature set
