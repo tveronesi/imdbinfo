@@ -216,3 +216,6 @@
   - Add `year` and `exact_match` parameters to `search_title` for filtering by release year and exact title matching
   - Improve `BulkedEpisode.__str__` to include season number and episode count
   - Updated GraphQL search query formatting for better readability
+  - Add `get_media_gallery` function to fetch poster images and backdrops for any IMDb title
+  - New `MediaGallery` and `MediaItem` models for structured media data (image URLs, dimensions, captions, types, sources)
+  - Media gallery uses the shared GraphQL endpoint via `_get_extended_title_info`
