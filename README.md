@@ -24,6 +24,7 @@
 - 🎭 **Movie trivia and interesting facts** via `get_trivia`
 - 🗂️ **Full filmography** for actors, directors and writers via `get_filmography`
 - 🛡️ **Parental guide** including content advisories via `get_parental_guide`
+- 🖼️ **Media gallery** with poster images and backdrops via `get_media_gallery`
 - 📝 **Typed Pydantic models** for predictable responses
 - ⚡ **Built-in caching** for faster repeated requests
 - 🛡️**AWS WAF** solver in CPython for better performance
@@ -342,6 +343,22 @@ movies = ["tt1490017", "tt0133093"]
 for imdb_id in movies:
     interests = get_all_interests(imdb_id)
     print(f"Interests for {imdb_id}: {interests}")
+```
+
+#### Media Gallery (Posters and Backdrops)
+Fetch poster images and backdrops for any movie or series:
+```python
+from imdbinfo import get_media_gallery
+
+gallery = get_media_gallery("tt0133093")  # The Matrix
+print(f"Total images: {gallery.total}")
+
+for item in gallery[:5]:
+    print(f"[{item.type}] {item.url}")
+    if item.caption:
+        print(f"  Caption: {item.caption}")
+    if item.source_name:
+        print(f"  Source: {item.source_name}")
 ```
 
 

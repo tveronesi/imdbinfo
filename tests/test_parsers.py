@@ -1,7 +1,7 @@
 import json
 import os
 from imdbinfo import parsers
-from imdbinfo.models import ParentalGuideList
+from imdbinfo.models import ParentalGuideList, MediaItem, MediaGallery
 
 SAMPLE_DIR = os.path.join(os.path.dirname(__file__), "sample_json_source")
 
@@ -319,3 +319,69 @@ def test_parse_json_parental_guide_with_empty_or_missing_returns_none():
     assert parsers.parse_json_parental_guide({"parentsGuide": None}) is None
     # parentsGuide empty dict
     assert parsers.parse_json_parental_guide({"parentsGuide": {}}) is None
+
+
+def test_parse_json_media_gallery():
+    raw_json = load_sample("sample_media_gallery.json")
+    title_data = raw_json.get("data", {}).get("title", {})
+    gallery = parsers.parse_json_media_gallery(title_data)
+    assert gallery is not None
+    assert isinstance(gallery, MediaGallery)
+    assert gallery.total == 557
+    assert len(gallery.items) == 50
+
+    first = gallery[0]
+    assert isinstance(first, MediaItem)
+    assert first.id == "rm401243905"
+    assert first.url.startswith("https://m.media-amazon.com/images/")
+    assert first.type == "still_frame"
+    assert "Ben Burtt" in first.caption
+    assert first.width == 1920
+    assert first.height == 1080
+    assert len(first.names) > 0
+    assert first.names[0]["name"] == "Ben Burtt"
+    assert len(first.titles) > 0
+    assert first.titles[0]["title"] == "WALL·E"
+
+
+def test_parse_json_media_gallery_with_missing_images():
+    result = parsers.parse_json_media_gallery({})
+    assert result is None
+
+    result = parsers.parse_json_media_gallery({"images": None})
+    assert result is None
+
+    result = parsers.parse_json_media_gallery({"images": {}})
+    assert result is None
+
+    result = parsers.parse_json_media_gallery({"images": {"edges": []}})
+    assert result is None
+
+
+def test_parse_json_media_gallery_image_types():
+    raw_json = load_sample("sample_media_gallery.json")
+    title_data = raw_json.get("data", {}).get("title", {})
+    gallery = parsers.parse_json_media_gallery(title_data)
+    types = {item.type for item in gallery.items if item.type}
+    assert "still_frame" in types
+    assert "publicity" in types
+    assert "event" in types
+
+
+def test_parse_json_media_gallery_nullable_fields():
+    raw_json = load_sample("sample_media_gallery.json")
+    title_data = raw_json.get("data", {}).get("title", {})
+    gallery = parsers.parse_json_media_gallery(title_data)
+
+    copyright_items = [item for item in gallery.items if item.copyright]
+    assert len(copyright_items) > 0
+
+    some_have_names = any(len(item.names) > 0 for item in gallery.items)
+    assert some_have_names
+
+    items_no_names = [item for item in gallery.items if len(item.names) == 0]
+    assert len(items_no_names) > 0
+    assert items_no_names[0].names == []
+
+    some_have_titles = any(len(item.titles) > 0 for item in gallery.items)
+    assert some_have_titles

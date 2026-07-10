@@ -213,4 +213,11 @@
   - Added `season_number` and `episode_number` as optional integer fields to the `BulkedEpisode` model to explicitly represent episode positioning within a series.
 
 ## v0.9.2
-  - Added proxy support: `set_proxy(dict)` / `get_proxy()` in `imdbinfo/proxy.py` to route all HTTP requests through HTTP/HTTPS/SOCKS proxies. Follows the same global configuration pattern as `set_locale()`.
+  - Add `year` and `exact_match` parameters to `search_title` for filtering by release year and exact title matching
+  - Improve `BulkedEpisode.__str__` to include season number and episode count
+  - Updated GraphQL search query formatting for better readability
+  - Add `get_media_gallery` function to fetch poster images and backdrops for any IMDb title
+  - New `MediaGallery` and `MediaItem` models for structured media data (image URLs, dimensions, captions, types, sources)
+  - Media gallery uses the shared GraphQL endpoint via `_get_extended_title_info`
+  - Updated `docs/index.md` to include all features from README.md (reviews, trivia, media gallery, company credits, awards, localized results, filtering by type, filmography, all interests, AWS WAF mention)
+  - Synchronized GitHub static page documentation with current feature set
