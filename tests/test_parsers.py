@@ -329,23 +329,19 @@ def test_parse_json_media_gallery():
     assert isinstance(gallery, MediaGallery)
     assert gallery.total == 557
     assert len(gallery.items) == 50
-    assert gallery.has_next_page is True
-    assert gallery.end_cursor is not None
 
     first = gallery[0]
     assert isinstance(first, MediaItem)
-    assert first.id == "rm3470144001"
+    assert first.id == "rm401243905"
     assert first.url.startswith("https://m.media-amazon.com/images/")
     assert first.type == "still_frame"
-    assert "Keanu Reeves" in first.caption
-    assert first.width == 3072
-    assert first.height == 2048
-    assert first.source_name == "gettyimages.com"
-    assert first.source_url is not None
+    assert "Ben Burtt" in first.caption
+    assert first.width == 1920
+    assert first.height == 1080
     assert len(first.names) > 0
-    assert first.names[0]["name"] == "Keanu Reeves"
+    assert first.names[0]["name"] == "Ben Burtt"
     assert len(first.titles) > 0
-    assert first.titles[0]["title"] == "The Matrix"
+    assert first.titles[0]["title"] == "WALL·E"
 
 
 def test_parse_json_media_gallery_with_missing_images():

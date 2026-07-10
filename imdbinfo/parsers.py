@@ -923,5 +923,4 @@ def parse_json_media_gallery(raw_json: dict) -> Optional[MediaGallery]:
         imdb_id=imdb_id,
         total=images_data.get("total", 0),
         items=items,
-
     )

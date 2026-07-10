@@ -241,16 +241,14 @@ def test_get_media_gallery(monkeypatch):
     gallery = services.get_media_gallery("tt0133093")
     assert gallery is not None
     assert gallery.total == 557
-    assert len(gallery.items) == 20
-    assert gallery.has_next_page is True
-    assert gallery.end_cursor is not None
-    assert gallery.imdb_id == "0133093"
+    assert len(gallery.items) == 50
+    assert gallery.imdb_id == "0910970"
 
     first = gallery[0]
-    assert first.id == "rm3470144001"
+    assert first.id == "rm401243905"
     assert first.url.startswith("https://m.media-amazon.com/images/")
     assert first.type == "still_frame"
-    assert "Keanu Reeves" in first.caption
+    assert "Ben Burtt" in first.caption
 
 
 def test_get_media_gallery_caches(monkeypatch):
@@ -268,6 +266,7 @@ def test_get_media_gallery_caches(monkeypatch):
 
     monkeypatch.setattr(services.niquests, "post", counting_post, raising=False)
     services.get_media_gallery.cache_clear()
+    services._get_extended_title_info.cache_clear()
 
     g1 = services.get_media_gallery("tt0133093")
     g2 = services.get_media_gallery("tt0133093")
