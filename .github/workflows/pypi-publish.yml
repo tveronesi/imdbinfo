@@ -8,8 +8,8 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-22.04
-    permissions:
-      contents: write
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -23,8 +23,48 @@ jobs:
         run: |
           python -m pip install --upgrade pip
 
-      - name: Install ( dependencies)
+      - name: Install dependencies
         run: pip install ".[build,test]"
+
+      - name: Validate tag matches package version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION=$(python - <<'PY'
+          import tomllib
+          with open("pyproject.toml", "rb") as f:
+              data = tomllib.load(f)
+          print(data["project"]["version"])
+          PY
+          )
+          echo "Tag version: $TAG_VERSION"
+          echo "Package version: $PKG_VERSION"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "Tag version does not match pyproject.toml version"
+            exit 1
+          fi
+
+      - name: Check version is not already published on PyPI
+        run: |
+          python -m pip install requests
+          python - <<'PY'
+          import sys
+          import tomllib
+          import requests
+
+          package_name = "imdbinfo"
+          with open("pyproject.toml", "rb") as f:
+              version = tomllib.load(f)["project"]["version"]
+
+          response = requests.get(f"https://pypi.org/pypi/{package_name}/json", timeout=30)
+          response.raise_for_status()
+          releases = response.json().get("releases", {})
+
+          if version in releases:
+              print(f"Version {version} already exists on PyPI")
+              sys.exit(1)
+
+          print(f"Version {version} is not yet published")
+          PY
 
       - name: Run tests
         run: pytest

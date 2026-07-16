@@ -225,3 +225,6 @@
 
 ## v0.9.3
   - Fix version conflict: bump version to resolve PyPI 400 Bad Request error caused by attempting to re-upload an already-existing release
+
+## v0.9.4
+  - Prevent duplicate PyPI publish attempts
