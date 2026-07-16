@@ -221,4 +221,4 @@
   - Media gallery uses the shared GraphQL endpoint via `_get_extended_title_info`
   - Updated `docs/index.md` to include all features from README.md (reviews, trivia, media gallery, company credits, awards, localized results, filtering by type, filmography, all interests, AWS WAF mention)
   - Synchronized GitHub static page documentation with current feature set
-  - Thanks to [@rjriajul](https://github.com/rjriajul) for the idea and skeleton implementation of the `get_media_gallery` feature
+  - added notice : https://github.com/tveronesi/imdbinfo/issues/177 
