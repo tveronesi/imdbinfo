@@ -723,10 +723,10 @@ class MediaItem(BaseModel):
     titles: List[Dict[str, str]] = Field(default_factory=list)
 
     def __str__(self):
-        return f"{self.id} ({self.type}) - {self.caption or ''}"
+        return f"MediaItem({self.id}, {self.type}, {self.caption or ''}, {self.url or ''})"
 
     def __repr__(self):
-        return f"MediaItem({self.id}, {self.type}, {self.caption or ''})"
+        return self.__str__()
 
 
 class MediaGallery(BaseModel):

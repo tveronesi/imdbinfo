@@ -22,6 +22,7 @@ movies_list = [
 for imdb_id in movies_list:
     movie_media_gallery = get_media_gallery(imdb_id)
 
-    for item in movie_media_gallery.items or []:
-        print(item)
+    for item in movie_media_gallery.items if hasattr( movie_media_gallery,'items') else []:
+        if item.type == "poster":
+            print(item)
 
