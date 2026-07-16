@@ -228,3 +228,6 @@
 
 ## v0.9.4
   - Prevent duplicate PyPI publish attempts
+
+## v0.9.5
+  - Update Python version to 3.11 in GitHub Actions workflow
