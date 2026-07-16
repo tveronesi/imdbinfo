@@ -237,3 +237,6 @@
 
 ## v0.9.7
   - remove from workflow the step to release  to github (broken) 
+
+## v0.9.8
+  - remove from workflow toml module

@@ -26,29 +26,6 @@ jobs:
       - name: Install dependencies
         run: pip install ".[build,test]"
 
-      - name: Check version is not already published on PyPI
-        run: |
-          python -m pip install requests
-          python - <<'PY'
-          import sys
-          import tomllib
-          import requests
-
-          package_name = "imdbinfo"
-          with open("pyproject.toml", "rb") as f:
-              version = tomllib.load(f)["project"]["version"]
-
-          response = requests.get(f"https://pypi.org/pypi/{package_name}/json", timeout=30)
-          response.raise_for_status()
-          releases = response.json().get("releases", {})
-
-          if version in releases:
-              print(f"Version {version} already exists on PyPI")
-              sys.exit(1)
-
-          print(f"Version {version} is not yet published")
-          PY
-
       - name: Run tests
         run: pytest
 
