@@ -234,3 +234,6 @@
 ## v0.9.6
   - fix workflow
   - add workflow to publish release in GitHub
+
+## v0.9.7
+  - remove from workflow the step to release  to github (broken) 

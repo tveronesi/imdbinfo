@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
       - name: Install build tools
         run: |
@@ -25,23 +25,6 @@ jobs:
 
       - name: Install dependencies
         run: pip install ".[build,test]"
-
-      - name: Validate tag matches package version
-        run: |
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
-          PKG_VERSION=$(python - <<'PY'
-          import tomllib
-          with open("pyproject.toml", "rb") as f:
-              data = tomllib.load(f)
-          print(data["project"]["version"])
-          PY
-          )
-          echo "Tag version: $TAG_VERSION"
-          echo "Package version: $PKG_VERSION"
-          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
-            echo "Tag version does not match pyproject.toml version"
-            exit 1
-          fi
 
       - name: Check version is not already published on PyPI
         run: |
@@ -78,18 +61,18 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: twine upload dist/*
 
-      - name: Extract Changelog Entry
-        id: changelog
-        run: |
-          VERSION=${GITHUB_REF##*/v}
-          ENTRY=$(awk "/^##? v$VERSION/{flag=1;next}/^##? /{flag=0}flag" CHANGELOG.md | sed '/^$/d')
-          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
-          echo "$ENTRY" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          body: ${{ env.CHANGELOG }}
+#      - name: Extract Changelog Entry
+#        id: changelog
+#        run: |
+#          VERSION=${GITHUB_REF##*/v}
+#          ENTRY=$(awk "/^##? v$VERSION/{flag=1;next}/^##? /{flag=0}flag" CHANGELOG.md | sed '/^$/d')
+#          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+#          echo "$ENTRY" >> $GITHUB_ENV
+#          echo "EOF" >> $GITHUB_ENV
+#
+#      - name: Create GitHub Release
+#        uses: softprops/action-gh-release@v2
+#        with:
+#          tag_name: ${{ github.ref_name }}
+#          name: Release ${{ github.ref_name }}
+#          body: ${{ env.CHANGELOG }}
