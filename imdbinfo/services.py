@@ -38,6 +38,7 @@ from .models import (
     SeasonEpisodesList,
     PersonDetail,
     AkasData,
+    MediaGallery,
 )
 from .parsers import (
     parse_json_movie,
@@ -50,6 +51,7 @@ from .parsers import (
     parse_json_reviews,
     parse_json_filmography,
     parse_json_parental_guide,
+    parse_json_media_gallery,
 )
 from imdbinfo_aws.aws import AwsSolver
 
@@ -282,6 +284,8 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
 @lru_cache(maxsize=128)
 def search_title(
     search_term: str,
+    year: int | None = None,
+    exact_match: bool = False,
     locale: Optional[str] = None,
     title_type: Optional[TitleFilter] = None,
 ) -> Optional[SearchResult]:
@@ -298,16 +302,29 @@ def search_title(
         ]
         search_options_types = ",".join(filter(None, types))
 
-    url = GRAPHQL_URL
+    year_filter = (
+        f"""
+        releaseDateRange: {{
+          start: "{year}-01-01"
+          end: "{year}-12-31"
+        }}
+        """
+        if year is not None
+        else ""
+    )
 
-    query_template = """query {
+    query_template = """
+query {
   mainSearch(
     first: 50
     options: {
       searchTerm: "__SEARCH_TERM__"
-      isExactMatch: false
+      isExactMatch: __EXACT_MATCH__
       type: [TITLE, NAME]
-      titleSearchOptions: { type: [__TYPES__] }
+      titleSearchOptions: {
+        type: [__TYPES__]
+        __YEAR_FILTER__
+      }
     }
   ) {
     edges {
@@ -354,15 +371,22 @@ def search_title(
   }
 }"""
 
-    query = query_template.replace("__SEARCH_TERM__", search_term).replace(
-        "__TYPES__", search_options_types
+    query = (
+        query_template
+        .replace("__SEARCH_TERM__", search_term)
+        .replace("__EXACT_MATCH__", str(exact_match).lower())
+        .replace("__TYPES__", search_options_types)
+        .replace("__YEAR_FILTER__", year_filter)
     )
     payload = {"query": query}
     headers = {"Content-Type": "application/json", "x-imdb-user-country": country_code}
 
     logger.info("Searching for '%s' using GraphQL API", search_term)
     data = request_graphql_url(
-        headers=headers, search_term=search_term, payload=payload, url=url
+        headers=headers,
+        search_term=search_term,
+        payload=payload,
+        url=GRAPHQL_URL,
     )
     result = parse_json_search(data)
 
@@ -535,6 +559,48 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
             }
             originalTitle: originalTitleText {
               text
+            }
+            images(first: 50) {
+              total
+              pageInfo {
+                endCursor
+                hasNextPage
+                hasPreviousPage
+                startCursor
+              }
+              edges {
+                position
+                cursor
+                node {
+                  id
+                  url
+                  height
+                  width
+                  caption {
+                    plainText
+                  }
+                  type
+                  copyright
+                  createdBy
+                  source {
+                    id
+                    text
+                    attributionUrl
+                  }
+                  names {
+                    id
+                    nameText {
+                      text
+                    }
+                  }
+                  titles {
+                    id
+                    titleText {
+                      text
+                    }
+                  }
+                }
+              }
             }
             interests(first: 20) {
               edges {
@@ -753,3 +819,18 @@ def _get_extended_name_info(person_id, locale=None) -> dict:
     data = request_graphql_url(headers, person_id, payload, url)
     raw_json = data.get("data", {}).get("name", {})
     return raw_json
+
+
+@lru_cache(maxsize=128)
+def get_media_gallery(
+    imdb_id: str,
+    locale: Optional[str] = None,
+) -> Optional[MediaGallery]:
+    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
+    raw_json = _get_extended_title_info(imdb_id, lang)
+    if not raw_json:
+        logger.warning("No media_gallery found for title %s", imdb_id)
+        return []
+    media_gallery = parse_json_media_gallery(raw_json)
+    logger.debug("Fetched %d media_gallery for title %s", len(media_gallery or[]), imdb_id)
+    return media_gallery

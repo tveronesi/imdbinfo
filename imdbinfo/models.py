@@ -571,7 +571,7 @@ class SeasonEpisodesList(BaseModel):
         return self.episodes[idx]
 
     def __str__(self):
-        return "Season"
+        return f"Season {self.season_number} of series {self.series_imdbId} has {len(self.episodes)} episodes"
 
 
 class AkaInfo(BaseModel):
@@ -703,6 +703,49 @@ class ParentalGuideList(BaseModel):
 
     def __str__(self):
         return f"{self.summary}"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class MediaItem(BaseModel):
+    id: str
+    url: str
+    width: Optional[int] = None
+    height: Optional[int] = None
+    caption: Optional[str] = None
+    type: Optional[str] = None
+    copyright: Optional[str] = None
+    created_by: Optional[str] = None
+    source_name: Optional[str] = None
+    source_url: Optional[str] = None
+    names: List[Dict[str, str]] = Field(default_factory=list)
+    titles: List[Dict[str, str]] = Field(default_factory=list)
+
+    def __str__(self):
+        return f"MediaItem({self.id}, {self.type}, {self.caption or ''}, {self.url or ''})"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class MediaGallery(BaseModel):
+    imdb_id: str
+    total: int = 0
+    items: List[MediaItem] = Field(default_factory=list)
+
+    @property
+    def count(self) -> int:
+        return len(self.items)
+
+    def __len__(self):
+        return len(self.items)
+
+    def __getitem__(self, idx):
+        return self.items[idx]
+
+    def __str__(self):
+        return f"MediaGallery({len(self.items)}/{self.total} images)"
 
     def __repr__(self):
         return self.__str__()

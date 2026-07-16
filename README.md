@@ -24,6 +24,7 @@
 - 🎭 **Movie trivia and interesting facts** via `get_trivia`
 - 🗂️ **Full filmography** for actors, directors and writers via `get_filmography`
 - 🛡️ **Parental guide** including content advisories via `get_parental_guide`
+- 🖼️ **Media gallery** with poster images and backdrops via `get_media_gallery`
 - 📝 **Typed Pydantic models** for predictable responses
 - ⚡ **Built-in caching** for faster repeated requests
 - 🛡️**AWS WAF** solver in CPython for better performance
@@ -44,6 +45,16 @@ from imdbinfo import search_title, get_movie, get_name, get_season_episodes, get
 results = search_title("The Matrix")
 for movie in results.titles:
     print(f"{movie.title} ({movie.year}) - Rating: {movie.rating} - {movie.imdb_id}")
+
+# Search for an exact title match
+results = search_title("The Matrix", exact_match=True)
+for movie in results.titles:
+    print(f"{movie.title} ({movie.year})")
+
+# Search by title and year
+results = search_title("The Matrix", year=1999)
+for movie in results.titles:
+    print(f"{movie.title} ({movie.year})")
 
 # Get movie details
 movie = get_movie("0133093")  # or 'tt0133093'
@@ -280,6 +291,11 @@ results = search_title("The Matrix", title_type=(TitleType.Movies, TitleType.Sho
 for movie in results.titles:
     print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
 
+# Exact match and year filtering
+results = search_title("The Matrix", exact_match=True, year=1999)
+for movie in results.titles:
+    print(f"{movie.title} ({movie.year}) - {movie.imdb_id}")
+
 ```
 
 ### Get filmography with images 🎬🖼️
@@ -309,6 +325,22 @@ movies = ["tt1490017", "tt0133093"]
 for imdb_id in movies:
     interests = get_all_interests(imdb_id)
     print(f"Interests for {imdb_id}: {interests}")
+```
+
+#### Media Gallery (Posters and Backdrops)
+Fetch poster images and backdrops for any movie or series:
+```python
+from imdbinfo import get_media_gallery
+
+gallery = get_media_gallery("tt0133093")  # The Matrix
+print(f"Total images: {gallery.total}")
+
+for item in gallery[:5]:
+    print(f"[{item.type}] {item.url}")
+    if item.caption:
+        print(f"  Caption: {item.caption}")
+    if item.source_name:
+        print(f"  Source: {item.source_name}")
 ```
 
 
