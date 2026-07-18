@@ -240,3 +240,5 @@
 
 ## v0.9.8
   - remove from workflow toml module
+## v0.9.9
+  - fix workflow to publish release to github
