@@ -32,11 +32,11 @@ jobs:
       - name: Build package
         run: python -m build
 
-#      - name: Publish to PyPI
-#        env:
-#          TWINE_USERNAME: __token__
-#          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-#        run: twine upload dist/*
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*
 
       - name: Extract Changelog Entry
         id: changelog
