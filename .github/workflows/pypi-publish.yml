@@ -32,24 +32,24 @@ jobs:
       - name: Build package
         run: python -m build
 
-      - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload dist/*
+#      - name: Publish to PyPI
+#        env:
+#          TWINE_USERNAME: __token__
+#          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+#        run: twine upload dist/*
 
-#      - name: Extract Changelog Entry
-#        id: changelog
-#        run: |
-#          VERSION=${GITHUB_REF##*/v}
-#          ENTRY=$(awk "/^##? v$VERSION/{flag=1;next}/^##? /{flag=0}flag" CHANGELOG.md | sed '/^$/d')
-#          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
-#          echo "$ENTRY" >> $GITHUB_ENV
-#          echo "EOF" >> $GITHUB_ENV
-#
-#      - name: Create GitHub Release
-#        uses: softprops/action-gh-release@v2
-#        with:
-#          tag_name: ${{ github.ref_name }}
-#          name: Release ${{ github.ref_name }}
-#          body: ${{ env.CHANGELOG }}
+      - name: Extract Changelog Entry
+        id: changelog
+        run: |
+          VERSION=${GITHUB_REF##*/v}
+          ENTRY=$(awk "/^##? v$VERSION/{flag=1;next}/^##? /{flag=0}flag" CHANGELOG.md | sed '/^$/d')
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "$ENTRY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2.2.2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: ${{ env.CHANGELOG }}
