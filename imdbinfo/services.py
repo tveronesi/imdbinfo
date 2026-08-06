@@ -245,6 +245,8 @@ def request_handler(url: str) -> Any:
 
 
 def request_graphql_url(headers, search_term, payload, url) -> Any:
+    # IMDb's GraphQL endpoint returns HTTP 403 without a browser Referer.
+    headers = {"Referer": "https://www.imdb.com/", **headers}
     resp = niquests.post(url, headers=headers, json=payload)
     if resp.status_code != 200:
         logger.error("GraphQL request failed: %s", resp.status_code)
