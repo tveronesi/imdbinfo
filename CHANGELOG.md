@@ -242,3 +242,7 @@
   - remove from workflow toml module
 ## v0.9.9
   - fix workflow to publish release to github
+  - 
+## v0.9.10
+  - Update version to 0.9.10
+  - add Referer header to GraphQL requests to prevent 403
