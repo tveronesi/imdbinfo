@@ -52,6 +52,7 @@ from .parsers import (
     parse_json_filmography,
     parse_json_parental_guide,
     parse_json_media_gallery,
+    parse_json_quotes
 )
 from imdbinfo_aws.aws import AwsSolver
 
@@ -523,6 +524,16 @@ def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
     logger.debug("Fetched parental guide for title %s", imdb_id)
     return parental_guide
 
+
+def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
+    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
+    raw_json = _get_extended_title_info(imdb_id, lang)
+    if not raw_json:
+        logger.warning("No quotes found for title %s", imdb_id)
+        return []
+    parsed_quotes = parse_json_quotes(raw_json)
+    logger.debug("Fetched %d quotes for title %s", len(parsed_quotes), imdb_id)
+    return parsed_quotes
 
 def get_filmography(imdb_id, locale: Optional[str] = None) -> dict:
     """

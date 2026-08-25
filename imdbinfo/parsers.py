@@ -924,3 +924,30 @@ def parse_json_media_gallery(raw_json: dict) -> Optional[MediaGallery]:
         total=images_data.get("total", 0),
         items=items,
     )
+
+
+def parse_json_quotes(raw_json):
+    quotes_list = raw_json.get("quotes", {}).get("edges", [])
+    parsed_quotes = []
+    for edge in quotes_list:
+        node = edge.get("node", {})
+        quote_data = {
+            "id": node.get("id"),
+            "lines": [
+                {
+                    "characters": [
+                        {
+                            "character": char.get("character"),
+                            "name_id": char.get("name", {}).get("id"),
+                        }
+                        for char in line.get("characters", [])
+                    ],
+                    "text": line.get("text"),
+                    "stage_direction": line.get("stageDirection"),
+                }
+                for line in node.get("lines", [])
+            ],
+            "interest_score": node.get("interestScore", {}),
+        }
+        parsed_quotes.append(quote_data)
+    return parsed_quotes
