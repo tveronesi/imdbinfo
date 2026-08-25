@@ -693,6 +693,27 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
                     }
                   }
                 }
+                    quotes(first: 100) {
+              edges {
+                node {
+                  id
+                  lines {
+                    characters {
+                      character
+                      name {
+                        id
+                      }
+                    }
+                    text
+                    stageDirection
+                  }
+                  interestScore {
+                    usersInterested
+                    usersVoted
+                  }
+                }
+              }
+            }
           }
         }
         """
