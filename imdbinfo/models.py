@@ -749,3 +749,148 @@ class MediaGallery(BaseModel):
 
     def __repr__(self):
         return self.__str__()
+
+
+class InterestScore(BaseModel):
+    """Community interest and voting counts for a quote or trivia item.
+
+    Fields:
+        users_interested (int): Number of users who marked this item as interesting.
+        users_voted (int): Total number of users who voted on this item.
+    """
+
+    users_interested: int = 0
+    users_voted: int = 0
+
+    @classmethod
+    def from_node(cls, node: dict) -> "InterestScore":
+        if not node:
+            return cls()
+        return cls(
+            users_interested=node.get("usersInterested", 0) or 0,
+            users_voted=node.get("usersVoted", 0) or 0,
+        )
+
+    def __str__(self):
+        return f"InterestScore(interested={self.users_interested}, voted={self.users_voted})"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class QuoteCharacter(BaseModel):
+    """A character (speaker) attributed to a line in a quote.
+
+    Fields:
+        character (Optional[str]): The character name as shown on IMDb (e.g. ``"Neo"``).
+        name_id (Optional[str]): IMDb person ID without the ``nm`` prefix
+            (e.g. ``"0000206"`` for Keanu Reeves).  ``None`` when the speaker
+            has no linked IMDb name page.
+    """
+
+    character: Optional[str] = None
+    name_id: Optional[str] = None
+
+    @classmethod
+    def from_node(cls, node: dict) -> "QuoteCharacter":
+        name_node = node.get("name") or {}
+        raw_id = name_node.get("id", "") or ""
+        return cls(
+            character=node.get("character"),
+            name_id=raw_id.replace("nm", "") or None,
+        )
+
+    def __str__(self):
+        return self.character or ""
+
+    def __repr__(self):
+        return f"QuoteCharacter({self.character}, nm{self.name_id})"
+
+
+class QuoteLine(BaseModel):
+    """A single line of dialogue within a quote exchange.
+
+    Fields:
+        characters (List[QuoteCharacter]): Speakers attributed to this line.
+        text (Optional[str]): The spoken text.
+        stage_direction (Optional[str]): Stage direction or action note, if any.
+    """
+
+    characters: List[QuoteCharacter] = Field(default_factory=list)
+    text: Optional[str] = None
+    stage_direction: Optional[str] = None
+
+    @classmethod
+    def from_node(cls, node: dict) -> "QuoteLine":
+        return cls(
+            characters=[
+                QuoteCharacter.from_node(c)
+                for c in node.get("characters") or []
+            ],
+            text=node.get("text"),
+            stage_direction=node.get("stageDirection"),
+        )
+
+    @property
+    def speaker_names(self) -> List[str]:
+        """Return a list of character names speaking this line."""
+        return [c.character for c in self.characters if c.character]
+
+    def __str__(self):
+        speakers = ", ".join(self.speaker_names)
+        prefix = f"[{speakers}]: " if speakers else ""
+        direction = f" ({self.stage_direction})" if self.stage_direction else ""
+        return f"{prefix}{self.text or ''}{direction}"
+
+    def __repr__(self):
+        return f"QuoteLine(speakers={self.speaker_names}, text={self.text!r})"
+
+
+class Quote(BaseModel):
+    """A movie or series quote as listed on IMDb.
+
+    Each ``Quote`` contains one or more ``QuoteLine`` objects representing
+    the lines exchanged in the scene, plus a community ``InterestScore``.
+
+    Fields:
+        id (str): IMDb quote ID, e.g. ``"qt0324252"``.
+        lines (List[QuoteLine]): Ordered list of dialogue lines in the exchange.
+        interest_score (InterestScore): Community interest and voting counts.
+    """
+
+    id: str
+    lines: List[QuoteLine] = Field(default_factory=list)
+    interest_score: InterestScore = Field(default_factory=InterestScore)
+
+    @classmethod
+    def from_node(cls, node: dict) -> "Quote":
+        return cls(
+            id=node.get("id", ""),
+            lines=[QuoteLine.from_node(line) for line in node.get("lines") or []],
+            interest_score=InterestScore.from_node(node.get("interestScore") or {}),
+        )
+
+    @property
+    def speakers(self) -> List[str]:
+        """Return a deduplicated list of all character names in this quote."""
+        seen: set = set()
+        result = []
+        for line in self.lines:
+            for name in line.speaker_names:
+                if name not in seen:
+                    seen.add(name)
+                    result.append(name)
+        return result
+
+    def __len__(self):
+        return len(self.lines)
+
+    def __getitem__(self, idx):
+        return self.lines[idx]
+
+    def __str__(self):
+        parts = [str(line) for line in self.lines if line.text]
+        return "\n".join(parts)
+
+    def __repr__(self):
+        return f"Quote(id={self.id!r}, lines={len(self.lines)}, speakers={self.speakers})"
