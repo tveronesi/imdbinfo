@@ -38,6 +38,12 @@ from .services import (
     get_quotes,
     TitleType,
 )
+from .models import (
+    Quote,
+    QuoteLine,
+    QuoteCharacter,
+    InterestScore,
+)
 from .exceptions import (
     ImdbinfoError,
     HTTPError,
@@ -62,6 +68,11 @@ __all__ = [
     "get_media_gallery",
     "get_quotes",
     "TitleType",
+    # quote models
+    "Quote",
+    "QuoteLine",
+    "QuoteCharacter",
+    "InterestScore",
     # exceptions
     "ImdbinfoError",
     "HTTPError",

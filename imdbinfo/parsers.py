@@ -47,6 +47,7 @@ from .models import (
     ParentalGuideList,
     MediaItem,
     MediaGallery,
+    Quote,
 )
 from .transformers import (
     _release_date,
@@ -926,71 +927,25 @@ def parse_json_media_gallery(raw_json: dict) -> Optional[MediaGallery]:
     )
 
 
-def parse_json_quotes(raw_json):
+def parse_json_quotes(raw_json: dict) -> List[Quote]:
+    """Parse the ``quotes`` section of a title's GraphQL response.
+
+    Each node in the ``quotes.edges`` list is converted to a :class:`Quote`
+    containing its :class:`QuoteLine` entries and :class:`InterestScore`.
+
+    :param raw_json: The ``data.title`` dict returned by
+        ``_get_extended_title_info``.
+    :return: Ordered list of :class:`Quote` objects; empty list when the title
+        has no quotes or the key is absent.
     """
-    "lines": [
-                {
-                  "characters": [
-                    {
-                      "character": "Spoon boy"
-                    }
-                  ],
-                  "text": "Do not try and bend the spoon. That's impossible. Instead... only try to realize the truth.",
-                  "stageDirection": null
-                },
-                {
-                  "characters": [
-                    {
-                      "character": "Neo"
-                    }
-                  ],
-                  "text": "What truth?",
-                  "stageDirection": null
-                },
-                {
-                  "characters": [
-                    {
-                      "character": "Spoon boy"
-                    }
-                  ],
-                  "text": "There is no spoon.",
-                  "stageDirection": null
-                },
-                {
-                  "characters": [
-                    {
-                      "character": "Neo"
-                    }
-                  ],
-                  "text": "There is no spoon?",
-                  "stageDirection": null
-                },
-                {
-                  "characters": [
-                    {
-                      "character": "Spoon boy"
-                    }
-                  ],
-                  "text": "Then you'll see, that it is not the spoon that bends, it is only yourself.",
-                  "stageDirection": null
-                }
-    :param raw_json:
-    :return:
-    """
-    quotes_list = raw_json.get("quotes", {}).get("edges", [])
-    parsed_quotes = []
-    for edge in quotes_list:
-        node = edge.get("node", {})
-        quote_data = {
-            "lines": [
-                {
-                    "stageDirection": line.get("stageDirection", ""),
-                    "text": line.get("text", ""),
-                    "characters": [ a['character'] for a in line.get("characters") or []],
-                }
-                for line in node.get("lines", [])
-            ],
-            "interestScore": node.get("interestScore", ""),
-        }
-        parsed_quotes.append(quote_data)
-    return parsed_quotes
+    edges = (raw_json.get("quotes") or {}).get("edges") or []
+    quotes = []
+    for edge in edges:
+        node = edge.get("node") or {}
+        if not node:
+            continue
+        try:
+            quotes.append(Quote.from_node(node))
+        except Exception as exc:
+            logger.warning("Skipping malformed quote node: %s", exc)
+    return quotes

@@ -525,7 +525,17 @@ def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
     return parental_guide
 
 
-def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
+def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List["Quote"]:
+    """Fetch character quotes for a title.
+
+    Returns a list of :class:`~imdbinfo.models.Quote` objects, each containing
+    the dialogue lines, speaker attribution and community interest score.
+
+    :param imdb_id: IMDb title ID (with or without ``tt`` prefix).
+    :param locale: Optional locale string, e.g. ``"it"`` for Italian.
+    :return: List of :class:`~imdbinfo.models.Quote` objects; empty list when
+        no quotes are available or the title is not found.
+    """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
