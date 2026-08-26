@@ -23,7 +23,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
 
-      - name: Install ( dependencies)
+      - name: Install dependencies
         run: pip install ".[build,test]"
 
       - name: Run tests
@@ -48,7 +48,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}

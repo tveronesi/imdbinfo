@@ -1,0 +1,33 @@
+name: Create GitHub Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to create release for (e.g. v1.2.3)'
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+
+      - name: Extract Changelog Entry
+        id: changelog
+        run: |
+          VERSION=${GITHUB_REF##*/v}
+          ENTRY=$(awk "/^##? v$VERSION/{flag=1;next}/^##? /{flag=0}flag" CHANGELOG.md | sed '/^$/d')
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "$ENTRY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          name: Release ${{ github.event.inputs.tag }}
+          body: ${{ env.CHANGELOG }}

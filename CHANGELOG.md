@@ -221,4 +221,39 @@
   - Media gallery uses the shared GraphQL endpoint via `_get_extended_title_info`
   - Updated `docs/index.md` to include all features from README.md (reviews, trivia, media gallery, company credits, awards, localized results, filtering by type, filmography, all interests, AWS WAF mention)
   - Synchronized GitHub static page documentation with current feature set
-  - added notice : https://github.com/tveronesi/imdbinfo/issues/177 
+
+## v0.9.3
+  - Fix version conflict: bump version to resolve PyPI 400 Bad Request error caused by attempting to re-upload an already-existing release
+
+## v0.9.4
+  - Prevent duplicate PyPI publish attempts
+
+## v0.9.5
+  - Update Python version to 3.11 in GitHub Actions workflow
+
+## v0.9.6
+  - fix workflow
+  - add workflow to publish release in GitHub
+
+## v0.9.7
+  - remove from workflow the step to release  to github (broken) 
+
+## v0.9.8
+  - remove from workflow toml module
+  - 
+## v0.9.9
+  - fix workflow to publish release to github
+
+## v0.9.10
+  - Update version to 0.9.10
+  - add Referer header to GraphQL requests to prevent 403
+
+## v0.10.0
+  - Add `get_quotes(imdb_id)` service to fetch character quotes for any IMDb title.
+  - New Pydantic models: `Quote`, `QuoteLine`, `QuoteCharacter`, `InterestScore` — all exported from the top-level package.
+  - `Quote`: holds `id`, `lines` (`List[QuoteLine]`), `interest_score` (`InterestScore`); supports `len()`, index access, `speakers` property, and `__str__` / `__repr__`.
+  - `QuoteLine`: holds `characters` (`List[QuoteCharacter]`), `text`, `stage_direction`; `speaker_names` property and `__str__` renders as `[Character]: text`.
+  - `QuoteCharacter`: holds `character` name and `name_id` (person ID without `nm` prefix).
+  - `InterestScore`: holds `users_interested` and `users_voted` community counts.
+  - Updated GraphQL query to include `name { id }` inside `characters` for linked person IDs.
+  - Updated README, docs and examples with model descriptions and OO usage.
