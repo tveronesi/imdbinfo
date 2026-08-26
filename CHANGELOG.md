@@ -240,12 +240,20 @@
 
 ## v0.9.8
   - remove from workflow toml module
+  - 
 ## v0.9.9
   - fix workflow to publish release to github
-  - 
-## v0.9.11
-  - Add `get_quotes` function to fetch character quotes for any IMDb title, including speaker info (character name, person IMDb ID), quote text, stage directions, and community interest scores (`usersVoted`, `usersInterested`).
 
 ## v0.9.10
   - Update version to 0.9.10
   - add Referer header to GraphQL requests to prevent 403
+
+## v0.10.0
+  - Add `get_quotes(imdb_id)` service to fetch character quotes for any IMDb title.
+  - New Pydantic models: `Quote`, `QuoteLine`, `QuoteCharacter`, `InterestScore` — all exported from the top-level package.
+  - `Quote`: holds `id`, `lines` (`List[QuoteLine]`), `interest_score` (`InterestScore`); supports `len()`, index access, `speakers` property, and `__str__` / `__repr__`.
+  - `QuoteLine`: holds `characters` (`List[QuoteCharacter]`), `text`, `stage_direction`; `speaker_names` property and `__str__` renders as `[Character]: text`.
+  - `QuoteCharacter`: holds `character` name and `name_id` (person ID without `nm` prefix).
+  - `InterestScore`: holds `users_interested` and `users_voted` community counts.
+  - Updated GraphQL query to include `name { id }` inside `characters` for linked person IDs.
+  - Updated README, docs and examples with model descriptions and OO usage.
