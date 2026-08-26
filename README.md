@@ -25,8 +25,7 @@
 - 🗂️ **Full filmography** for actors, directors and writers via `get_filmography`
 - 🛡️ **Parental guide** including content advisories via `get_parental_guide`
 - 🖼️ **Media gallery** with poster images and backdrops via `get_media_gallery`
-- 💬 **Character quotes** with speaker info and interest scores via `get_quotes`
-- 📝 **Typed Pydantic models** for predictable responses
+- 💬 **Character quotes** with speaker info and interest scores via `get_quotes`- 📝 **Typed Pydantic models** for predictable responses
 - ⚡ **Built-in caching** for faster repeated requests
 - 🛡️**AWS WAF** solver in CPython for better performance
 - ✅ **No API keys required**
@@ -345,22 +344,37 @@ for item in gallery[:5]:
 ```
 
 #### Quotes
-Fetch character quotes for any movie or series, including speaker information and community interest scores:
+Fetch character quotes for any movie or series. Returns a list of `Quote` objects with structured dialogue lines and community interest scores:
+
 ```python
 from imdbinfo import get_quotes
 
 quotes = get_quotes("tt0133093")  # The Matrix
 for quote in quotes[:3]:
-    print(f"Quote ID: {quote['id']}")
-    for line in quote['lines']:
-        speakers = ", ".join(c['character'] for c in line['characters'] if c['character'])
-        print(f"  [{speakers}]: {line['text']}")
-        if line['stage_direction']:
-            print(f"  ({line['stage_direction']})")
-    score = quote['interest_score']
-    print(f"  Votes: {score.get('usersVoted', 0)} | Interested: {score.get('usersInterested', 0)}")
+    print(repr(quote))
+    for line in quote.lines:
+        print(f"  {line}")           # "[Neo]: What truth?"
+    print(f"  {quote.interest_score}")
     print("---")
 ```
+
+**Models:**
+
+| Model | Key fields |
+|---|---|
+| `Quote` | `id` (IMDb quote ID), `lines` (`List[QuoteLine]`), `interest_score` (`InterestScore`) |
+| `QuoteLine` | `characters` (`List[QuoteCharacter]`), `text`, `stage_direction` |
+| `QuoteCharacter` | `character` (name, e.g. `"Neo"`), `name_id` (person ID without `nm`, e.g. `"0000206"`) |
+| `InterestScore` | `users_interested`, `users_voted` |
+
+**Helpers on `Quote`:**
+- `quote.speakers` — deduplicated list of all character names in the exchange
+- `len(quote)` / `quote[i]` — number of lines / access line by index
+- `str(quote)` — full dialogue text, one line per row
+
+**Helpers on `QuoteLine`:**
+- `line.speaker_names` — list of character names on this line
+- `str(line)` — `"[Character]: text (stage direction)"`
 
 📝 For more examples see the [examples](examples/) folder.
 
