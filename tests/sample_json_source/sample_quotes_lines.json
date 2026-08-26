@@ -1,0 +1,104 @@
+{
+  "quotes": {
+    "total": 3,
+    "edges": [
+      {
+        "node": {
+          "__typename": "TitleQuote",
+          "id": "qt0324252",
+          "lines": [
+            {
+              "characters": [
+                {
+                  "character": "Spoon boy",
+                  "name": { "id": "nm0936894" }
+                }
+              ],
+              "text": "Do not try and bend the spoon. That's impossible. Instead... only try to realize the truth.",
+              "stageDirection": null
+            },
+            {
+              "characters": [
+                {
+                  "character": "Neo",
+                  "name": { "id": "nm0000206" }
+                }
+              ],
+              "text": "What truth?",
+              "stageDirection": null
+            },
+            {
+              "characters": [
+                {
+                  "character": "Spoon boy",
+                  "name": { "id": "nm0936894" }
+                }
+              ],
+              "text": "There is no spoon.",
+              "stageDirection": null
+            }
+          ],
+          "interestScore": {
+            "usersInterested": 364,
+            "usersVoted": 367,
+            "__typename": "InterestScore"
+          }
+        },
+        "__typename": "TitleQuoteEdge"
+      },
+      {
+        "node": {
+          "__typename": "TitleQuote",
+          "id": "qt0324307",
+          "lines": [
+            {
+              "characters": [
+                {
+                  "character": "Morpheus",
+                  "name": { "id": "nm0000401" }
+                }
+              ],
+              "text": "This is your last chance. After this, there is no turning back. You take the blue pill - the story ends, you wake up in your bed and believe whatever you want to believe. You take the red pill - you stay in Wonderland and I show you how deep the rabbit hole goes.",
+              "stageDirection": null
+            }
+          ],
+          "interestScore": {
+            "usersInterested": 566,
+            "usersVoted": 570,
+            "__typename": "InterestScore"
+          }
+        },
+        "__typename": "TitleQuoteEdge"
+      },
+      {
+        "node": {
+          "__typename": "TitleQuote",
+          "id": "qt0324278",
+          "lines": [
+            {
+              "characters": [],
+              "text": null,
+              "stageDirection": "last lines"
+            },
+            {
+              "characters": [
+                {
+                  "character": "Neo",
+                  "name": { "id": "nm0000206" }
+                }
+              ],
+              "text": "I know you're out there. I can feel you now.",
+              "stageDirection": null
+            }
+          ],
+          "interestScore": {
+            "usersInterested": 194,
+            "usersVoted": 195,
+            "__typename": "InterestScore"
+          }
+        },
+        "__typename": "TitleQuoteEdge"
+      }
+    ]
+  }
+}
