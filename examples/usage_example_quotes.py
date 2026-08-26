@@ -20,9 +20,24 @@ movies_list = [
 ]
 
 for imdb_id in movies_list:
-    quotes_liat = get_quotes(imdb_id)
-    print(f"\nQuotes for {imdb_id}:")
+    quotes_list = get_quotes(imdb_id)
+    print(f"\nQuotes for {imdb_id}: {len(quotes_list)} found")
+    for quote in quotes_list[:100]:
+        print("Quote ------------------------------")
+        for line in quote.get("lines", []):
+            stage_direction = (line.get("stageDirection") or "").strip()
+            characters = [c.strip() for c in line.get("characters", []) if c and c.strip()]
+            text = (line.get("text") or "").strip()
 
+            if not stage_direction and not characters and not text:
+                continue
 
+            if stage_direction:
+                print(stage_direction)
 
-
+            if characters and text:
+                print(f"  [{', '.join(characters)}]: {text}")
+            elif characters:
+                print(f"  [{', '.join(characters)}]")
+            elif text:
+                print(f"  {text}")

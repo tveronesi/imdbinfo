@@ -243,6 +243,9 @@
 ## v0.9.9
   - fix workflow to publish release to github
   - 
+## v0.9.11
+  - Add `get_quotes` function to fetch character quotes for any IMDb title, including speaker info (character name, person IMDb ID), quote text, stage directions, and community interest scores (`usersVoted`, `usersInterested`).
+
 ## v0.9.10
   - Update version to 0.9.10
   - add Referer header to GraphQL requests to prevent 403

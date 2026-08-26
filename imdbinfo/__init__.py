@@ -35,6 +35,7 @@ from .services import (
     get_filmography,
     get_all_interests,
     get_media_gallery,
+    get_quotes,
     TitleType,
 )
 from .exceptions import (
@@ -59,6 +60,7 @@ __all__ = [
     "get_filmography",
     "get_all_interests",
     "get_media_gallery",
+    "get_quotes",
     "TitleType",
     # exceptions
     "ImdbinfoError",

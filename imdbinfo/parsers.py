@@ -927,27 +927,70 @@ def parse_json_media_gallery(raw_json: dict) -> Optional[MediaGallery]:
 
 
 def parse_json_quotes(raw_json):
+    """
+    "lines": [
+                {
+                  "characters": [
+                    {
+                      "character": "Spoon boy"
+                    }
+                  ],
+                  "text": "Do not try and bend the spoon. That's impossible. Instead... only try to realize the truth.",
+                  "stageDirection": null
+                },
+                {
+                  "characters": [
+                    {
+                      "character": "Neo"
+                    }
+                  ],
+                  "text": "What truth?",
+                  "stageDirection": null
+                },
+                {
+                  "characters": [
+                    {
+                      "character": "Spoon boy"
+                    }
+                  ],
+                  "text": "There is no spoon.",
+                  "stageDirection": null
+                },
+                {
+                  "characters": [
+                    {
+                      "character": "Neo"
+                    }
+                  ],
+                  "text": "There is no spoon?",
+                  "stageDirection": null
+                },
+                {
+                  "characters": [
+                    {
+                      "character": "Spoon boy"
+                    }
+                  ],
+                  "text": "Then you'll see, that it is not the spoon that bends, it is only yourself.",
+                  "stageDirection": null
+                }
+    :param raw_json:
+    :return:
+    """
     quotes_list = raw_json.get("quotes", {}).get("edges", [])
     parsed_quotes = []
     for edge in quotes_list:
         node = edge.get("node", {})
         quote_data = {
-            "id": node.get("id"),
             "lines": [
                 {
-                    "characters": [
-                        {
-                            "character": char.get("character"),
-                            "name_id": char.get("name", {}).get("id"),
-                        }
-                        for char in line.get("characters", [])
-                    ],
-                    "text": line.get("text"),
-                    "stage_direction": line.get("stageDirection"),
+                    "stageDirection": line.get("stageDirection", ""),
+                    "text": line.get("text", ""),
+                    "characters": [ a['character'] for a in line.get("characters") or []],
                 }
                 for line in node.get("lines", [])
             ],
-            "interest_score": node.get("interestScore", {}),
+            "interestScore": node.get("interestScore", ""),
         }
         parsed_quotes.append(quote_data)
     return parsed_quotes
