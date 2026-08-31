@@ -69,8 +69,6 @@ __all__ = [
     "get_media_gallery",
     "get_quotes",
     "TitleType",
-    "get_media_gallery",
-    "get_quotes",
     "set_proxy",
     "get_proxy",
     # quote models
