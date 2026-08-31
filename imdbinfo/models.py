@@ -783,28 +783,36 @@ class QuoteCharacter(BaseModel):
 
     Fields:
         character (Optional[str]): The character name as shown on IMDb (e.g. ``"Neo"``).
-        name_id (Optional[str]): IMDb person ID without the ``nm`` prefix
+        id (Optional[str]): IMDb person ID without the ``nm`` prefix
             (e.g. ``"0000206"`` for Keanu Reeves).  ``None`` when the speaker
             has no linked IMDb name page.
+        imdb_id (Optional[str]): Alias of ``id``.
+        imdbId (Optional[str]): IMDb person ID with the ``nm`` prefix
+            (e.g. ``"nm0000206"``).
     """
 
     character: Optional[str] = None
-    name_id: Optional[str] = None
+    imdbId: Optional[str] = None
+    id: Optional[str] = None
+    imdb_id: Optional[str] = None
 
     @classmethod
     def from_node(cls, node: dict) -> "QuoteCharacter":
         name_node = node.get("name") or {}
-        raw_id = name_node.get("id", "") or ""
+        imdbId = name_node.get("id", "") or ""
+        id = imdbId.replace("nm", "") or None  # id without 'nm' prefix, e.g. '0000126'
         return cls(
             character=node.get("character"),
-            name_id=raw_id.replace("nm", "") or None,
+            imdbId=imdbId,
+            imdb_id=id,
+            id=id,
         )
 
     def __str__(self):
         return self.character or ""
 
     def __repr__(self):
-        return f"QuoteCharacter({self.character}, nm{self.name_id})"
+        return f"QuoteCharacter({self.character}, nm{self.id})"
 
 
 class QuoteLine(BaseModel):

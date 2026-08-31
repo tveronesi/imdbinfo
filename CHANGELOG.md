@@ -253,7 +253,6 @@
   - New Pydantic models: `Quote`, `QuoteLine`, `QuoteCharacter`, `InterestScore` — all exported from the top-level package.
   - `Quote`: holds `id`, `lines` (`List[QuoteLine]`), `interest_score` (`InterestScore`); supports `len()`, index access, `speakers` property, and `__str__` / `__repr__`.
   - `QuoteLine`: holds `characters` (`List[QuoteCharacter]`), `text`, `stage_direction`; `speaker_names` property and `__str__` renders as `[Character]: text`.
-  - `QuoteCharacter`: holds `character` name and `name_id` (person ID without `nm` prefix).
+  - `QuoteCharacter`: holds `character` name, `id` (person ID without `nm` prefix), `imdb_id` (alias), and `imdbId` (with `nm` prefix).
   - `InterestScore`: holds `users_interested` and `users_voted` community counts.
-  - Updated GraphQL query to include `name { id }` inside `characters` for linked person IDs.
   - Updated README, docs and examples with model descriptions and OO usage.

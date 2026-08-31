@@ -408,7 +408,7 @@ for quote in quotes[:3]:
 |---|---|
 | `Quote` | `id` (IMDb quote ID), `lines` (`List[QuoteLine]`), `interest_score` (`InterestScore`) |
 | `QuoteLine` | `characters` (`List[QuoteCharacter]`), `text`, `stage_direction` |
-| `QuoteCharacter` | `character` (name, e.g. `"Neo"`), `name_id` (person ID without `nm`, e.g. `"0000206"`) |
+| `QuoteCharacter` | `character` (name, e.g. `"Neo"`), `id` (person ID without `nm`, e.g. `"0000206"`), `imdbId` (with `nm` prefix) |
 | `InterestScore` | `users_interested`, `users_voted` |
 
 **Helpers:**

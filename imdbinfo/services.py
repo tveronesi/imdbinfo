@@ -38,7 +38,7 @@ from .models import (
     SeasonEpisodesList,
     PersonDetail,
     AkasData,
-    MediaGallery,
+    MediaGallery, Quote,
 )
 from .parsers import (
     parse_json_movie,
@@ -525,7 +525,7 @@ def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
     return parental_guide
 
 
-def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List["Quote"]:
+def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
     """Fetch character quotes for a title.
 
     Returns a list of :class:`~imdbinfo.models.Quote` objects, each containing

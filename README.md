@@ -360,12 +360,12 @@ for quote in quotes[:3]:
 
 **Models:**
 
-| Model | Key fields |
-|---|---|
+| Model | Key fields                                                                            |
+|---|---------------------------------------------------------------------------------------|
 | `Quote` | `id` (IMDb quote ID), `lines` (`List[QuoteLine]`), `interest_score` (`InterestScore`) |
-| `QuoteLine` | `characters` (`List[QuoteCharacter]`), `text`, `stage_direction` |
-| `QuoteCharacter` | `character` (name, e.g. `"Neo"`), `name_id` (person ID without `nm`, e.g. `"0000206"`) |
-| `InterestScore` | `users_interested`, `users_voted` |
+| `QuoteLine` | `characters` (`List[QuoteCharacter]`), `text`, `stage_direction`                      |
+| `QuoteCharacter` | `character` (name, e.g. `"Neo"`), `id` (person ID without `nm`, e.g. `"0000206"`), `imdbId` (with `nm` prefix) |
+| `InterestScore` | `users_interested`, `users_voted`                                                     |
 
 **Helpers on `Quote`:**
 - `quote.speakers` — deduplicated list of all character names in the exchange
