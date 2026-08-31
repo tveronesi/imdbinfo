@@ -25,7 +25,8 @@
 - 🗂️ **Full filmography** for actors, directors and writers via `get_filmography`
 - 🛡️ **Parental guide** including content advisories via `get_parental_guide`
 - 🖼️ **Media gallery** with poster images and backdrops via `get_media_gallery`
-- 💬 **Character quotes** with speaker info and interest scores via `get_quotes`- 📝 **Typed Pydantic models** for predictable responses
+- 💬 **Character quotes** with speaker info and interest scores via `get_quotes`
+- 📝 **Typed Pydantic models** for predictable responses
 - ⚡ **Built-in caching** for faster repeated requests
 - 🛡️**AWS WAF** solver in CPython for better performance
 - ✅ **No API keys required**
