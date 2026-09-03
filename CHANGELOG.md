@@ -256,3 +256,10 @@
   - `QuoteCharacter`: holds `character` name, `id` (person ID without `nm` prefix), `imdb_id` (alias), and `imdbId` (with `nm` prefix).
   - `InterestScore`: holds `users_interested` and `users_voted` community counts.
   - Updated README, docs and examples with model descriptions and OO usage.
+
+## v0.11.0
+  - Add global proxy configuration via `set_proxy` and `get_proxy` to route requests through HTTP, HTTPS, or SOCKS proxies.
+  - Export `set_proxy` and `get_proxy` directly from the top-level package `imdbinfo`.
+  - Update `request_handler` and `request_graphql_url` to forward configured proxies to `niquests`.
+  - Update `README.md` with proxy configuration guide and usage examples.
+  - Add unit tests for proxy configuration in `tests/test_proxy.py`.
