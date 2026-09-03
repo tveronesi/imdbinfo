@@ -125,7 +125,7 @@ def test_request_handler_sends_cached_cookies_on_200(monkeypatch, tmp_path):
 
     received_cookies = {}
 
-    def stub_get(url, headers=None, cookies=None):
+    def stub_get(url, headers=None, cookies=None, **kwargs):
         received_cookies.update(cookies or {})
         return _make_response(200)
 
@@ -148,7 +148,7 @@ def test_request_handler_refreshes_cookies_on_non_200(monkeypatch, tmp_path):
     fresh_cookies = {"aws-waf-token": "fresh-token"}
     call_count = {"n": 0}
 
-    def stub_get(url, headers=None, cookies=None):
+    def stub_get(url, headers=None, cookies=None, **kwargs):
         call_count["n"] += 1
         if call_count["n"] == 1:
             return _make_response(403, text="forbidden")

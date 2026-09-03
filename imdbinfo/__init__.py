@@ -38,6 +38,7 @@ from .services import (
     get_quotes,
     TitleType,
 )
+from .proxy import set_proxy, get_proxy
 from .models import (
     Quote,
     QuoteLine,
@@ -68,6 +69,8 @@ __all__ = [
     "get_media_gallery",
     "get_quotes",
     "TitleType",
+    "set_proxy",
+    "get_proxy",
     # quote models
     "Quote",
     "QuoteLine",
