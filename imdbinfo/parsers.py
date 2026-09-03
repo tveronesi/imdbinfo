@@ -47,6 +47,7 @@ from .models import (
     ParentalGuideList,
     MediaItem,
     MediaGallery,
+    Quote,
 )
 from .transformers import (
     _release_date,
@@ -924,3 +925,27 @@ def parse_json_media_gallery(raw_json: dict) -> Optional[MediaGallery]:
         total=images_data.get("total", 0),
         items=items,
     )
+
+
+def parse_json_quotes(raw_json: dict) -> List[Quote]:
+    """Parse the ``quotes`` section of a title's GraphQL response.
+
+    Each node in the ``quotes.edges`` list is converted to a :class:`Quote`
+    containing its :class:`QuoteLine` entries and :class:`InterestScore`.
+
+    :param raw_json: The ``data.title`` dict returned by
+        ``_get_extended_title_info``.
+    :return: Ordered list of :class:`Quote` objects; empty list when the title
+        has no quotes or the key is absent.
+    """
+    edges = (raw_json.get("quotes") or {}).get("edges") or []
+    quotes = []
+    for edge in edges:
+        node = edge.get("node") or {}
+        if not node:
+            continue
+        try:
+            quotes.append(Quote.from_node(node))
+        except Exception as exc:
+            logger.warning("Skipping malformed quote node: %s", exc)
+    return quotes

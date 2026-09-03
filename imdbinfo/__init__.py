@@ -35,7 +35,14 @@ from .services import (
     get_filmography,
     get_all_interests,
     get_media_gallery,
+    get_quotes,
     TitleType,
+)
+from .models import (
+    Quote,
+    QuoteLine,
+    QuoteCharacter,
+    InterestScore,
 )
 from .exceptions import (
     ImdbinfoError,
@@ -59,7 +66,13 @@ __all__ = [
     "get_filmography",
     "get_all_interests",
     "get_media_gallery",
+    "get_quotes",
     "TitleType",
+    # quote models
+    "Quote",
+    "QuoteLine",
+    "QuoteCharacter",
+    "InterestScore",
     # exceptions
     "ImdbinfoError",
     "HTTPError",

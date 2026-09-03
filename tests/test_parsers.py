@@ -1,7 +1,7 @@
 import json
 import os
 from imdbinfo import parsers
-from imdbinfo.models import ParentalGuideList, MediaItem, MediaGallery
+from imdbinfo.models import ParentalGuideList, MediaItem, MediaGallery, Quote, QuoteLine, QuoteCharacter, InterestScore
 
 SAMPLE_DIR = os.path.join(os.path.dirname(__file__), "sample_json_source")
 
@@ -317,6 +317,66 @@ def test_parse_json_parental_guide_with_empty_or_missing_returns_none():
     assert parsers.parse_json_parental_guide({}) is None
     # parentsGuide explicitly None
     assert parsers.parse_json_parental_guide({"parentsGuide": None}) is None
+
+
+def test_parse_json_quotes():
+    from imdbinfo.models import Quote, QuoteLine, QuoteCharacter, InterestScore
+
+    raw_json = load_sample("sample_quotes_lines.json")
+    quotes = parsers.parse_json_quotes(raw_json)
+
+    assert isinstance(quotes, list)
+    assert len(quotes) == 3
+
+    # --- first quote: "There is no spoon" exchange ---
+    q0 = quotes[0]
+    assert isinstance(q0, Quote)
+    assert q0.id == "qt0324252"
+    assert len(q0.lines) == 3
+    assert isinstance(q0.lines[0], QuoteLine)
+
+    # first line speakers
+    assert q0.lines[0].characters[0].character == "Spoon boy"
+    assert q0.lines[0].characters[0].id == "0936894"
+    assert q0.lines[0].text.startswith("Do not try and bend")
+
+    # second line (Neo)
+    assert q0.lines[1].characters[0].character == "Neo"
+    assert q0.lines[1].characters[0].id == "0000206"
+
+    # interest score
+    assert isinstance(q0.interest_score, InterestScore)
+    assert q0.interest_score.users_interested == 364
+    assert q0.interest_score.users_voted == 367
+
+    # helpers
+    assert set(q0.speakers) == {"Spoon boy", "Neo"}
+    assert len(q0) == 3
+    assert q0[0].text.startswith("Do not try")
+
+    # --- second quote: single-line Morpheus ---
+    q1 = quotes[1]
+    assert q1.id == "qt0324307"
+    assert len(q1.lines) == 1
+    assert q1.lines[0].characters[0].character == "Morpheus"
+    assert q1.interest_score.users_voted == 570
+
+    # --- third quote: stage direction + no character line ---
+    q2 = quotes[2]
+    assert q2.id == "qt0324278"
+    assert q2.lines[0].stage_direction == "last lines"
+    assert q2.lines[0].text is None
+    assert q2.lines[0].speaker_names == []
+
+    # str/repr smoke tests
+    assert "Neo" in str(q0)
+    assert "qt0324252" in repr(q0)
+
+
+def test_parse_json_quotes_empty():
+    assert parsers.parse_json_quotes({}) == []
+    assert parsers.parse_json_quotes({"quotes": {"edges": []}}) == []
+    assert parsers.parse_json_quotes({"quotes": None}) == []
     # parentsGuide empty dict
     assert parsers.parse_json_parental_guide({"parentsGuide": {}}) is None
 

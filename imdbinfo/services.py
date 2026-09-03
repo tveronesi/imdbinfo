@@ -38,7 +38,7 @@ from .models import (
     SeasonEpisodesList,
     PersonDetail,
     AkasData,
-    MediaGallery,
+    MediaGallery, Quote,
 )
 from .parsers import (
     parse_json_movie,
@@ -52,6 +52,7 @@ from .parsers import (
     parse_json_filmography,
     parse_json_parental_guide,
     parse_json_media_gallery,
+    parse_json_quotes
 )
 from imdbinfo_aws.aws import AwsSolver
 
@@ -524,6 +525,26 @@ def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
     return parental_guide
 
 
+def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
+    """Fetch character quotes for a title.
+
+    Returns a list of :class:`~imdbinfo.models.Quote` objects, each containing
+    the dialogue lines, speaker attribution and community interest score.
+
+    :param imdb_id: IMDb title ID (with or without ``tt`` prefix).
+    :param locale: Optional locale string, e.g. ``"it"`` for Italian.
+    :return: List of :class:`~imdbinfo.models.Quote` objects; empty list when
+        no quotes are available or the title is not found.
+    """
+    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
+    raw_json = _get_extended_title_info(imdb_id, lang)
+    if not raw_json:
+        logger.warning("No quotes found for title %s", imdb_id)
+        return []
+    parsed_quotes = parse_json_quotes(raw_json)
+    logger.debug("Fetched %d quotes for title %s", len(parsed_quotes), imdb_id)
+    return parsed_quotes
+
 def get_filmography(imdb_id, locale: Optional[str] = None) -> dict:
     """
     Fetch full filmography for a person using the provided IMDb ID.
@@ -693,6 +714,25 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
                     }
                   }
                 }
+                    quotes(first: 100) {
+              edges {
+                node {
+                  id
+                  lines {
+                    characters {
+                      character
+                    
+                    }
+                    text
+                    stageDirection
+                  }
+                  interestScore {
+                    usersInterested
+                    usersVoted
+                  }
+                }
+              }
+            }
           }
         }
         """
