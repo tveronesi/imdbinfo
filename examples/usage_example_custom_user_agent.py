@@ -6,10 +6,8 @@ used for HTTP requests to IMDb.
 """
 
 from imdbinfo import get_movie
-from imdbinfo.services import USER_AGENTS_LIST
 
 # Check the default User-Agent
-print(f"Default User-Agent List: {USER_AGENTS_LIST}")
 
 # Override with a custom User-Agent
 USER_AGENTS_LIST = [
