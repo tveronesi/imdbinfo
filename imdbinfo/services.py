@@ -40,6 +40,8 @@ from .models import (
     PersonDetail,
     AkasData,
     MediaGallery,
+    Quote,
+    Award,
 )
 from .parsers import (
     parse_json_movie,
@@ -53,7 +55,8 @@ from .parsers import (
     parse_json_filmography,
     parse_json_parental_guide,
     parse_json_media_gallery,
-    parse_json_quotes
+    parse_json_quotes,
+    parse_json_awards,
 )
 from imdbinfo_aws.aws import AwsSolver
 
@@ -285,6 +288,18 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
     movie = parse_json_movie(raw_json)
     logger.debug("Fetched url %s", url)
     return movie
+
+
+@lru_cache(maxsize=128)
+def get_awards(imdb_id: str, locale: Optional[str] = None) -> List[Award]:
+    """Fetch awards information for a title using the provided IMDb ID."""
+    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
+    url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/awards/"
+    logger.info("Fetching awards for movie %s", imdb_id)
+    raw_json = request_json_url(url)
+    awards = parse_json_awards(raw_json)
+    logger.debug("Fetched awards for movie %s", imdb_id)
+    return awards
 
 
 @lru_cache(maxsize=128)
@@ -528,14 +543,14 @@ def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
     return parental_guide
 
 
-def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List["Quote"]:
+def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
     """Fetch character quotes for a title.
 
     Returns a list of :class:`~imdbinfo.models.Quote` objects, each containing
     the dialogue lines, speaker attribution and community interest score.
 
     :param imdb_id: IMDb title ID (with or without ``tt`` prefix).
-    :param locale: Optional locale string, e.g. ``"it"`` for Italian.
+    :param locale: Optional locale string, e.g. ``\"it\"`` for Italian.
     :return: List of :class:`~imdbinfo.models.Quote` objects; empty list when
         no quotes are available or the title is not found.
     """
@@ -547,6 +562,7 @@ def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List["Quote"]:
     parsed_quotes = parse_json_quotes(raw_json)
     logger.debug("Fetched %d quotes for title %s", len(parsed_quotes), imdb_id)
     return parsed_quotes
+
 
 def get_filmography(imdb_id, locale: Optional[str] = None) -> dict:
     """
@@ -724,7 +740,7 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
                   lines {
                     characters {
                       character
-                    
+                    name { id }
                     }
                     text
                     stageDirection
@@ -877,5 +893,7 @@ def get_media_gallery(
         logger.warning("No media_gallery found for title %s", imdb_id)
         return []
     media_gallery = parse_json_media_gallery(raw_json)
-    logger.debug("Fetched %d media_gallery for title %s", len(media_gallery or[]), imdb_id)
+    logger.debug(
+        "Fetched %d media_gallery for title %s", len(media_gallery or []), imdb_id
+    )
     return media_gallery

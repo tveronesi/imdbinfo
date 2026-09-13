@@ -25,7 +25,9 @@
 - 🗂️ **Full filmography** for actors, directors and writers via `get_filmography`
 - 🛡️ **Parental guide** including content advisories via `get_parental_guide`
 - 🖼️ **Media gallery** with poster images and backdrops via `get_media_gallery`
-- 💬 **Character quotes** with speaker info and interest scores via `get_quotes`- 📝 **Typed Pydantic models** for predictable responses
+- 💬 **Character quotes** with speaker info and interest scores via `get_quotes`
+- 🏆 **Awards and nominations** with detailed list of events, awards, and nominees via `get_awards`
+- 📝 **Typed Pydantic models** for predictable responses
 - ⚡ **Built-in caching** for faster repeated requests
 - 🛡️**AWS WAF** solver in CPython for better performance
 - 🔗 **Proxy support** route all requests through HTTP/HTTPS/SOCKS proxies
@@ -40,7 +42,7 @@ pip install imdbinfo
 ## Quick Start
 
 ```python
-from imdbinfo import search_title, get_movie, get_name, get_season_episodes, get_reviews, get_trivia
+from imdbinfo import search_title, get_movie, get_name, get_season_episodes, get_reviews, get_trivia, get_awards
 
 # Search for a title
 results = search_title("The Matrix")
@@ -207,52 +209,63 @@ for cat in pg.categories:
         print(f" - {txt.text} (SPOILER: {txt.is_spoiler})")
 ```
 
-#### Awards
+#### Awards and Nominations
 
-The package groups award-related counts in the `MovieDetail.awards` object (an `AwardInfo` instance). The model currently exposes:
+Fetch complete awards and nominations for any movie or series using `get_awards`:
 
-- `wins` — number of award wins
-- `nominations` — number of nominations (excluding wins)
-- `prestigious_award` — optional dict containing details of a prestigious award (may include `wins` and `nominations` keys)
+```python
+from imdbinfo import get_awards
 
-Example showing how to safely read `MovieDetail.awards` using the current model shape:
+awards = get_awards("tt0034583")  # Casablanca
+print(f"Total awards/nominations: {len(awards)}")
+for award in awards[:5]:
+    print(f"Event: {award.event}")
+    print(f"Status: {award.status}")      # e.g. "1944 Winner"
+    print(f"Award: {award.award}")        # e.g. "Oscar"
+    print(f"Category: {award.category}")  # e.g. "Best Picture"
+    print(f"Nominees: {award.nominees}")  # e.g. "Humphrey Bogart"
+    print(f"Formatted: {award}")
+    print("---")
+```
+
+**Award Model Fields:**
+
+| Field | Description | Example |
+|---|---|---|
+| `event` | Award event / organization name | `"Academy Awards, USA"` |
+| `status` | Award status and year | `"1944 Winner"`, `"2017 Nominee"` |
+| `award` | Specific award name | `"Oscar"`, `"British Independent Film Award"` |
+| `category` | Award category | `"Best Picture"`, `"Best Actor in a Leading Role"` |
+| `nominees` | Nominees associated with the award | `"Humphrey Bogart"` |
+
+In addition, the `MovieDetail.awards` summary object (`AwardInfo`) provides overall counts on movie details (`wins`, `nominations`, `prestigious_award`):
 
 ```python
 from imdbinfo import get_movie
 
 movie = get_movie("tt0133093")  # The Matrix
 aw = movie.awards
-if not aw:
-    print("No award information available for this title")
-else:
-    # basic counts
+if aw:
     print("wins:", aw.wins)
     print("nominations:", aw.nominations)
-
-    # prestigious award (may be None or a dict)
     if aw.prestigious_award:
-        pa = aw.prestigious_award
-        print("prestigious wins:", pa.get("wins"))
-        print("prestigious nominations:", pa.get("nominations"))
-    else:
-        print("No prestigious award summary available")
+        print("prestigious award:", aw.prestigious_award.get("name"))
 ```
-
-Notes:
-- The JSON parser maps page data into `movie.awards` (a dict turned into an `AwardInfo` instance). Depending on the source data, `prestigious_award` can be None or a dict with `wins` and `nominations`.
-- Use `if movie.awards:` to check presence before reading attributes.
 
 
 ### Localized results in multiple languages (set globally or per request)
 
-Added support for locales in `search_movie`, `get_movie`, `get_episodes`, `get_all_episodes`, `get_name`
+Added support for locales in `search_movie`, `get_movie`, `get_episodes`, `get_all_episodes`, `get_name`, `get_awards`
 ```python
-from imdbinfo import get_movie, search_title
+from imdbinfo import get_movie, search_title, get_awards
 # Fetch movie details in Italian
 movie_it = get_movie("tt0133093", locale="it")  # The Matrix
 
 # Search for titles in Spanish (although IMDb search is mostly in all languages)
 results_es = search_title("La Casa de Papel", locale="es")
+
+# Get awards in Italian
+awards_it = get_awards("tt0034583", locale="it")
 ```
 
 Localized data can be set globally, dont need to pass `locale` every time in the functions:
@@ -378,12 +391,12 @@ for quote in quotes[:3]:
 
 **Models:**
 
-| Model | Key fields |
-|---|---|
+| Model | Key fields                                                                            |
+|---|---------------------------------------------------------------------------------------|
 | `Quote` | `id` (IMDb quote ID), `lines` (`List[QuoteLine]`), `interest_score` (`InterestScore`) |
-| `QuoteLine` | `characters` (`List[QuoteCharacter]`), `text`, `stage_direction` |
-| `QuoteCharacter` | `character` (name, e.g. `"Neo"`), `name_id` (person ID without `nm`, e.g. `"0000206"`) |
-| `InterestScore` | `users_interested`, `users_voted` |
+| `QuoteLine` | `characters` (`List[QuoteCharacter]`), `text`, `stage_direction`                      |
+| `QuoteCharacter` | `character` (name, e.g. `"Neo"`), `id` (person ID without `nm`, e.g. `"0000206"`), `imdbId` (with `nm` prefix) |
+| `InterestScore` | `users_interested`, `users_voted`                                                     |
 
 **Helpers on `Quote`:**
 - `quote.speakers` — deduplicated list of all character names in the exchange
@@ -434,4 +447,3 @@ Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct]
 
 imdbinfo is released under the MIT License.
 See the [LICENSE](LICENSE) file for details.
-

@@ -23,6 +23,7 @@ import logging
 
 from .services import (
     get_movie,
+    get_awards,
     search_title,
     get_name,
     get_episodes,
@@ -40,6 +41,8 @@ from .services import (
 )
 from .proxy import set_proxy, get_proxy
 from .models import (
+    Award,
+    AwardInfo,
     Quote,
     QuoteLine,
     QuoteCharacter,
@@ -55,6 +58,7 @@ from .exceptions import (
 
 __all__ = [
     "get_movie",
+    "get_awards",
     "search_title",
     "get_name",
     "get_episodes",
@@ -69,6 +73,9 @@ __all__ = [
     "get_media_gallery",
     "get_quotes",
     "TitleType",
+    # award models
+    "Award",
+    "AwardInfo",
     "set_proxy",
     "get_proxy",
     # quote models

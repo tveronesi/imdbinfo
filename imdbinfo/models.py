@@ -247,6 +247,41 @@ class AwardInfo(BaseModel):
         return ", ".join(parts) if parts else "No awards information"
 
 
+class Award(BaseModel):
+    """A movie or series award/nomination as listed on IMDb.
+
+    Fields:
+        event (str): The name of the award event/organization (e.g. ``"Academy Awards, USA"``).
+        status (Optional[str]): Award status/year (e.g. ``"1944 Winner"``, ``"Nominee"``).
+        award (Optional[str]): Award name (e.g. ``"Oscar"``).
+        category (Optional[str]): Award category (e.g. ``"Best Picture"``).
+        nominees (Optional[str]): Nominees associated with the award.
+    """
+
+    event: str = ""
+    status: Optional[str] = None
+    award: Optional[str] = None
+    category: Optional[str] = None
+    nominees: Optional[str] = None
+
+    def __str__(self):
+        parts = []
+        if self.event:
+            parts.append(self.event)
+        if self.status:
+            parts.append(self.status)
+        if self.award:
+            parts.append(self.award)
+        if self.category:
+            parts.append(self.category)
+        if self.nominees:
+            parts.append(f"({self.nominees})")
+        return " - ".join(parts)
+
+    def __repr__(self):
+        return f"Award(event={self.event!r}, status={self.status!r}, award={self.award!r}, category={self.category!r})"
+
+
 class MovieDetail(SeriesMixin, BaseModel):
     """MovieDetail model for detailed information about a movie.
     This model contains all the information about a movie such as title, id, imdb_id, imdbId, url, cover_url, plot, release_date, languages, certificates, directors, stars,
@@ -783,28 +818,36 @@ class QuoteCharacter(BaseModel):
 
     Fields:
         character (Optional[str]): The character name as shown on IMDb (e.g. ``"Neo"``).
-        name_id (Optional[str]): IMDb person ID without the ``nm`` prefix
+        id (Optional[str]): IMDb person ID without the ``nm`` prefix
             (e.g. ``"0000206"`` for Keanu Reeves).  ``None`` when the speaker
             has no linked IMDb name page.
+        imdb_id (Optional[str]): Alias of ``id`` spectacles.
+        imdbId (Optional[str]): IMDb person ID with the ``nm`` prefix
+            (e.g. ``"nm0000206"``).
     """
 
     character: Optional[str] = None
-    name_id: Optional[str] = None
+    imdbId: Optional[str] = None
+    id: Optional[str] = None
+    imdb_id: Optional[str] = None
 
     @classmethod
     def from_node(cls, node: dict) -> "QuoteCharacter":
         name_node = node.get("name") or {}
-        raw_id = name_node.get("id", "") or ""
+        imdbId = name_node.get("id", "") or ""
+        id = imdbId.replace("nm", "") or None  # id without 'nm' prefix, e.g. '0000126'
         return cls(
             character=node.get("character"),
-            name_id=raw_id.replace("nm", "") or None,
+            imdbId=imdbId,
+            imdb_id=id,
+            id=id,
         )
 
     def __str__(self):
         return self.character or ""
 
     def __repr__(self):
-        return f"QuoteCharacter({self.character}, nm{self.name_id})"
+        return f"QuoteCharacter({self.character}, nm{self.id})"
 
 
 class QuoteLine(BaseModel):
@@ -853,7 +896,7 @@ class Quote(BaseModel):
     the lines exchanged in the scene, plus a community ``InterestScore``.
 
     Fields:
-        id (str): IMDb quote ID, e.g. ``"qt0324252"``.
+        id (str): IMDb quote ID, e.g. ``\"qt0324252\"``.
         lines (List[QuoteLine]): Ordered list of dialogue lines in the exchange.
         interest_score (InterestScore): Community interest and voting counts.
     """

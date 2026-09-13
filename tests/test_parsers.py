@@ -337,12 +337,12 @@ def test_parse_json_quotes():
 
     # first line speakers
     assert q0.lines[0].characters[0].character == "Spoon boy"
-    assert q0.lines[0].characters[0].name_id == "0936894"
+    assert q0.lines[0].characters[0].id == "0936894"
     assert q0.lines[0].text.startswith("Do not try and bend")
 
     # second line (Neo)
     assert q0.lines[1].characters[0].character == "Neo"
-    assert q0.lines[1].characters[0].name_id == "0000206"
+    assert q0.lines[1].characters[0].id == "0000206"
 
     # interest score
     assert isinstance(q0.interest_score, InterestScore)
