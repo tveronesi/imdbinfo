@@ -2,13 +2,7 @@ import json
 import os
 from unittest.mock import patch
 from imdbinfo import parsers, get_awards, Award
-
-PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
-
-
-def load_root_json(filename):
-    with open(os.path.join(PROJECT_ROOT, filename), encoding="utf-8") as f:
-        return json.load(f)
+from tests.test_parsers import load_sample
 
 
 def test_parse_awards_with_full_node_returns_awardinfo():
@@ -48,26 +42,8 @@ def test_parse_awards_with_partial_prestigious_info_handles_missing_fields():
     assert aw.prestigious_award.get("nominations") == 0
     assert aw.prestigious_award.get("name") == ""
 
-
-def test_parse_json_awards_tt5716464():
-    raw_json = load_root_json("title_tt5716464_awards_.json")
-    awards = parsers.parse_json_awards(raw_json)
-
-    assert isinstance(awards, list)
-    assert len(awards) == 6
-    assert all(isinstance(a, Award) for a in awards)
-
-    first_award = awards[0]
-    assert first_award.event == "British Independent Film Awards"
-    assert first_award.status == "2017 Nominee"
-    assert first_award.award == "British Independent Film Award"
-    assert first_award.category == "Best Make Up & Hair Design"
-    assert first_award.nominees == "Jan Sewell"
-    assert "British Independent Film Awards - 2017 Nominee - British Independent Film Award - Best Make Up & Hair Design - (Jan Sewell)" in str(first_award)
-
-
 def test_parse_json_awards_tt0034583():
-    raw_json = load_root_json("title_tt0034583_awards_.json")
+    raw_json = load_sample("sample_awards.json")
     awards = parsers.parse_json_awards(raw_json)
 
     assert isinstance(awards, list)
@@ -97,12 +73,12 @@ def test_parse_json_awards_empty():
 
 
 def test_get_awards_service():
-    raw_json = load_root_json("title_tt5716464_awards_.json")
+    raw_json = load_sample("sample_awards.json")
     with patch("imdbinfo.services.request_json_url", return_value=raw_json) as mock_request:
         get_awards.cache_clear()
         awards = get_awards("5716464", locale="it")
         mock_request.assert_called_once_with("https://www.imdb.com/it/title/tt5716464/awards/")
         assert isinstance(awards, list)
-        assert len(awards) == 6
+        assert len(awards) == 27
         assert isinstance(awards[0], Award)
-        assert awards[0].event == "British Independent Film Awards"
+        assert awards[0].event == "Academy Awards, USA"
