@@ -30,6 +30,7 @@ That's exactly why I built [`imdbinfo`](https://github.com/tveronesi/imdbinfo) �
 - 🛡️ **Parental guide** including content advisories via `get_parental_guide`
 - 🖼️ **Media gallery** with poster images and backdrops via `get_media_gallery`
 - 💬 **Character quotes** with speaker info and interest scores via `get_quotes`
+- 🏆 **Awards and nominations** with detailed list of events, awards, and nominees via `get_awards`
 - 📝 **Typed Pydantic models** for predictable responses
 - ⚡ **Built-in caching** for faster repeated requests
 - 🛡️ **AWS WAF** solver in CPython for better performance
@@ -54,7 +55,7 @@ That's all you need.
 Here's how you can use it in a Python script:
 
 ```python
-from imdbinfo import search_title, get_movie, get_name, get_season_episodes, get_reviews, get_trivia
+from imdbinfo import search_title, get_movie, get_name, get_season_episodes, get_reviews, get_trivia, get_awards
 
 # Search for a title
 results = search_title("The Matrix")
@@ -185,7 +186,7 @@ for company in movie.company_credits["miscellaneous"]:
 
 ---
 
-## 🌍 Alternate Titles (AKAs)
+## 🌐 Alternate Titles (AKAs)
 
 Fetch international and alternate titles for any movie or series:
 
@@ -249,30 +250,47 @@ for cat in pg.categories:
 
 ---
 
-## 🏆 Awards
+## 🏆 Awards and Nominations
 
-The package groups award-related counts in the `MovieDetail.awards` object (an `AwardInfo` instance):
+Fetch complete awards and nominations for any movie or series using `get_awards`:
 
-- `wins` — number of award wins
-- `nominations` — number of nominations (excluding wins)
-- `prestigious_award` — optional dict containing details of a prestigious award
+```python
+from imdbinfo import get_awards
+
+awards = get_awards("tt0034583")  # Casablanca
+print(f"Total awards/nominations: {len(awards)}")
+for award in awards[:5]:
+    print(f"Event: {award.event}")
+    print(f"Status: {award.status}")      # e.g. "1944 Winner"
+    print(f"Award: {award.award}")        # e.g. "Oscar"
+    print(f"Category: {award.category}")  # e.g. "Best Picture"
+    print(f"Nominees: {award.nominees}")  # e.g. "Humphrey Bogart"
+    print(f"Formatted: {award}")
+    print("---")
+```
+
+**Award Model Fields:**
+
+| Field | Description | Example |
+|---|---|---|
+| `event` | Award event / organization name | `"Academy Awards, USA"` |
+| `status` | Award status and year | `"1944 Winner"`, `"2017 Nominee"` |
+| `award` | Specific award name | `"Oscar"`, `"British Independent Film Award"` |
+| `category` | Award category | `"Best Picture"`, `"Best Actor in a Leading Role"` |
+| `nominees` | Nominees associated with the award | `"Humphrey Bogart"` |
+
+In addition, the `MovieDetail.awards` summary object (`AwardInfo`) provides overall counts on movie details (`wins`, `nominations`, `prestigious_award`):
 
 ```python
 from imdbinfo import get_movie
 
 movie = get_movie("tt0133093")  # The Matrix
 aw = movie.awards
-if not aw:
-    print("No award information available for this title")
-else:
+if aw:
     print("wins:", aw.wins)
     print("nominations:", aw.nominations)
     if aw.prestigious_award:
-        pa = aw.prestigious_award
-        print("prestigious wins:", pa.get("wins"))
-        print("prestigious nominations:", pa.get("nominations"))
-    else:
-        print("No prestigious award summary available")
+        print("prestigious award:", aw.prestigious_award.get("name"))
 ```
 
 ---
@@ -282,7 +300,7 @@ else:
 Fetch movie details and search results in multiple languages. Locale can be set globally or per request:
 
 ```python
-from imdbinfo import get_movie, search_title
+from imdbinfo import get_movie, search_title, get_awards
 from imdbinfo.locale import set_locale
 
 # Per-request locale
@@ -290,6 +308,9 @@ movie_it = get_movie("tt0133093", locale="it")  # The Matrix in Italian
 
 # Search in Spanish
 results_es = search_title("La Casa de Papel", locale="es")
+
+# Awards in Italian
+awards_it = get_awards("tt0034583", locale="it")
 
 # Set locale globally
 set_locale("it")
@@ -439,7 +460,7 @@ And if you want a REST API based on this package, check out [qdMovieAPI](https:/
 
 ---
 
-## 🛠 Under the Hood
+## 🛠️ Under the Hood
 
 - Built using `niquests` and `lxml` for fast scraping  
 - Uses [Pydantic](https://docs.pydantic.dev) for typing and validation  
