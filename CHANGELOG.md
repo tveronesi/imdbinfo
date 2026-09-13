@@ -257,7 +257,7 @@
   - `InterestScore`: holds `users_interested` and `users_voted` community counts.
   - Updated README, docs and examples with model descriptions and OO usage.
 
-## v0.10.1
+## v0.11.0
   - Add `get_awards(imdb_id)` service to fetch complete awards and nominations for any IMDb title.
   - New Pydantic model: `Award` with `event`, `status`, `award`, `category`, and `nominees` fields.
   - `parse_json_awards` refactored to return `List[Award]`.
