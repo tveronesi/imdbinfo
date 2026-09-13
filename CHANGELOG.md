@@ -256,3 +256,10 @@
   - `QuoteCharacter`: holds `character` name, `id` (person ID without `nm` prefix), `imdb_id` (alias), and `imdbId` (with `nm` prefix).
   - `InterestScore`: holds `users_interested` and `users_voted` community counts.
   - Updated README, docs and examples with model descriptions and OO usage.
+
+## v0.11.0
+  - Add `get_awards(imdb_id)` service to fetch complete awards and nominations for any IMDb title.
+  - New Pydantic model: `Award` with `event`, `status`, `award`, `category`, and `nominees` fields.
+  - `parse_json_awards` refactored to return `List[Award]`.
+  - Added example script `examples/usage_example_awards.py`.
+  - Updated tests and documentation in `README.md` and `docs/index.md`.
