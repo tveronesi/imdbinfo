@@ -2,8 +2,8 @@
 
 [![PyPI Downloads](https://static.pepy.tech/badge/imdbinfo)](https://pepy.tech/projects/imdbinfo)
 [![PyPI Version](https://img.shields.io/pypi/v/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
+[![Build Status](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml/badge.svg)](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml)
 [![Python Versions](https://img.shields.io/pypi/pyversions/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/tveronesi/imdbinfo/pypi-publish.yml?branch=main&style=flat-square)](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
 **Your personal gateway to IMDb data**. Search for movies, TV series, episodes, and people, and fetch rich structured metadata in seconds — **with no API keys or credentials required**.
