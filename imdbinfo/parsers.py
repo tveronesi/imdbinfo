@@ -44,6 +44,7 @@ from .models import (
     CompanyInfo,
     AkasData,
     AwardInfo,
+    Award,
     ParentalGuideList,
     MediaItem,
     MediaGallery,
@@ -949,3 +950,43 @@ def parse_json_quotes(raw_json: dict) -> List[Quote]:
         except Exception as exc:
             logger.warning("Skipping malformed quote node: %s", exc)
     return quotes
+
+
+def parse_json_awards(raw_json: dict) -> List[Award]:
+    """Parse title awards JSON and return a list of Award objects."""
+    if not raw_json or not isinstance(raw_json, dict):
+        return []
+    content_data = pjmespatch("props.pageProps.contentData", raw_json)
+    if not content_data or not isinstance(content_data, dict):
+        content_data = raw_json
+
+    awards_list: List[Award] = []
+    for category in content_data.get("categories") or []:
+        event_name = category.get("name", "")
+        section_items = (category.get("section") or {}).get("items") or []
+        for item in section_items:
+            list_content = item.get("listContent") or []
+            category_text = ", ".join(
+                [c.get("text", "") for c in list_content if c.get("text")]
+            )
+
+            sub_list_content = item.get("subListContent") or []
+            nominees_text = ", ".join(
+                [
+                    (sc.get("text", "") + (sc.get("subText") or ""))
+                    for sc in sub_list_content
+                    if sc.get("text")
+                ]
+            )
+
+            awards_list.append(
+                Award(
+                    event=event_name,
+                    status=item.get("rowTitle"),
+                    award=item.get("rowSubTitle"),
+                    category=category_text,
+                    nominees=nominees_text,
+                )
+            )
+
+    return awards_list
