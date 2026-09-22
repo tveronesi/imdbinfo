@@ -258,6 +258,13 @@
   - Updated README, docs and examples with model descriptions and OO usage.
 
 ## v0.11.0
+  - Add `get_awards(imdb_id)` service to fetch complete awards and nominations for any IMDb title.
+  - New Pydantic model: `Award` with `event`, `status`, `award`, `category`, and `nominees` fields.
+  - `parse_json_awards` refactored to return `List[Award]`.
+  - Added example script `examples/usage_example_awards.py`.
+  - Updated tests and documentation in `README.md` and `docs/index.md`.
+
+## v0.12.0
   - Add global proxy configuration via `set_proxy` and `get_proxy` to route requests through HTTP, HTTPS, or SOCKS proxies.
   - Export `set_proxy` and `get_proxy` directly from the top-level package `imdbinfo`.
   - Update `request_handler` and `request_graphql_url` to forward configured proxies to `niquests`.
