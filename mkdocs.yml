@@ -1,0 +1,64 @@
+site_name: imdbinfo
+site_description: A Python client for structured IMDb data.
+site_url: https://tveronesi.github.io/imdbinfo/
+repo_url: https://github.com/tveronesi/imdbinfo
+repo_name: tveronesi/imdbinfo
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.footer
+    - navigation.indexes
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            members_order: source
+            show_root_heading: true
+            show_root_full_path: false
+            show_signature_annotations: true
+            show_source: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+watch:
+  - imdbinfo
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Guides:
+      - Search: guides/search.md
+      - Titles and episodes: guides/titles-and-episodes.md
+      - People and filmography: guides/people-and-filmography.md
+      - Extended title data: guides/extended-title-data.md
+      - Locales and caching: guides/locales-and-caching.md
+      - Errors and reliability: guides/errors.md
+  - API reference:
+      - Overview: api/index.md
+      - Services: api/services.md
+      - Models: api/models.md
+      - Locale: api/locale.md
+      - Exceptions: api/exceptions.md

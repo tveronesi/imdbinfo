@@ -10,6 +10,28 @@
 
 ---
 
+## Documentation
+
+The published documentation is available at
+[tveronesi.github.io/imdbinfo](https://tveronesi.github.io/imdbinfo/).
+
+To work on it locally:
+
+```bash
+pip install -e ".[docs]"
+mkdocs serve
+```
+
+Build the deployable site and fail on broken documentation configuration with:
+
+```bash
+mkdocs build --strict
+```
+
+Pushes to `develop` publish the generated documentation through GitHub Pages.
+
+---
+
 ## ✨ Features
 
 - 🔍 **Title & Person Search** — Search movies, series, miniseries, episodes, and people with exact-match, year, and type filters.
