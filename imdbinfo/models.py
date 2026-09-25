@@ -19,6 +19,40 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+"""Pydantic models for imdbinfo API responses.
+
+This module contains all data models used to represent IMDb entities such as
+movies, TV series, people, episodes, awards, and metadata. All models are built
+with Pydantic for type safety, validation, and IDE autocompletion.
+
+Model Hierarchy
+---------------
+
+**Title Models:**
+- :class:`MovieDetail` — Main response for titles (movies, series, episodes)
+- :class:`TvSeriesDetail` — Series-specific metadata
+- :class:`TvEpisodeDetail` — Episode-specific metadata
+- :class:`MovieBriefInfo` — Lightweight title metadata for search results
+
+**Person Models:**
+- :class:`Person` — Basic person info (directors, cast, crew)
+- :class:`PersonDetail` — Comprehensive person biography and filmography
+
+**Search & Results:**
+- :class:`SearchResult` — Combined search results (titles + people)
+
+**Metadata Models:**
+- :class:`Award` — Award and nominations data
+- :class:`Quote` — Character quotes and dialogue
+- :class:`AkaInfo` / :class:`AkasData` — Alternative titles by region
+- :class:`MediaGallery` — Images and media items
+- :class:`ParentalGuideList` — Content warnings and ratings
+
+**Episode Collections:**
+- :class:`SeasonEpisodesList` — Episodes grouped by season
+- :class:`BulkedEpisode` — Individual episode in bulk results
+"""
+
 from typing import Optional, List, Dict, Tuple, Union
 from pydantic import BaseModel, Field, field_validator
 import logging
@@ -33,15 +67,30 @@ logger = logging.getLogger(__name__)
 
 
 class Person(BaseModel):
-    """person model for directors, cast and search results.
-    This model is used to represent a person in the IMDb database.
-    It can be used for directors, cast members and search results.
-    It contains the basic information about a person such as name, id, imdb_id, imdbId, url and job.
+    """Basic information about a person (actor, director, writer, etc.).
+
+    This model represents individuals in the IMDb database with their core
+    identifying information. It's used for cast, crew, and search results.
+
+    Attributes
+    ----------
+    id : str
+        IMDb ID without prefix (e.g., ``"0000206"`` for Keanu Reeves).
+    imdb_id : str
+        IMDb ID without prefix. Same as ``id``.
+    imdbId : str
+        IMDb ID with ``nm`` prefix (e.g., ``"nm0000206"``).
+    name : str
+        Person's full name.
+    url : str
+        IMDb profile URL.
+    job : str, optional
+        Job title or role (e.g., ``"Director"``, ``"Actor"``, ``"Writer"``).
     """
 
-    id: str  # id withouyt 'tt' prefix, e.g. '0133093', same as imdb_id
-    imdb_id: str  # id without 'nm' prefix, e.g. '0000126'
-    imdbId: str  # id with 'nm' prefix, e.g. 'nm0000126'
+    id: str
+    imdb_id: str
+    imdbId: str
     name: str
     url: str
     job: Optional[str] = None
@@ -120,29 +169,57 @@ class Person(BaseModel):
 
 
 class SeriesMixin:
+    """Mixin to provide type-checking methods for title entities.
+
+    Methods
+    -------
+    is_series() -> bool
+        Check if the title is a TV series (not a movie or episode).
+    is_episode() -> bool
+        Check if the title is a TV episode (part of a series).
+    """
+
     def is_series(self) -> bool:
-        """
-        Check if this movie title is a series, the main title of a series.
-        If True, it means that this is a series, not a movie, not an episode, but the main reference for the series itself, and series details can be found in the self.info_series property.
+        """Check if this title is a TV series (main series reference).
+
+        Returns
+        -------
+        bool
+            True if the title is a TV series, False otherwise.
+            If True, series details can be found in the ``info_series`` property.
         """
         return getattr(self, "kind", None) in SERIES_IDENTIFIERS
 
     def is_episode(self) -> bool:
-        """
-        Check if this movie title is an episode of a series.
-        If True, means that this is the episode of a series and episode details can be found in the self.info_episode property
+        """Check if this title is a TV episode (part of a series).
+
+        Returns
+        -------
+        bool
+            True if the title is an episode, False otherwise.
+            If True, episode details can be found in the ``info_episode`` property.
         """
         return getattr(self, "kind", None) in EPISODE_IDENTIFIERS
 
 
 class InfoSeries(BaseModel):
-    display_years: List[str] = Field(
-        default_factory=list
-    )  # e.g. ['2013', '2014', '2015']
-    display_seasons: List[str] = Field(default_factory=list)  # e.g. ['1', '2', '3']
-    creators: List[Person] = Field(
-        default_factory=list
-    )  # eg. [Person(...), Person(...)]
+    """Metadata about a TV series (years, seasons, creators).
+
+    Attributes
+    ----------
+    display_years : List[str]
+        Year range for the series (e.g., ``["2013", "2017"]`` for 2013-2017).
+        Empty list if not available.
+    display_seasons : List[str]
+        List of season numbers as strings (e.g., ``["1", "2", "3"]``).
+        Empty list if not available.
+    creators : List[Person]
+        List of series creators. Empty list if not available.
+    """
+
+    display_years: List[str] = Field(default_factory=list)
+    display_seasons: List[str] = Field(default_factory=list)
+    creators: List[Person] = Field(default_factory=list)
 
     @field_validator("display_years", mode="before")
     def filter_years(cls, value):
@@ -153,6 +230,13 @@ class InfoSeries(BaseModel):
         ]
 
     def get_creators(self) -> List[Person]:
+        """Get the list of series creators.
+
+        Returns
+        -------
+        List[Person]
+            Series creators, or empty list if none are available.
+        """
         return self.creators or []
 
     def __str__(self):
@@ -160,6 +244,22 @@ class InfoSeries(BaseModel):
 
 
 class InfoEpisode(BaseModel):
+    """Metadata about a specific TV episode.
+
+    Attributes
+    ----------
+    season_n : int, optional
+        Season number (1-indexed).
+    episode_n : int, optional
+        Episode number within the season (1-indexed).
+    series_imdbId : str, optional
+        IMDb ID of the parent series (with ``tt`` prefix).
+    series_title : str, optional
+        Title of the parent series in original language.
+    series_title_localized : str, optional
+        Title of the parent series in the requested locale.
+    """
+
     season_n: Optional[int] = None
     episode_n: Optional[int] = None
     series_imdbId: Optional[str] = None
@@ -222,40 +322,52 @@ class CompanyInfo(BaseModel):
 
 
 class AwardInfo(BaseModel):
-    """Model to group award-related counts for a title.
+    """Summary of award wins and nominations for a title.
 
-    Fields:
-        wins (Optional[int]): Number of wins.
-        nominations (Optional[int]): Number of nominations.
-        prestigious_award (Optional[dict]): Details of a prestigious award, if any.
+    Attributes
+    ----------
+    wins : int, optional
+        Total number of award wins.
+    nominations : int, optional
+        Total number of award nominations.
+    prestigious_award : dict, optional
+        Details of the most prestigious award, if any.
     """
 
     wins: Optional[int] = None
     nominations: Optional[int] = None
     prestigious_award: Optional[dict] = None
 
-    def __str__(self):
-        parts = []
-        if self.wins is not None:
-            parts.append(f"Wins: {self.wins}")
-        if self.nominations is not None:
-            parts.append(f"Nominations: {self.nominations}")
-        if self.prestigious_award is not None:
-            parts.append(
-                f"{self.prestigious_award.get('name', 'ND')}: Wins: {self.prestigious_award.get('wins', 0)}, Nominations: {self.prestigious_award.get('nominations', 0)}"
-            )
-        return ", ".join(parts) if parts else "No awards information"
-
 
 class Award(BaseModel):
-    """A movie or series award/nomination as listed on IMDb.
+    """A movie or TV series award, nomination, or win.
 
-    Fields:
-        event (str): The name of the award event/organization (e.g. ``"Academy Awards, USA"``).
-        status (Optional[str]): Award status/year (e.g. ``"1944 Winner"``, ``"Nominee"``).
-        award (Optional[str]): Award name (e.g. ``"Oscar"``).
-        category (Optional[str]): Award category (e.g. ``"Best Picture"``).
-        nominees (Optional[str]): Nominees associated with the award.
+    Represents a single award entry as listed on IMDb's awards page for a title.
+    Returned by :func:`~imdbinfo.services.get_awards`.
+
+    Attributes
+    ----------
+    event : str
+        Award ceremony name (e.g., ``"Academy Awards, USA"``, ``"Golden Globe Awards"``).
+    status : str, optional
+        Award status/year (e.g., ``"2000 Winner"``, ``"Nominee"``).
+    award : str, optional
+        Award name (e.g., ``"Oscar"``, ``"BAFTA Award"``).
+    category : str, optional
+        Award category (e.g., ``"Best Picture"``, ``"Best Director"``).
+    nominees : str, optional
+        Nominees or honorees associated with this award.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_awards
+    >>> awards = get_awards("tt0111161")  # The Shawshank Redemption
+    >>> for award in awards[:3]:
+    ...     print(f"{award.event}: {award.award} ({award.category})")
+    ...     print(f"  Status: {award.status}")
+    ```
     """
 
     event: str = ""
@@ -283,12 +395,61 @@ class Award(BaseModel):
 
 
 class MovieDetail(SeriesMixin, BaseModel):
-    """MovieDetail model for detailed information about a movie.
-    This model contains all the information about a movie such as title, id, imdb_id, imdbId, url, cover_url, plot, release_date, languages, certificates, directors, stars,
-    year, duration, country_codes, rating, metacritic_rating, votes, trailers, genres, interests, worldwide_gross, production_budget, storyline_keywords,
-    filming_locations, sound_mixes, processes, printed_formats, negative_formats, laboratories, colorations, cameras, aspect_ratios, summaries, synopses,
-    production and categories.
-    It also includes a field_validator to ensure that certain fields are lists and not None.
+    """Comprehensive details for a movie, TV series, or episode.
+
+    This is the main response model returned by :func:`~imdbinfo.services.get_movie`.
+    It contains all available IMDb metadata for a title including basic info, cast, crew,
+    ratings, release information, production details, and technical specifications.
+
+    Use :meth:`is_series` and :meth:`is_episode` to determine the title type before
+    accessing type-specific fields like ``info_series`` or ``info_episode``.
+
+    Attributes
+    ----------
+    id : str
+        IMDb title ID without ``tt`` prefix (e.g., ``"0133093"``).
+    imdb_id : str
+        IMDb title ID without ``tt`` prefix. Same as ``id``.
+    imdbId : str
+        IMDb title ID with ``tt`` prefix (e.g., ``"tt0133093"``).
+    title : str
+        Primary title in original language.
+    title_localized : str, optional
+        Title in the requested locale language.
+    title_akas : List[str]
+        Alternative titles by region and language.
+    kind : str, optional
+        Title type (``"movie"``, ``"tvSeries"``, ``"tvEpisode"``, etc.).
+    url : str
+        IMDb title URL.
+    cover_url : str, optional
+        URL of the primary poster/cover image.
+    plot : str, optional
+        Plot summary or synopsis.
+    release_date : str, optional
+        Release date in ISO format (``YYYY-MM-DD``).
+    languages : List[str]
+        List of language codes (e.g., ``["en", "fr"]``).
+    certificates : Dict[str, Tuple[str, str]]
+        Parental ratings by country (e.g., ``{"US": ("PG-13", "description")}``)
+    directors : List[Person]
+        List of film directors.
+    stars : List[Person]
+        List of main cast members.
+    year : int, optional
+        Release year.
+    year_end : int, optional
+        End year (for TV series).
+    duration : int, optional
+        Runtime in minutes.
+    rating : float, optional
+        IMDb rating (0-10).
+    votes : int, optional
+        Number of user votes.
+    info_series : InfoSeries, optional
+        Series-specific metadata. Present only if ``is_series()`` returns ``True``.
+    info_episode : InfoEpisode, optional
+        Episode-specific metadata. Present only if ``is_episode()`` returns ``True``.
     """
 
     id: str  # id without 'tt' prefix, e.g. '0133093', same as imdb_id
@@ -358,25 +519,69 @@ class MovieDetail(SeriesMixin, BaseModel):
 
 
 class TvSeriesDetail(MovieDetail):
-    info_series: Optional[InfoSeries] = (
-        None  # e.g. SeriesInfo(display_years=['2013', '2014', '2015'], display_seasons=['1', '2', '3'])
+    """Details for a TV series (inherits from MovieDetail).
+
+    Contains series-specific metadata such as creators, seasons, and year range.
+
+    Attributes
+    ----------
+    info_series : InfoSeries, optional
+        Series metadata including display years, seasons, and creators.
+    """
+
+    info_series: Optional[InfoSeries] = Field(
+        None, description="Series metadata (years, seasons, creators)"
     )
 
 
 class TvEpisodeDetail(MovieDetail):
-    info_episode: Optional[InfoEpisode] = None  # e.g. SeriesInfo(display_year
+    """Details for a TV episode (inherits from MovieDetail).
+
+    Contains episode-specific metadata such as season number, episode number,
+    and parent series information.
+
+    Attributes
+    ----------
+    info_episode : InfoEpisode, optional
+        Episode metadata including season, episode number, and series reference.
+    """
+
+    info_episode: Optional[InfoEpisode] = Field(
+        None, description="Episode metadata (season, episode, series)"
+    )
 
 
 class MovieBriefInfo(SeriesMixin, BaseModel):
-    """
-    MovieBriefInfo model for search results and cast members.
-    This model is used to represent a movie in search results and cast members.
-    It contains basic information about a movie such as title, id, imdb_id, imdbId, url, cover_url, year, rating and kind.
-    It can be used to represent a movie in search results or as part of a cast member's credits.
-    It includes class methods to create an instance from search results and cast data.
+    """Lightweight title metadata for search results and filmography.
+
+    Used in search results and as part of a person's filmography.
+    Contains basic title info: name, year, rating, and IMDb ID.
+
+    Attributes
+    ----------
+    id : str
+        IMDb title ID without ``tt`` prefix (e.g., ``"0133093"``).
+    imdb_id : str
+        IMDb title ID without ``tt`` prefix. Same as ``id``.
+    imdbId : str
+        IMDb title ID with ``tt`` prefix (e.g., ``"tt0133093"``).
+    title : str
+        Title in original language.
+    title_localized : str
+        Title in the requested locale.
+    cover_url : str, optional
+        URL of the poster image.
+    url : str, optional
+        IMDb title URL.
+    year : int, optional
+        Release year.
+    kind : str, optional
+        Title type (``"movie"``, ``"tvSeries"``, ``"tvEpisode"``, etc.).
+    rating : float, optional
+        IMDb rating (0-10).
     """
 
-    id: str  # id withouyt 'tt' prefix, e.g. '0133093', same as imdb_id
+    id: str
     imdb_id: str
     imdbId: str
     title: str
@@ -384,8 +589,8 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
     cover_url: Optional[str] = None
     url: Optional[str] = None
     year: Optional[int] = None
-    kind: Optional[str] = None  # e.g. 'movie', 'tvSeries', 'tvSeriesEpisode' ...
-    rating: Optional[float] = None  # e.g. 8.7
+    kind: Optional[str] = None
+    rating: Optional[float] = None
 
     @classmethod
     def from_movie_search(cls, data: dict):
@@ -444,11 +649,28 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
 
 
 class SearchResult(BaseModel):
-    """
-    SearchResult model for search results.
-    This model contains the results of a search query, including a list of titles and names.
-    It is used to represent the results of a search query for movies and people.
-    It includes a list of MovieBriefInfo objects for titles and a list of Person objects for names.
+    """Results from a title/person search query.
+
+    Returned by :func:`~imdbinfo.services.search_title`. Contains both title matches
+    and people matches in separate lists.
+
+    Attributes
+    ----------
+    titles : List[MovieBriefInfo]
+        Matching movie, TV series, and episode titles.
+    names : List[Person]
+        Matching people (actors, directors, writers, etc.).
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import search_title
+    >>> results = search_title("The Matrix", year=1999)
+    >>> print(f"Found {len(results.titles)} titles and {len(results.names)} people")
+    >>> for title in results.titles:
+    ...     print(f"  {title.title} ({title.year})")
+    ```
     """
 
     titles: List[MovieBriefInfo] = Field(default_factory=list)
@@ -456,16 +678,67 @@ class SearchResult(BaseModel):
 
 
 class PersonDetail(BaseModel):
-    """
-    PersonDetail model for detailed information about a person.
-    This model contains all the information about a person such as id, imdb_id, imdbId, name, url, knownfor, image_url, bio, height, primary_profession,
-    birth_date, birth_place, death_date, death_place, jobs, credits and unreleased_credits.
+    """Comprehensive biography and filmography for a person.
 
+    Returned by :func:`~imdbinfo.services.get_name`. Contains personal biography,
+    career information, and complete filmography across all job categories.
+
+    Attributes
+    ----------
+    id : str
+        IMDb person ID without ``nm`` prefix (e.g., ``"0000206"``).
+    imdb_id : str
+        IMDb person ID without ``nm`` prefix. Same as ``id``.
+    imdbId : str
+        IMDb person ID with ``nm`` prefix (e.g., ``"nm0000206"``).
+    name : str
+        Person's full name.
+    url : str
+        IMDb profile URL.
+    knownfor : List[str]
+        List of titles the person is best known for (as titles).
+    image_url : str, optional
+        URL of the person's profile photo.
+    bio : str, optional
+        Biography or summary.
+    height : str, optional
+        Physical height.
+    primary_profession : List[str]
+        Primary job categories (e.g., ``["actor", "producer"]``).
+    birth_date : str, optional
+        Birth date (ISO format: ``YYYY-MM-DD``).
+    birth_place : str, optional
+        Birth location.
+    death_date : str, optional
+        Death date (ISO format: ``YYYY-MM-DD``).
+    death_place : str, optional
+        Death location.
+    death_reason : str, optional
+        Cause of death.
+    jobs : List[str]
+        Complete list of job titles/professions.
+    credits : Dict[str, List[MovieBriefInfo]]
+        Filmography by job category (e.g., ``{"actor": [...], "director": [...]}``)
+    unreleased_credits : Dict[str, List[MovieBriefInfo]]
+        Unreleased/upcoming projects by job category.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_name
+    >>> person = get_name("nm0000206")  # Keanu Reeves
+    >>> print(person.name)
+    Keanu Reeves
+    >>> print(f"Known for: {', '.join(person.knownfor[:3])}")
+    >>> for category, titles in person.credits.items():
+    ...     print(f"{category.title()}: {len(titles)} titles")
+    ```
     """
 
-    id: str  # id without 'nm' prefix, e.g. '0000126', same as imdb_id
-    imdb_id: str  # id without 'nm' prefix, e.g. '0000126' same as id
-    imdbId: str  # id with 'nm' prefix
+    id: str
+    imdb_id: str
+    imdbId: str
     name: str
     url: str
     knownfor: List[str] = Field(default_factory=list)
@@ -814,16 +1087,22 @@ class InterestScore(BaseModel):
 
 
 class QuoteCharacter(BaseModel):
-    """A character (speaker) attributed to a line in a quote.
+    """A character speaker attributed to a line in a quote.
 
-    Fields:
-        character (Optional[str]): The character name as shown on IMDb (e.g. ``"Neo"``).
-        id (Optional[str]): IMDb person ID without the ``nm`` prefix
-            (e.g. ``"0000206"`` for Keanu Reeves).  ``None`` when the speaker
-            has no linked IMDb name page.
-        imdb_id (Optional[str]): Alias of ``id`` spectacles.
-        imdbId (Optional[str]): IMDb person ID with the ``nm`` prefix
-            (e.g. ``"nm0000206"``).
+    Represents the actor/character speaking a line in a movie quote.
+    May be linked to an IMDb person page or be unattributed.
+
+    Attributes
+    ----------
+    character : str, optional
+        Character name as shown on IMDb (e.g., ``"Neo"``).
+    id : str, optional
+        IMDb person ID without ``nm`` prefix (e.g., ``"0000206"``).
+        ``None`` if speaker has no linked IMDb person page.
+    imdb_id : str, optional
+        Alias of ``id``.
+    imdbId : str, optional
+        IMDb person ID with ``nm`` prefix (e.g., ``"nm0000206"``).
     """
 
     character: Optional[str] = None
@@ -831,91 +1110,80 @@ class QuoteCharacter(BaseModel):
     id: Optional[str] = None
     imdb_id: Optional[str] = None
 
-    @classmethod
-    def from_node(cls, node: dict) -> "QuoteCharacter":
-        name_node = node.get("name") or {}
-        imdbId = name_node.get("id", "") or ""
-        id = imdbId.replace("nm", "") or None  # id without 'nm' prefix, e.g. '0000126'
-        return cls(
-            character=node.get("character"),
-            imdbId=imdbId,
-            imdb_id=id,
-            id=id,
-        )
-
-    def __str__(self):
-        return self.character or ""
-
-    def __repr__(self):
-        return f"QuoteCharacter({self.character}, nm{self.id})"
-
 
 class QuoteLine(BaseModel):
     """A single line of dialogue within a quote exchange.
 
-    Fields:
-        characters (List[QuoteCharacter]): Speakers attributed to this line.
-        text (Optional[str]): The spoken text.
-        stage_direction (Optional[str]): Stage direction or action note, if any.
+    Represents one speaker's contribution to a multi-line quote.
+
+    Attributes
+    ----------
+    characters : List[QuoteCharacter]
+        Speaker(s) attributed to this line.
+    text : str, optional
+        The spoken dialogue text.
+    stage_direction : str, optional
+        Stage direction or action note (e.g., ``"[enters stage]"``).
     """
 
     characters: List[QuoteCharacter] = Field(default_factory=list)
     text: Optional[str] = None
     stage_direction: Optional[str] = None
 
-    @classmethod
-    def from_node(cls, node: dict) -> "QuoteLine":
-        return cls(
-            characters=[
-                QuoteCharacter.from_node(c)
-                for c in node.get("characters") or []
-            ],
-            text=node.get("text"),
-            stage_direction=node.get("stageDirection"),
-        )
-
     @property
     def speaker_names(self) -> List[str]:
-        """Return a list of character names speaking this line."""
+        """Get list of character names speaking this line.
+
+        Returns
+        -------
+        List[str]
+            Character names from all speakers in this line.
+        """
         return [c.character for c in self.characters if c.character]
-
-    def __str__(self):
-        speakers = ", ".join(self.speaker_names)
-        prefix = f"[{speakers}]: " if speakers else ""
-        direction = f" ({self.stage_direction})" if self.stage_direction else ""
-        return f"{prefix}{self.text or ''}{direction}"
-
-    def __repr__(self):
-        return f"QuoteLine(speakers={self.speaker_names}, text={self.text!r})"
 
 
 class Quote(BaseModel):
-    """A movie or series quote as listed on IMDb.
+    """A memorable quote or dialogue exchange from a movie or TV series.
 
-    Each ``Quote`` contains one or more ``QuoteLine`` objects representing
-    the lines exchanged in the scene, plus a community ``InterestScore``.
+    Returned by :func:`~imdbinfo.services.get_quotes`. Each quote contains one or more
+    dialogue lines exchanged between characters, plus community voting data.
 
-    Fields:
-        id (str): IMDb quote ID, e.g. ``\"qt0324252\"``.
-        lines (List[QuoteLine]): Ordered list of dialogue lines in the exchange.
-        interest_score (InterestScore): Community interest and voting counts.
+    Attributes
+    ----------
+    id : str
+        IMDb quote ID (e.g., ``"qt0324252"``).
+    lines : List[QuoteLine]
+        Ordered list of dialogue lines in the exchange.
+    interest_score : InterestScore
+        Community engagement metrics (votes, interest count).
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_quotes
+    >>> quotes = get_quotes("tt0133093")  # The Matrix
+    >>> for quote in quotes[:3]:
+    ...     print(f"Quote {quote.id}:")
+    ...     print(f"  Speakers: {', '.join(quote.speakers)}")
+    ...     for line in quote.lines:
+    ...         print(f"    {line}")
+    ```
     """
 
     id: str
     lines: List[QuoteLine] = Field(default_factory=list)
     interest_score: InterestScore = Field(default_factory=InterestScore)
 
-    @classmethod
-    def from_node(cls, node: dict) -> "Quote":
-        return cls(
-            id=node.get("id", ""),
-            lines=[QuoteLine.from_node(line) for line in node.get("lines") or []],
-            interest_score=InterestScore.from_node(node.get("interestScore") or {}),
-        )
-
     @property
     def speakers(self) -> List[str]:
-        """Return a deduplicated list of all character names in this quote."""
+        """Get deduplicated list of all character names in this quote.
+
+        Returns
+        -------
+        List[str]
+            Unique character names who speak in this quote.
+        """
         seen: set = set()
         result = []
         for line in self.lines:

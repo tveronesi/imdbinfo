@@ -116,9 +116,43 @@ def _delete_waf_cookie_file() -> None:
 
 
 class TitleType(Enum):
-    """
-    Defines the valid 'ttype' filters for title searches on IMDb.
-    The values correspond to the URL parameter used in search queries.
+    """Enum for filtering titles by type in search queries.
+
+    This enum defines the valid title type filters for IMDb searches.
+    Each member corresponds to a specific title category on IMDb.
+
+    Attributes
+    ----------
+    Movies : str
+        Movies (ft / MOVIE). Includes theatrical and made-for-TV movies.
+    Series : str
+        TV series (tv / TV). Includes serialized television programs.
+    Episodes : str
+        TV episodes (ep / TV_EPISODE). Individual episodes within a series.
+    Shorts : str
+        Short films (sh / MOVIE). Works under 40 minutes.
+    TvMovie : str
+        TV movies (tvm / TV). Films made for television.
+    Video : str
+        Video releases (v / ALL). Direct-to-video and streaming releases.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import search_title, TitleType
+    >>> # Search for movies only
+    >>> results = search_title("The Matrix", title_type=TitleType.Movies)
+    ```
+
+    Search for multiple types:
+
+    ```python
+    >>> results = search_title(
+    ...     "Game of Thrones",
+    ...     title_type=(TitleType.Series, TitleType.Episodes)
+    ... )
+    ```
     """
 
     Movies = "ft"  # MOVIE
@@ -143,6 +177,42 @@ TitleFilter = Union[TitleType, Tuple[TitleType, ...]]
 
 
 def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
+    """Normalize IMDb IDs to a standard 7-digit numeric format.
+
+    Accepts both prefixed (e.g., ``"tt0133093"``) and unprefixed (e.g., ``"0133093"``)
+    IMDb IDs and returns a normalized numeric ID and language code.
+
+    Parameters
+    ----------
+    imdb_id : str
+        IMDb ID with or without prefix. E.g. ``"tt0133093"``, ``"0133093"``, ``"nm0000206"``.
+        The function strips all non-digit characters and formats the result as a 7-digit ID.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+
+    Returns
+    -------
+    tuple
+        A tuple of (imdb_id_numeric, language_code) where:
+        - ``imdb_id_numeric`` is the 7-digit numeric ID (e.g., ``"0133093"``)
+        - ``language_code`` is the URL language parameter (e.g., ``""``, ``"it"``, ``"fr"``).
+          Empty string for English (default).
+
+    Examples
+    --------
+
+    ```python
+    >>> normalize_imdb_id("tt0133093")
+    ('0133093', '')
+
+    >>> normalize_imdb_id("0133093")
+    ('0133093', '')
+
+    >>> normalize_imdb_id("tt0133093", locale="it")
+    ('0133093', 'it')
+    ```
+    """
     imdb_id = str(imdb_id)
     num = int(re.sub(r"\D", "", imdb_id))
     lang = _retrieve_url_lang(locale)
@@ -275,8 +345,59 @@ def request_graphql_url(headers, search_term, payload, url) -> Any:
 
 @lru_cache(maxsize=128)
 def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetail]:
-    """Fetch movie details from IMDb using the provided IMDb ID as string,
-    preserve the 'tt' prefix or not, it will be stripped in the function.
+    """Fetch detailed information for a movie, TV series, or episode.
+
+    Retrieves comprehensive title details including cast, crew, ratings, plot,
+    runtime, release dates, and other metadata from IMDb.
+
+    Parameters
+    ----------
+    imdb_id : str
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+
+    Returns
+    -------
+    MovieDetail
+        A structured response containing title, plot, cast, ratings, runtime, release dates,
+        and all available metadata. Check :attr:`~imdbinfo.models.MovieDetail.is_series` or
+        :attr:`~imdbinfo.models.MovieDetail.is_episode` to determine the title kind.
+
+    Raises
+    ------
+    HTTPError
+        If IMDb returns a non-200 HTTP status.
+    WAFError
+        If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
+    ParseError
+        If the HTML response lacks the ``__NEXT_DATA__`` JSON script tag.
+
+    Notes
+    -----
+    Results are cached with :func:`functools.lru_cache` (maxsize=128).
+    To clear the cache, call ``get_movie.cache_clear()``.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_movie
+    >>> movie = get_movie("tt0133093")
+    >>> print(movie.title)
+    The Matrix
+    >>> print(movie.rating)
+    8.7
+    ```
+
+    Fetch a TV series and check its kind:
+
+    ```python
+    >>> series = get_movie("tt1520211")
+    >>> if series.is_series():
+    ...     print(f"Seasons: {series.info_series.display_seasons}")
+    ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/reference"
@@ -289,7 +410,48 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
 
 @lru_cache(maxsize=128)
 def get_awards(imdb_id: str, locale: Optional[str] = None) -> List[Award]:
-    """Fetch awards information for a title using the provided IMDb ID."""
+    """Fetch awards and nominations for a title.
+
+    Retrieves all award nominations and wins for a movie, TV series, or episode,
+    including BAFTA, Golden Globe, Oscars, and other major award ceremonies.
+
+    Parameters
+    ----------
+    imdb_id : str
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+
+    Returns
+    -------
+    List[Award]
+        List of :class:`~imdbinfo.models.Award` objects, each containing award name,
+        nominations, and winners. Empty list if no awards are available.
+
+    Raises
+    ------
+    HTTPError
+        If IMDb returns a non-200 HTTP status.
+    WAFError
+        If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
+    ParseError
+        If the HTML response lacks the ``__NEXT_DATA__`` JSON script tag.
+
+    Notes
+    -----
+    Results are cached with :func:`functools.lru_cache` (maxsize=128).
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_awards
+    >>> awards = get_awards("tt0111161")  # The Shawshank Redemption
+    >>> for award in awards:
+    ...     print(f"{award.name}: {len(award.nominations)} nominations")
+    ```
+    """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/awards/"
     logger.info("Fetching awards for movie %s", imdb_id)
@@ -307,6 +469,65 @@ def search_title(
     locale: Optional[str] = None,
     title_type: Optional[TitleFilter] = None,
 ) -> Optional[SearchResult]:
+    """Search for movies, TV series, episodes, and people on IMDb.
+
+    Queries IMDb's GraphQL API to find titles and people matching the search term.
+    Supports filtering by year, exact match, and title type.
+
+    Parameters
+    ----------
+    search_term : str
+        The search query. E.g. ``"The Matrix"``, ``"Tom Cruise"``.
+    year : int, optional
+        Filter results to titles released in a specific year.
+    exact_match : bool, default False
+        If True, match titles exactly by name. If False, allow partial/fuzzy matches.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+    title_type : TitleType or tuple of TitleType, optional
+        Filter by title kind. E.g. ``TitleType.Movies``, ``TitleType.TVSeries``,
+        or ``(TitleType.Movies, TitleType.TVSeries)`` for multiple types.
+        See :class:`~imdbinfo.services.TitleType` for available filters.
+
+    Returns
+    -------
+    SearchResult
+        A :class:`~imdbinfo.models.SearchResult` containing two lists:
+        ``titles`` (matching titles) and ``names`` (matching people).
+
+    Raises
+    ------
+    GraphQLError
+        If the GraphQL API returns an error or non-200 status.
+
+    Notes
+    -----
+    Results are cached with :func:`functools.lru_cache` (maxsize=128).
+    The API returns up to 50 results per query.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import search_title, TitleType
+    >>> results = search_title("The Matrix", year=1999)
+    >>> for title in results.titles:
+    ...     print(f"{title.imdbId}: {title.title} ({title.year})")
+    ```
+
+    Search for movies only with exact match:
+
+    ```python
+    >>> movies = search_title(
+    ...     "The Matrix",
+    ...     year=1999,
+    ...     exact_match=True,
+    ...     title_type=TitleType.Movies,
+    ... )
+    >>> print(f"Found {len(movies.titles)} result(s)")
+    ```
+    """
     lang = _retrieve_url_lang(locale)
     country_code = _get_country_code_from_lang_locale(lang)
 
@@ -413,8 +634,50 @@ query {
 
 @lru_cache(maxsize=128)
 def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDetail]:
-    """Fetch person details from IMDb using the provided IMDb ID.
-    Preserve the 'nm' prefix or not, it will be stripped in the function.
+    """Fetch detailed information for a person (actor, director, writer, etc.).
+
+    Retrieves comprehensive person details including biography, filmography,
+    awards, birth/death dates, and career information.
+
+    Parameters
+    ----------
+    person_id : str
+        IMDb person ID, with or without the ``nm`` prefix. E.g. ``"nm0000206"`` or ``"0000206"``.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+
+    Returns
+    -------
+    PersonDetail
+        A structured response containing person name, birth/death dates, biography,
+        primary profession, known for titles, and other biographical data.
+
+    Raises
+    ------
+    HTTPError
+        If IMDb returns a non-200 HTTP status.
+    WAFError
+        If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
+    ParseError
+        If the HTML response lacks the ``__NEXT_DATA__`` JSON script tag.
+
+    Notes
+    -----
+    Results are cached with :func:`functools.lru_cache` (maxsize=128).
+    For full filmography, use :func:`get_filmography` separately.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_name
+    >>> person = get_name("nm0000206")  # Keanu Reeves
+    >>> print(person.name)
+    Keanu Reeves
+    >>> print(person.primary_profession)
+    actor
+    ```
     """
     person_id, lang = normalize_imdb_id(person_id, locale)
     url = f"https://www.imdb.com/{lang}/name/nm{person_id}/"
@@ -434,7 +697,48 @@ def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDet
 def get_season_episodes(
     imdb_id: str, season=1, locale: Optional[str] = None
 ) -> SeasonEpisodesList:
-    """Fetch episodes for a movie or series using the provided IMDb ID."""
+    """Fetch all episodes for a specific season of a TV series.
+
+    Parameters
+    ----------
+    imdb_id : str
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt1520211"`` or ``"1520211"``.
+    season : int, default 1
+        Season number to retrieve. E.g. 1 for season 1, 2 for season 2, etc.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+
+    Returns
+    -------
+    SeasonEpisodesList
+        A :class:`~imdbinfo.models.SeasonEpisodesList` containing list of
+        :class:`~imdbinfo.models.SeasonEpisode` objects with episode details.
+
+    Raises
+    ------
+    HTTPError
+        If IMDb returns a non-200 HTTP status.
+    WAFError
+        If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
+    ParseError
+        If the HTML response lacks the ``__NEXT_DATA__`` JSON script tag.
+
+    Notes
+    -----
+    Results are cached with :func:`functools.lru_cache` (maxsize=128).
+    To get all episodes at once, use :func:`get_all_episodes`.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_season_episodes
+    >>> episodes = get_season_episodes("tt1520211", season=1)
+    >>> for ep in episodes.episodes:
+    ...     print(f"S01E{ep.episode:02d}: {ep.title}")
+    ```
+    """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/episodes/?season={season}"
     logger.info("Fetching episodes for movie %s", imdb_id)
@@ -446,7 +750,48 @@ def get_season_episodes(
 
 @lru_cache(maxsize=128)
 def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
-    series_id, lang = normalize_imdb_id(imdb_id, locale)
+    """Fetch all episodes for a TV series (across all seasons).
+
+    Retrieves the complete episode list for a series in chronological order.
+
+    Parameters
+    ----------
+    imdb_id : str
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt1520211"`` or ``"1520211"``.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+
+    Returns
+    -------
+    list
+        List of :class:`~imdbinfo.models.BulkedEpisode` objects, each containing
+        episode title, number, rating, and other metadata.
+
+    Raises
+    ------
+    HTTPError
+        If IMDb returns a non-200 HTTP status.
+    WAFError
+        If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
+    ParseError
+        If the HTML response lacks the ``__NEXT_DATA__`` JSON script tag.
+
+    Notes
+    -----
+    Results are cached with :func:`functools.lru_cache` (maxsize=128).
+    For a single season, use :func:`get_season_episodes` instead.
+    This function may be slower for long-running series.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_all_episodes
+    >>> all_eps = get_all_episodes("tt0944947")  # Game of Thrones
+    >>> print(f"Total episodes: {len(all_eps)}")
+    ```
+    """
     url = f"https://www.imdb.com/{lang}/search/title/?count=250&series=tt{series_id}&sort=release_date,asc"
     logger.info("Fetching bulk episodes for series %s", imdb_id)
     raw_json = request_json_url(url)
@@ -459,8 +804,29 @@ def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
 def get_episodes(
     imdb_id: str, season=1, locale: Optional[str] = None
 ) -> SeasonEpisodesList:
-    """wrap until deprecation : use get_season_episodes instead for seasons
-    or get_all_episodes for all episodes
+    """Deprecated: Use :func:`get_season_episodes` or :func:`get_all_episodes` instead.
+
+    This function is kept for backward compatibility and forwards calls to
+    :func:`get_season_episodes`.
+
+    Parameters
+    ----------
+    imdb_id : str
+        IMDb title ID, with or without the ``tt`` prefix.
+    season : int, default 1
+        Season number to retrieve.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting.
+
+    Returns
+    -------
+    SeasonEpisodesList
+        List of episodes for the specified season.
+
+    Warnings
+    --------
+    This function is deprecated. Use :func:`get_season_episodes` for a single
+    season or :func:`get_all_episodes` for all episodes instead.
     """
     logger.warning(
         "get_episodes is deprecating, use get_season_episodes or get_all_episodes instead."
@@ -469,7 +835,43 @@ def get_episodes(
 
 
 def get_akas(imdb_id: str, locale: Optional[str] = None) -> Union[AkasData, list]:
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
+    """Fetch alternative titles (AKAs) for a title in different regions and languages.
+
+    Retrieves all known alternative titles and regional releases for a title,
+    along with country and language codes.
+
+    Parameters
+    ----------
+    imdb_id : str
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+
+    Returns
+    -------
+    AkasData or list
+        A :class:`~imdbinfo.models.AkasData` object or empty list if no AKAs are found.
+
+    Raises
+    ------
+    HTTPError
+        If IMDb returns a non-200 HTTP status.
+    WAFError
+        If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
+    ParseError
+        If the HTML response lacks the ``__NEXT_DATA__`` JSON script tag.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_akas
+    >>> akas = get_akas("tt0133093")  # The Matrix
+    >>> for aka in akas:
+    ...     print(f"{aka.title} ({aka.country_code})")
+    ```
+    """
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No AKAs found for title %s", imdb_id)
@@ -480,16 +882,50 @@ def get_akas(imdb_id: str, locale: Optional[str] = None) -> Union[AkasData, list
 
 
 def get_all_interests(imdb_id: str, locale: Optional[str] = None):
-    """
-        Fetch all 'interests' for a title using the provided IMDb ID.
+    """Fetch all interest tags and thematic topics for a title.
 
-    In the context of IMDb data, 'interests' are thematic tags, topics, or metadata associated with a title,
-    such as genres, themes, or other descriptors that go beyond the standard genre classification.
-    These interests are extracted from the extended title information returned by IMDb's GraphQL API.
+    In the context of IMDb data, 'interests' are thematic tags, topics, or metadata
+    associated with a title, such as genres, themes, or other descriptors beyond
+    the standard genre classification. These are extracted from IMDb's GraphQL API.
 
-    Note: This function makes an additional request to IMDb's GraphQL endpoint, which may be slower and
-    more resource-intensive than standard API calls. Use this function only if you require interests
-    beyond what is available in movie.genres, as it can impact performance.
+    Parameters
+    ----------
+    imdb_id : str
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+
+    Returns
+    -------
+    list
+        List of interest tag strings. Empty list if no interests are found.
+
+    Raises
+    ------
+    HTTPError
+        If IMDb returns a non-200 HTTP status.
+    WAFError
+        If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
+    GraphQLError
+        If the GraphQL endpoint returns an error.
+
+    Notes
+    -----
+    This function makes an additional request to IMDb's GraphQL endpoint, which
+    may be slower and more resource-intensive than standard API calls. Use this
+    function only if you require interests beyond what is available in
+    :attr:`~imdbinfo.models.MovieDetail.genres`.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_all_interests
+    >>> interests = get_all_interests("tt0133093")  # The Matrix
+    >>> print(interests[:5])
+    ['cyberpunk', 'hacker', 'action', ...]
+    ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     raw_json = _get_extended_title_info(imdb_id, lang)
@@ -508,7 +944,43 @@ def get_all_interests(imdb_id: str, locale: Optional[str] = None):
 
 
 def get_trivia(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
+    """Fetch trivia facts for a title.
+
+    Retrieves interesting behind-the-scenes facts, production trivia, and
+    user-contributed trivia about a movie or TV series.
+
+    Parameters
+    ----------
+    imdb_id : str
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+
+    Returns
+    -------
+    List[Dict]
+        List of trivia dictionaries containing trivia text and interest scores.
+        Empty list if no trivia is found.
+
+    Raises
+    ------
+    HTTPError
+        If IMDb returns a non-200 HTTP status.
+    WAFError
+        If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
+    GraphQLError
+        If the GraphQL endpoint returns an error.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_trivia
+    >>> trivia = get_trivia("tt0111161")  # The Shawshank Redemption
+    >>> print(f"Found {len(trivia)} trivia facts")
+    ```
+    """
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No trivia found for title %s", imdb_id)
@@ -519,7 +991,44 @@ def get_trivia(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
 
 
 def get_reviews(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
+    """Fetch user reviews for a title.
+
+    Retrieves top user reviews and comments about a movie or TV series,
+    including reviewer names, ratings, and spoiler flags.
+
+    Parameters
+    ----------
+    imdb_id : str
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+
+    Returns
+    -------
+    List[Dict]
+        List of review dictionaries containing reviewer name, rating, text, and
+        spoiler flag. Empty list if no reviews are found.
+
+    Raises
+    ------
+    HTTPError
+        If IMDb returns a non-200 HTTP status.
+    WAFError
+        If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
+    GraphQLError
+        If the GraphQL endpoint returns an error.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_reviews
+    >>> reviews = get_reviews("tt0111161")
+    >>> for review in reviews:
+    ...     print(f"By {review['author']}: {review['summary']}")
+    ```
+    """
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No reviews found for title %s", imdb_id)
@@ -530,7 +1039,44 @@ def get_reviews(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
 
 
 def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
+    """Fetch parental guide information for a title.
+
+    Retrieves content warnings for violence, profanity, sex, drugs, and other
+    categories to help parents assess title suitability.
+
+    Parameters
+    ----------
+    imdb_id : str
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+
+    Returns
+    -------
+    Dict
+        A :class:`~imdbinfo.models.ParentalGuideList` object or dict with categories
+        and content warnings. Empty dict if no parental guide is found.
+
+    Raises
+    ------
+    HTTPError
+        If IMDb returns a non-200 HTTP status.
+    WAFError
+        If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
+    GraphQLError
+        If the GraphQL endpoint returns an error.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_parental_guide
+    >>> guide = get_parental_guide("tt0137523")  # Fight Club
+    >>> for category in guide.get('categories', []):
+    ...     print(f"{category['name']}: {category['severity']}")
+    ```
+    """
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No parental guide found for title %s", imdb_id)
@@ -541,15 +1087,43 @@ def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
 
 
 def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
-    """Fetch character quotes for a title.
+    """Fetch character quotes and dialogue from a title.
 
-    Returns a list of :class:`~imdbinfo.models.Quote` objects, each containing
-    the dialogue lines, speaker attribution and community interest score.
+    Returns a list of memorable movie or TV quotes, including speaker attribution,
+    dialogue lines, and community interest scores.
 
-    :param imdb_id: IMDb title ID (with or without ``tt`` prefix).
-    :param locale: Optional locale string, e.g. ``\"it\"`` for Italian.
-    :return: List of :class:`~imdbinfo.models.Quote` objects; empty list when
-        no quotes are available or the title is not found.
+    Parameters
+    ----------
+    imdb_id : str
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+
+    Returns
+    -------
+    List[Quote]
+        List of :class:`~imdbinfo.models.Quote` objects, each containing dialogue lines,
+        speaker attribution, and interest scores. Empty list if no quotes are found.
+
+    Raises
+    ------
+    HTTPError
+        If IMDb returns a non-200 HTTP status.
+    WAFError
+        If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
+    GraphQLError
+        If the GraphQL endpoint returns an error.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_quotes
+    >>> quotes = get_quotes("tt0133093")  # The Matrix
+    >>> for quote in quotes:
+    ...     print(f"{quote.characters[0].character}: {quote.lines[0].text}")
+    ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     raw_json = _get_extended_title_info(imdb_id, lang)
@@ -562,8 +1136,42 @@ def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
 
 
 def get_filmography(imdb_id, locale: Optional[str] = None) -> dict:
-    """
-    Fetch full filmography for a person using the provided IMDb ID.
+    """Fetch complete filmography for a person.
+
+    Retrieves all known credits for an actor, director, writer, composer, or other
+    professional, organized by job category.
+
+    Parameters
+    ----------
+    imdb_id : str
+        IMDb person ID, with or without the ``nm`` prefix. E.g. ``"nm0000206"`` or ``"0000206"``.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+
+    Returns
+    -------
+    dict
+        Dictionary with filmography organized by category (actor, director, writer, etc.),
+        containing all known credits. Empty dict if no filmography is found.
+
+    Raises
+    ------
+    HTTPError
+        If IMDb returns a non-200 HTTP status.
+    WAFError
+        If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
+    GraphQLError
+        If the GraphQL endpoint returns an error.
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_filmography
+    >>> filmography = get_filmography("nm0000206")  # Keanu Reeves
+    >>> print(f"Acting credits: {len(filmography.get('actor', []))}")
+    ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     raw_json = _get_extended_name_info(imdb_id, lang)
@@ -884,7 +1492,47 @@ def get_media_gallery(
     imdb_id: str,
     locale: Optional[str] = None,
 ) -> Optional[MediaGallery]:
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
+    """Fetch media gallery (images and videos) for a title.
+
+    Retrieves all available images, promotional photos, and behind-the-scenes
+    media for a movie or TV series.
+
+    Parameters
+    ----------
+    imdb_id : str
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
+    locale : str, optional
+        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
+        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+
+    Returns
+    -------
+    MediaGallery or list
+        A :class:`~imdbinfo.models.MediaGallery` object containing images with URLs,
+        captions, and metadata. Empty list if no media is found.
+
+    Raises
+    ------
+    HTTPError
+        If IMDb returns a non-200 HTTP status.
+    WAFError
+        If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
+    GraphQLError
+        If the GraphQL endpoint returns an error.
+
+    Notes
+    -----
+    Results are cached with :func:`functools.lru_cache` (maxsize=128).
+
+    Examples
+    --------
+
+    ```python
+    >>> from imdbinfo import get_media_gallery
+    >>> media = get_media_gallery("tt0111161")  # The Shawshank Redemption
+    >>> print(f"Found {len(media or [])} media items")
+    ```
+    """
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No media_gallery found for title %s", imdb_id)

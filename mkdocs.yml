@@ -22,11 +22,12 @@ plugins:
       handlers:
         python:
           options:
+            docstring_style: numpy
             members_order: source
             show_root_heading: true
             show_root_full_path: false
             show_signature_annotations: true
-            show_source: true
+            show_source: false
 
 markdown_extensions:
   - admonition
