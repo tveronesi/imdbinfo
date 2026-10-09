@@ -792,6 +792,7 @@ def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
     >>> print(f"Total episodes: {len(all_eps)}")
     ```
     """
+    series_id, lang = normalize_imdb_id(imdb_id, locale)
     url = f"https://www.imdb.com/{lang}/search/title/?count=250&series=tt{series_id}&sort=release_date,asc"
     logger.info("Fetching bulk episodes for series %s", imdb_id)
     raw_json = request_json_url(url)
@@ -981,6 +982,7 @@ def get_trivia(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
     >>> print(f"Found {len(trivia)} trivia facts")
     ```
     """
+    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No trivia found for title %s", imdb_id)
@@ -1029,6 +1031,7 @@ def get_reviews(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
     ...     print(f"By {review['author']}: {review['summary']}")
     ```
     """
+    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No reviews found for title %s", imdb_id)
@@ -1077,6 +1080,7 @@ def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
     ...     print(f"{category['name']}: {category['severity']}")
     ```
     """
+    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No parental guide found for title %s", imdb_id)
@@ -1533,6 +1537,7 @@ def get_media_gallery(
     >>> print(f"Found {len(media or [])} media items")
     ```
     """
+    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No media_gallery found for title %s", imdb_id)

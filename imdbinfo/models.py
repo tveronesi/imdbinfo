@@ -217,9 +217,9 @@ class InfoSeries(BaseModel):
         List of series creators. Empty list if not available.
     """
 
-    display_years: List[str] = Field(default_factory=list)
-    display_seasons: List[str] = Field(default_factory=list)
-    creators: List[Person] = Field(default_factory=list)
+    display_years: List[str] = Field( default_factory=list)  # e.g. ['2013', '2014', '2015']
+    display_seasons: List[str] = Field(default_factory=list)  # e.g. ['1', '2', '3']
+    creators: List[Person] = Field(default_factory=list)  # eg. [Person(...), Person(...)]
 
     @field_validator("display_years", mode="before")
     def filter_years(cls, value):
@@ -337,6 +337,18 @@ class AwardInfo(BaseModel):
     wins: Optional[int] = None
     nominations: Optional[int] = None
     prestigious_award: Optional[dict] = None
+
+    def __str__(self):
+        parts = []
+        if self.wins is not None:
+            parts.append(f"Wins: {self.wins}")
+        if self.nominations is not None:
+            parts.append(f"Nominations: {self.nominations}")
+        if self.prestigious_award is not None:
+            parts.append(
+                f"{self.prestigious_award.get('name', 'ND')}: Wins: {self.prestigious_award.get('wins', 0)}, Nominations: {self.prestigious_award.get('nominations', 0)}"
+            )
+        return ", ".join(parts) if parts else "No awards information"
 
 
 class Award(BaseModel):
@@ -581,7 +593,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
         IMDb rating (0-10).
     """
 
-    id: str
+    id: str  # id withouyt 'tt' prefix, e.g. '0133093', same as imdb_id
     imdb_id: str
     imdbId: str
     title: str
@@ -589,8 +601,8 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
     cover_url: Optional[str] = None
     url: Optional[str] = None
     year: Optional[int] = None
-    kind: Optional[str] = None
-    rating: Optional[float] = None
+    kind: Optional[str] = None  # e.g. 'movie', 'tvSeries', 'tvSeriesEpisode' ...
+    rating: Optional[float] = None  # e.g. 8.7
 
     @classmethod
     def from_movie_search(cls, data: dict):
@@ -736,9 +748,9 @@ class PersonDetail(BaseModel):
     ```
     """
 
-    id: str
-    imdb_id: str
-    imdbId: str
+    id: str  # id without 'nm' prefix, e.g. '0000126', same as imdb_id
+    imdb_id: str  # id without 'nm' prefix, e.g. '0000126' same as id
+    imdbId: str  # id with 'nm' prefix
     name: str
     url: str
     knownfor: List[str] = Field(default_factory=list)
@@ -1110,6 +1122,24 @@ class QuoteCharacter(BaseModel):
     id: Optional[str] = None
     imdb_id: Optional[str] = None
 
+    @classmethod
+    def from_node(cls, node: dict) -> "QuoteCharacter":
+        name_node = node.get("name") or {}
+        imdbId = name_node.get("id", "") or ""
+        id = imdbId.replace("nm", "") or None  # id without 'nm' prefix, e.g. '0000126'
+        return cls(
+            character=node.get("character"),
+            imdbId=imdbId,
+            imdb_id=id,
+            id=id,
+        )
+
+    def __str__(self):
+        return self.character or ""
+
+    def __repr__(self):
+        return f"QuoteCharacter({self.character}, nm{self.id})"
+
 
 class QuoteLine(BaseModel):
     """A single line of dialogue within a quote exchange.
@@ -1130,6 +1160,17 @@ class QuoteLine(BaseModel):
     text: Optional[str] = None
     stage_direction: Optional[str] = None
 
+    @classmethod
+    def from_node(cls, node: dict) -> "QuoteLine":
+        return cls(
+            characters=[
+                QuoteCharacter.from_node(c)
+                for c in node.get("characters") or []
+            ],
+            text=node.get("text"),
+            stage_direction=node.get("stageDirection"),
+        )
+
     @property
     def speaker_names(self) -> List[str]:
         """Get list of character names speaking this line.
@@ -1140,6 +1181,15 @@ class QuoteLine(BaseModel):
             Character names from all speakers in this line.
         """
         return [c.character for c in self.characters if c.character]
+
+    def __str__(self):
+        speakers = ", ".join(self.speaker_names)
+        prefix = f"[{speakers}]: " if speakers else ""
+        direction = f" ({self.stage_direction})" if self.stage_direction else ""
+        return f"{prefix}{self.text or ''}{direction}"
+
+    def __repr__(self):
+        return f"QuoteLine(speakers={self.speaker_names}, text={self.text!r})"
 
 
 class Quote(BaseModel):
@@ -1174,6 +1224,14 @@ class Quote(BaseModel):
     id: str
     lines: List[QuoteLine] = Field(default_factory=list)
     interest_score: InterestScore = Field(default_factory=InterestScore)
+
+    @classmethod
+    def from_node(cls, node: dict) -> "Quote":
+        return cls(
+            id=node.get("id", ""),
+            lines=[QuoteLine.from_node(line) for line in node.get("lines") or []],
+            interest_score=InterestScore.from_node(node.get("interestScore") or {}),
+        )
 
     @property
     def speakers(self) -> List[str]:
