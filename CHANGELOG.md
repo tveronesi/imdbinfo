@@ -278,3 +278,7 @@
   - Fix `get_akas`: normalise the IMDb ID and resolve the locale (`normalize_imdb_id`) before calling `_get_extended_title_info`, which previously failed because `lang` was undefined.
   - Pin `pymdown-extensions<12` in the `docs` extra to fix the `mkdocs build --strict` failure (`Highlight.__init__() missing 1 required positional argument: 'md'`) caused by an incompatibility with `mkdocstrings`.
   - Bump version to 0.15.1.
+
+## v0.15.2
+  - Add `imdbinfo.__version__`, read from the installed package metadata (single source of truth: `pyproject.toml`); falls back to `"unknown"` when not installed.
+  - Bump version to 0.15.2.

@@ -70,6 +70,12 @@ See Also
 """
 
 import logging
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
+
+try:
+    __version__ = _pkg_version("imdbinfo")
+except PackageNotFoundError:  # source tree that isn't installed
+    __version__ = "unknown"
 
 from .services import (
     get_movie,
@@ -106,6 +112,7 @@ from .exceptions import (
 )
 
 __all__ = [
+    "__version__",
     "get_movie",
     "get_awards",
     "search_title",
