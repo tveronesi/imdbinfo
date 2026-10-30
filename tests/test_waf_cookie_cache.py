@@ -117,7 +117,7 @@ def test_delete_clears_memory_and_removes_file(monkeypatch, tmp_path):
 
 
 def test_request_handler_sends_cached_cookies_on_200(monkeypatch, tmp_path):
-    """Cached cookies are forwarded to niquests.get; a 200 leaves them intact."""
+    """Cached cookies are forwarded to _http_get; a 200 leaves them intact."""
     cookie_file = tmp_path / "waf_cookies.json"
     cached = {"aws-waf-token": "valid-token"}
     monkeypatch.setattr(services, "_WAF_COOKIE_FILE", cookie_file)
@@ -125,11 +125,11 @@ def test_request_handler_sends_cached_cookies_on_200(monkeypatch, tmp_path):
 
     received_cookies = {}
 
-    def stub_get(url, headers=None, cookies=None):
+    def stub_get(url, cookies=None):
         received_cookies.update(cookies or {})
         return _make_response(200)
 
-    monkeypatch.setattr(services.niquests, "get", stub_get)
+    monkeypatch.setattr(services, "_http_get", stub_get)
 
     resp = services.request_handler("https://www.imdb.com/title/tt0133093/reference")
 
@@ -148,13 +148,13 @@ def test_request_handler_refreshes_cookies_on_non_200(monkeypatch, tmp_path):
     fresh_cookies = {"aws-waf-token": "fresh-token"}
     call_count = {"n": 0}
 
-    def stub_get(url, headers=None, cookies=None):
+    def stub_get(url, cookies=None):
         call_count["n"] += 1
         if call_count["n"] == 1:
             return _make_response(403, text="forbidden")
         return _make_response(200)
 
-    monkeypatch.setattr(services.niquests, "get", stub_get)
+    monkeypatch.setattr(services, "_http_get", stub_get)
     monkeypatch.setattr(services, "get_cookies", lambda text, ua: fresh_cookies)
 
     resp = services.request_handler("https://www.imdb.com/title/tt0133093/reference")
@@ -173,8 +173,8 @@ def test_request_handler_clears_cookies_when_retry_also_fails(monkeypatch, tmp_p
     monkeypatch.setattr(services, "_waf_cookies", {"aws-waf-token": "old-token"})
 
     monkeypatch.setattr(
-        services.niquests,
-        "get",
+        services,
+        "_http_get",
         lambda *a, **kw: _make_response(403, text="still blocked"),
     )
     monkeypatch.setattr(
