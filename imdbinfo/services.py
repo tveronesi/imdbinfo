@@ -886,6 +886,7 @@ def get_akas(imdb_id: str, locale: Optional[str] = None) -> Union[AkasData, list
     ...     print(f"{aka.title} ({aka.country_code})")
     ```
     """
+    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No AKAs found for title %s", imdb_id)

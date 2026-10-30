@@ -273,3 +273,8 @@
   - README refinements and build status badge; added `examples/usage_example_awards.py`.
   - Updated `tests/test_waf_cookie_cache.py` for the new request helper.
   - Bump version to 0.15.0.
+
+## v0.15.1
+  - Fix `get_akas`: normalise the IMDb ID and resolve the locale (`normalize_imdb_id`) before calling `_get_extended_title_info`, which previously failed because `lang` was undefined.
+  - Pin `pymdown-extensions<12` in the `docs` extra to fix the `mkdocs build --strict` failure (`Highlight.__init__() missing 1 required positional argument: 'md'`) caused by an incompatibility with `mkdocstrings`.
+  - Bump version to 0.15.1.
