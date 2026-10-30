@@ -58,7 +58,10 @@ from .parsers import (
     parse_json_quotes,
     parse_json_awards,
 )
+from curl_cffi import requests as curl_requests
 from imdbinfo_aws.aws import AwsSolver
+
+IMPERSONATE = "chrome"
 
 logger = logging.getLogger(__name__)
 
@@ -285,10 +288,20 @@ HEADERS = {
 }
 
 
+def _http_get(url: str, cookies: Optional[Dict] = None, proxies =None) -> Any:
+    # The WAF token is bound to the TLS fingerprint it was issued for, so any
+    # request carrying it must use the same impersonated Chrome client.
+    if cookies:
+        return curl_requests.get(
+            url, headers=HEADERS, cookies=cookies, impersonate=IMPERSONATE, proxies=proxies
+        )
+    return niquests.get(url, headers=HEADERS)
+
+
 def request_handler(url: str) -> Any:
     proxies = get_proxy()
     waf_cookies = _load_waf_cookies()
-    resp = niquests.get(url, headers=HEADERS, cookies=waf_cookies, proxies=proxies)
+    resp = _http_get(url, waf_cookies, proxies)
     if resp.status_code == 200:
         return resp
     # Non-200: invalidate cached cookies and request fresh ones
@@ -302,7 +315,7 @@ def request_handler(url: str) -> Any:
         waf_cookies = get_cookies(resp.text, USER_AGENT)
         _save_waf_cookies(waf_cookies)
         logger.debug("WAF cookies refreshed — retrying %s", url)
-        resp = niquests.get(url, headers=HEADERS, cookies=waf_cookies, proxies=proxies)
+        resp = _http_get(url, waf_cookies, proxies)
         if resp.status_code != 200:
             logger.warning(
                 "Request still non-200 (%s) after WAF cookie refresh for %s — "
