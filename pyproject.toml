@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "imdbinfo"
-version = "0.11.0"
+version = "0.15.0"
 description = "A Python service for querying IMDb data"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -14,6 +14,7 @@ authors = [
 ]
 dependencies = [
     "niquests",
+    "curl_cffi",
     "lxml",
     "pydantic",
     "jmespath",
@@ -56,6 +57,13 @@ build = [
 
 test = [
     "pytest>=7.0",
+]
+
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.6",
+    "mkdocstrings[python]>=0.28",
+    "pymdown-extensions<12",
 ]
 
 [tool.setuptools]

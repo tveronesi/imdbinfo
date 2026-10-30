@@ -19,6 +19,56 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+"""imdbinfo — A Python library for retrieving structured IMDb data without API keys.
+
+This library provides functions to search for and fetch comprehensive information
+about movies, TV series, episodes, and people from IMDb. No API keys or credentials
+are required.
+
+Quick Start
+-----------
+
+```python
+>>> from imdbinfo import search_title, get_movie, get_name
+>>> results = search_title("The Matrix", year=1999)
+>>> movie = get_movie("tt0133093")
+>>> person = get_name("nm0000206")
+```
+
+Main Functions
+--------------
+- :func:`.search_title` — Search for titles and people
+- :func:`.get_movie` — Fetch title details (movie, TV series, episode)
+- :func:`.get_name` — Fetch person biography and filmography
+- :func:`.get_awards` — Fetch awards and nominations
+- :func:`.get_season_episodes` — Fetch episodes for a specific season
+- :func:`.get_all_episodes` — Fetch all episodes in a series
+
+Configuration
+--------------
+- :func:`.set_locale` — Set global language locale for requests
+- :class:`.TitleType` — Enum for filtering titles by type
+
+Data Models
+-----------
+- :class:`.MovieDetail` — Comprehensive title information
+- :class:`.PersonDetail` — Person biography and filmography
+- :class:`.SearchResult` — Search result (titles + people)
+
+Exceptions
+----------
+- :class:`.ImdbinfoError` — Base exception
+- :class:`.HTTPError` — HTTP transport errors
+- :class:`.WAFError` — AWS WAF blocking (HTTP 202)
+- :class:`.GraphQLError` — GraphQL API errors
+- :class:`.ParseError` — JSON parsing errors
+
+See Also
+--------
+- Documentation: https://tveronesi.github.io/imdbinfo/
+- GitHub: https://github.com/tveronesi/imdbinfo
+"""
+
 import logging
 
 from .services import (

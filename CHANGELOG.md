@@ -263,3 +263,13 @@
   - `parse_json_awards` refactored to return `List[Award]`.
   - Added example script `examples/usage_example_awards.py`.
   - Updated tests and documentation in `README.md` and `docs/index.md`.
+
+## v0.15.0
+  - Fix AWS WAF resolution: the `aws-waf-token` is bound to the TLS fingerprint, so the solver (`imdbinfo-aws`) and every request that uses the token now impersonate Chrome via `curl_cffi` (previously the retry returned HTTP 405 captcha).
+  - Add `curl_cffi` as an explicit dependency.
+  - `request_handler` sends requests carrying WAF cookies through the new `_http_get` helper (`curl_cffi`, `impersonate="chrome"`); requests without cookies still use `niquests`.
+  - Add documentation site (MkDocs Material + mkdocstrings) with getting-started, guides and API reference, deployed to GitHub Pages from `develop`; new `docs` extra in `pyproject.toml`.
+  - Expanded module, service and model docstrings with examples; added `__str__` / `__repr__` for models.
+  - README refinements and build status badge; added `examples/usage_example_awards.py`.
+  - Updated `tests/test_waf_cookie_cache.py` for the new request helper.
+  - Bump version to 0.15.0.
