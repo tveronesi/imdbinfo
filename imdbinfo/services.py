@@ -30,6 +30,12 @@ import json
 from lxml import html
 from enum import Enum
 from .locale import _retrieve_url_lang, _get_country_code_from_lang_locale
+from .config import (
+    MAX_ITEMS_DEFAULTS,
+    config,
+    register_config_change_callback,
+    validate_max_items,
+)
 from .exceptions import HTTPError, WAFError, GraphQLError, ParseError
 
 from .models import (
@@ -287,19 +293,26 @@ HEADERS = {
 }
 
 
-def _http_get(url: str, cookies: Optional[Dict] = None) -> Any:
+def _http_get(
+    url: str, cookies: Optional[Dict] = None, proxies: Optional[Dict] = None
+) -> Any:
     # The WAF token is bound to the TLS fingerprint it was issued for, so any
     # request carrying it must use the same impersonated Chrome client.
     if cookies:
         return curl_requests.get(
-            url, headers=HEADERS, cookies=cookies, impersonate=IMPERSONATE
+            url,
+            headers=HEADERS,
+            cookies=cookies,
+            impersonate=IMPERSONATE,
+            proxies=proxies,
         )
-    return niquests.get(url, headers=HEADERS)
+    return niquests.get(url, headers=HEADERS, proxies=proxies)
 
 
 def request_handler(url: str) -> Any:
     waf_cookies = _load_waf_cookies()
-    resp = _http_get(url, waf_cookies)
+    proxies = config.proxies
+    resp = _http_get(url, waf_cookies, proxies=proxies)
     if resp.status_code == 200:
         return resp
     # Non-200: invalidate cached cookies and request fresh ones
@@ -313,7 +326,7 @@ def request_handler(url: str) -> Any:
         waf_cookies = get_cookies(resp.text, USER_AGENT)
         _save_waf_cookies(waf_cookies)
         logger.debug("WAF cookies refreshed — retrying %s", url)
-        resp = _http_get(url, waf_cookies)
+        resp = _http_get(url, waf_cookies, proxies=proxies)
         if resp.status_code != 200:
             logger.warning(
                 "Request still non-200 (%s) after WAF cookie refresh for %s — "
@@ -334,7 +347,7 @@ def request_handler(url: str) -> Any:
 def request_graphql_url(headers, search_term, payload, url) -> Any:
     # IMDb's GraphQL endpoint returns HTTP 403 without a browser Referer.
     headers = {"Referer": "https://www.imdb.com/", **headers}
-    resp = niquests.post(url, headers=headers, json=payload)
+    resp = niquests.post(url, headers=headers, json=payload, proxies=config.proxies)
     if resp.status_code != 200:
         logger.error("GraphQL request failed: %s", resp.status_code)
         raise GraphQLError(
@@ -481,6 +494,7 @@ def search_title(
     exact_match: bool = False,
     locale: Optional[str] = None,
     title_type: Optional[TitleFilter] = None,
+    max_items: Optional[int] = None,
 ) -> Optional[SearchResult]:
     """Search for movies, TV series, episodes, and people on IMDb.
 
@@ -502,6 +516,8 @@ def search_title(
         Filter by title kind. E.g. ``TitleType.Movies``, ``TitleType.TVSeries``,
         or ``(TitleType.Movies, TitleType.TVSeries)`` for multiple types.
         See :class:`~imdbinfo.services.TitleType` for available filters.
+    max_items : int, optional
+        Override the configured search result limit for this call.
 
     Returns
     -------
@@ -517,7 +533,8 @@ def search_title(
     Notes
     -----
     Results are cached with :func:`functools.lru_cache` (maxsize=128).
-    The API returns up to 50 results per query.
+    The default result limit is 50; configure ``max_items_search`` or pass
+    ``max_items`` to override it.
 
     Examples
     --------
@@ -565,10 +582,15 @@ def search_title(
         else ""
     )
 
+    limit = (
+        validate_max_items(max_items)
+        if max_items is not None
+        else config.max_items_search
+    )
     query_template = """
 query {
   mainSearch(
-    first: 50
+    first: __MAX_ITEMS__
     options: {
       searchTerm: "__SEARCH_TERM__"
       isExactMatch: __EXACT_MATCH__
@@ -629,6 +651,7 @@ query {
         .replace("__EXACT_MATCH__", str(exact_match).lower())
         .replace("__TYPES__", search_options_types)
         .replace("__YEAR_FILTER__", year_filter)
+        .replace("__MAX_ITEMS__", str(limit))
     )
     payload = {"query": query}
     headers = {"Content-Type": "application/json", "x-imdb-user-country": country_code}
@@ -848,7 +871,9 @@ def get_episodes(
     return get_season_episodes(imdb_id, season, locale)
 
 
-def get_akas(imdb_id: str, locale: Optional[str] = None) -> Union[AkasData, list]:
+def get_akas(
+    imdb_id: str, locale: Optional[str] = None, max_items: Optional[int] = None
+) -> Union[AkasData, list]:
     """Fetch alternative titles (AKAs) for a title in different regions and languages.
 
     Retrieves all known alternative titles and regional releases for a title,
@@ -887,7 +912,9 @@ def get_akas(imdb_id: str, locale: Optional[str] = None) -> Union[AkasData, list
     ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_title_info(imdb_id, lang)
+    raw_json = _get_extended_title_info(
+        imdb_id, lang, **_title_query_limits({"akas": max_items})
+    )
     if not raw_json:
         logger.warning("No AKAs found for title %s", imdb_id)
         return []
@@ -896,7 +923,9 @@ def get_akas(imdb_id: str, locale: Optional[str] = None) -> Union[AkasData, list
     return akas
 
 
-def get_all_interests(imdb_id: str, locale: Optional[str] = None):
+def get_all_interests(
+    imdb_id: str, locale: Optional[str] = None, max_items: Optional[int] = None
+):
     """Fetch all interest tags and thematic topics for a title.
 
     In the context of IMDb data, 'interests' are thematic tags, topics, or metadata
@@ -943,7 +972,9 @@ def get_all_interests(imdb_id: str, locale: Optional[str] = None):
     ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_title_info(imdb_id, lang)
+    raw_json = _get_extended_title_info(
+        imdb_id, lang, **_title_query_limits({"interests": max_items})
+    )
     if not raw_json:
         logger.warning("No interests found for title %s", imdb_id)
         return []
@@ -958,7 +989,9 @@ def get_all_interests(imdb_id: str, locale: Optional[str] = None):
     return interests
 
 
-def get_trivia(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
+def get_trivia(
+    imdb_id: str, locale: Optional[str] = None, max_items: Optional[int] = None
+) -> List[Dict]:
     """Fetch trivia facts for a title.
 
     Retrieves interesting behind-the-scenes facts, production trivia, and
@@ -997,7 +1030,9 @@ def get_trivia(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
     ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_title_info(imdb_id, lang)
+    raw_json = _get_extended_title_info(
+        imdb_id, lang, **_title_query_limits({"trivia": max_items})
+    )
     if not raw_json:
         logger.warning("No trivia found for title %s", imdb_id)
         return []
@@ -1006,7 +1041,9 @@ def get_trivia(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
     return trivia_list
 
 
-def get_reviews(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
+def get_reviews(
+    imdb_id: str, locale: Optional[str] = None, max_items: Optional[int] = None
+) -> List[Dict]:
     """Fetch user reviews for a title.
 
     Retrieves top user reviews and comments about a movie or TV series,
@@ -1046,7 +1083,9 @@ def get_reviews(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
     ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_title_info(imdb_id, lang)
+    raw_json = _get_extended_title_info(
+        imdb_id, lang, **_title_query_limits({"reviews": max_items})
+    )
     if not raw_json:
         logger.warning("No reviews found for title %s", imdb_id)
         return []
@@ -1055,7 +1094,9 @@ def get_reviews(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
     return reviews_list
 
 
-def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
+def get_parental_guide(
+    imdb_id: str, locale: Optional[str] = None, max_items: Optional[int] = None
+) -> Dict:
     """Fetch parental guide information for a title.
 
     Retrieves content warnings for violence, profanity, sex, drugs, and other
@@ -1095,7 +1136,9 @@ def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
     ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_title_info(imdb_id, lang)
+    raw_json = _get_extended_title_info(
+        imdb_id, lang, **_title_query_limits({"guide_items": max_items})
+    )
     if not raw_json:
         logger.warning("No parental guide found for title %s", imdb_id)
         return {}
@@ -1104,7 +1147,9 @@ def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
     return parental_guide
 
 
-def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
+def get_quotes(
+    imdb_id: str, locale: Optional[str] = None, max_items: Optional[int] = None
+) -> List[Quote]:
     """Fetch character quotes and dialogue from a title.
 
     Returns a list of memorable movie or TV quotes, including speaker attribution,
@@ -1144,7 +1189,9 @@ def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
     ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_title_info(imdb_id, lang)
+    raw_json = _get_extended_title_info(
+        imdb_id, lang, **_title_query_limits({"quotes": max_items})
+    )
     if not raw_json:
         logger.warning("No quotes found for title %s", imdb_id)
         return []
@@ -1153,7 +1200,9 @@ def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
     return parsed_quotes
 
 
-def get_filmography(imdb_id, locale: Optional[str] = None) -> dict:
+def get_filmography(
+    imdb_id, locale: Optional[str] = None, max_items: Optional[int] = None
+) -> dict:
     """Fetch complete filmography for a person.
 
     Retrieves all known credits for an actor, director, writer, composer, or other
@@ -1192,7 +1241,12 @@ def get_filmography(imdb_id, locale: Optional[str] = None) -> dict:
     ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_name_info(imdb_id, lang)
+    limit = (
+        validate_max_items(max_items)
+        if max_items is not None
+        else config.max_items_credits
+    )
+    raw_json = _get_extended_name_info(imdb_id, lang, limit)
     if not raw_json:
         logger.warning("No full_credit found for name %s", imdb_id)
         return {}
@@ -1201,13 +1255,46 @@ def get_filmography(imdb_id, locale: Optional[str] = None) -> dict:
     return full_credits_list
 
 
+def _title_query_limits(overrides=None):
+    limits = {
+        name.removeprefix("max_items_"): getattr(config, name)
+        for name in MAX_ITEMS_DEFAULTS
+        if name != "max_items_search" and name != "max_items_credits"
+    }
+    for kind, value in (overrides or {}).items():
+        if value is not None:
+            limits[kind] = validate_max_items(value)
+    return {f"max_items_{kind}": value for kind, value in limits.items()}
+
+
 @lru_cache(maxsize=128)
-def _get_extended_title_info(imdb_id, locale=None) -> dict:
+def _get_extended_title_info(
+    imdb_id,
+    locale=None,
+    max_items_images=None,
+    max_items_interests=None,
+    max_items_akas=None,
+    max_items_trivia=None,
+    max_items_reviews=None,
+    max_items_guide_items=None,
+    max_items_quotes=None,
+) -> dict:
     """
     Fetch extended info using IMDb's GraphQL API:
     including akas, trivia, reviews, interests, and parental guide.
     """
     imdbId = "tt" + imdb_id
+    limits = _title_query_limits(
+        {
+            "images": max_items_images,
+            "interests": max_items_interests,
+            "akas": max_items_akas,
+            "trivia": max_items_trivia,
+            "reviews": max_items_reviews,
+            "guide_items": max_items_guide_items,
+            "quotes": max_items_quotes,
+        }
+    )
     country = _get_country_code_from_lang_locale(locale)
     url = GRAPHQL_URL
     headers = {
@@ -1225,7 +1312,7 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
             originalTitle: originalTitleText {
               text
             }
-            images(first: 50) {
+            images(first: __MAX_ITEMS_IMAGES__) {
               total
               pageInfo {
                 endCursor
@@ -1267,7 +1354,7 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
                 }
               }
             }
-            interests(first: 20) {
+            interests(first: __MAX_ITEMS_INTERESTS__) {
               edges {
                 node {
                   primaryText {
@@ -1276,7 +1363,7 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
                 }
               }
             }
-            akas(first: 200) {
+            akas(first: __MAX_ITEMS_AKAS__) {
               edges {
                 node {
                   country {
@@ -1291,7 +1378,7 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
                 }
               }
             }
-            trivia(first: 50) {
+            trivia(first: __MAX_ITEMS_TRIVIA__) {
               edges {
                 node {
                   id
@@ -1307,7 +1394,7 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
                 }
               }
             }
-            reviews(first: 50) {
+            reviews(first: __MAX_ITEMS_REVIEWS__) {
               edges {
                 node {
                   id
@@ -1339,7 +1426,7 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
                       id
                       text
                     }
-                    guideItems(first: 10) {
+                    guideItems(first: __MAX_ITEMS_GUIDE_ITEMS__) {
                       edges {
                         node {
                           isSpoiler
@@ -1356,7 +1443,7 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
                     }
                   }
                 }
-                    quotes(first: 100) {
+                    quotes(first: __MAX_ITEMS_QUOTES__) {
               edges {
                 node {
                   id
@@ -1380,6 +1467,9 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
         """
         % imdbId
     )
+    for kind, limit in limits.items():
+        marker = kind.removeprefix("max_items_").upper()
+        query = query.replace(f"__MAX_ITEMS_{marker}__", str(limit))
     payload = {"query": query}
     logger.info("Fetching title %s from GraphQL API", imdb_id)
     data = request_graphql_url(headers, imdbId, payload, url)
@@ -1387,12 +1477,18 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
     return raw_json
 
 
-def _get_extended_name_info(person_id, locale=None) -> dict:
+@lru_cache(maxsize=128)
+def _get_extended_name_info(person_id, locale=None, max_items=None) -> dict:
     """
     Fetch extended person info using IMDb's GraphQL API.
     """
     person_id = "nm" + person_id
     country = _get_country_code_from_lang_locale(locale)
+    limit = (
+        config.max_items_credits
+        if max_items is None
+        else validate_max_items(max_items)
+    )
 
     query = (
         """
@@ -1402,7 +1498,7 @@ def _get_extended_name_info(person_id, locale=None) -> dict:
                   text
                 }
 
-                credits(first: 250
+                credits(first: __MAX_ITEMS_CREDITS__
                 filter: {
             categories: [
               "production_designer"
@@ -1493,6 +1589,7 @@ def _get_extended_name_info(person_id, locale=None) -> dict:
         """
         % person_id
     )
+    query = query.replace("__MAX_ITEMS_CREDITS__", str(limit))
     url = GRAPHQL_URL
     headers = {
         "Content-Type": "application/json",
@@ -1509,6 +1606,7 @@ def _get_extended_name_info(person_id, locale=None) -> dict:
 def get_media_gallery(
     imdb_id: str,
     locale: Optional[str] = None,
+    max_items: Optional[int] = None,
 ) -> Optional[MediaGallery]:
     """Fetch media gallery (images and videos) for a title.
 
@@ -1552,7 +1650,9 @@ def get_media_gallery(
     ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_title_info(imdb_id, lang)
+    raw_json = _get_extended_title_info(
+        imdb_id, lang, **_title_query_limits({"images": max_items})
+    )
     if not raw_json:
         logger.warning("No media_gallery found for title %s", imdb_id)
         return []
@@ -1561,3 +1661,22 @@ def get_media_gallery(
         "Fetched %d media_gallery for title %s", len(media_gallery or []), imdb_id
     )
     return media_gallery
+
+
+def _clear_service_caches() -> None:
+    for service in (
+        get_movie,
+        get_awards,
+        search_title,
+        get_name,
+        get_season_episodes,
+        get_all_episodes,
+        get_episodes,
+        get_media_gallery,
+        _get_extended_title_info,
+        _get_extended_name_info,
+    ):
+        service.cache_clear()
+
+
+register_config_change_callback(_clear_service_caches)

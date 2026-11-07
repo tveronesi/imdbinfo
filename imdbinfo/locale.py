@@ -55,6 +55,9 @@ Override locale per-request:
 
 import logging
 
+from .config import config, validate_locale
+from .helpers import get_locale as get_locale, set_locale as set_locale
+
 logger = logging.getLogger(__name__)
 
 SUPPORTED_LOCALES = ("en", "fr-ca", "fr", "hi", "de", "it", "es", "pt", "es-es")
@@ -70,64 +73,6 @@ LOCALE_TO_COUNTRY_CODE = {
     "es-es": "ES",
 }
 DEFAULT_LOCALE = "en"
-_configured_locale = None
-
-
-def set_locale(locale: str):
-    """Set the global locale for all IMDb API requests.
-
-    Once set, all subsequent calls to imdbinfo functions will use the configured
-    locale unless overridden with a per-call ``locale`` parameter.
-
-    Parameters
-    ----------
-    locale : str
-        Locale code. Must be one of: ``"en"``, ``"fr-ca"``, ``"fr"``, ``"hi"``,
-        ``"de"``, ``"it"``, ``"es"``, ``"pt"``, ``"es-es"``.
-        If an unsupported locale is provided, silently falls back to ``"en"``.
-
-    Warnings
-    --------
-    If an invalid locale is provided or the locale type is not a string,
-    a warning is logged and the default locale (``"en"``) is used.
-
-    Examples
-    --------
-
-    ```python
-    >>> from imdbinfo import set_locale
-    >>> set_locale("it")
-    >>> # All subsequent API calls use Italian locale
-    ```
-
-    ```python
-    >>> from imdbinfo import set_locale, get_movie
-    >>> set_locale("fr")  # French
-    >>> movie = get_movie("tt0133093")
-    ```
-    """
-    global _configured_locale
-    # accept only a single supported locale string
-    if not isinstance(locale, str):
-        logger.warning(
-            "Invalid locale type: %r. Locale must be a string. Falling back to default '%s'.",
-            locale,
-            DEFAULT_LOCALE,
-        )
-        _configured_locale = DEFAULT_LOCALE
-        return
-
-    l = locale.strip()
-    if l not in SUPPORTED_LOCALES:
-        logger.warning(
-            "Locale '%s' is not supported. Falling back to default '%s'.",
-            l,
-            DEFAULT_LOCALE,
-        )
-        _configured_locale = DEFAULT_LOCALE
-        return
-
-    _configured_locale = l
 
 
 def _normalize_locale(lcl: str):
@@ -144,37 +89,10 @@ def _normalize_locale(lcl: str):
         The normalized locale code if valid, otherwise ``"en"`` (default).
         Logs a warning if the locale is not supported.
     """
-    if lcl not in SUPPORTED_LOCALES:
+    if not isinstance(lcl, str) or lcl.strip().lower() not in SUPPORTED_LOCALES:
         logger.warning("Locale '%s' is not supported. Using '%s'", lcl, DEFAULT_LOCALE)
         return DEFAULT_LOCALE
-    return lcl
-
-
-def get_locale():
-    """Get the currently configured global locale.
-
-    Returns
-    -------
-    str
-        The currently configured locale code. Returns empty string for English
-        (``"en"``), or the locale code (e.g., ``"it"``, ``"fr"``) for other locales.
-        Defaults to ``"en"`` if no locale has been set.
-
-    Examples
-    --------
-
-    ```python
-    >>> from imdbinfo import set_locale, get_locale
-    >>> get_locale()
-    ''
-    >>> set_locale("it")
-    >>> get_locale()
-    'it'
-    ```
-    """
-    lcl = _configured_locale or DEFAULT_LOCALE
-    lcl = _normalize_locale(lcl)
-    return "" if lcl == DEFAULT_LOCALE else lcl
+    return validate_locale(lcl)
 
 
 def _retrieve_url_lang(locale=None):
@@ -194,7 +112,7 @@ def _retrieve_url_lang(locale=None):
         Empty string for English (``"en"``), or the locale code for other locales.
         Returns ``""`` by default; used as a path component in URLs (e.g., ``/en/`` vs. ``/it/``).
     """
-    lcl = locale or _configured_locale or DEFAULT_LOCALE
+    lcl = locale or config.locale
     lcl = _normalize_locale(lcl)
     return "" if lcl == DEFAULT_LOCALE else lcl
 
@@ -216,6 +134,6 @@ def _get_country_code_from_lang_locale(locale=None):
         The ISO country code (e.g., ``"EN"``, ``"IT"``, ``"FR"``). Returns ``"EN"``
         if the locale is invalid or not found in the mapping.
     """
-    lcl = locale or _configured_locale or DEFAULT_LOCALE
+    lcl = locale or config.locale
     lcl = _normalize_locale(lcl)
     return LOCALE_TO_COUNTRY_CODE.get(lcl, LOCALE_TO_COUNTRY_CODE[DEFAULT_LOCALE])

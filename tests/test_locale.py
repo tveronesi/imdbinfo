@@ -1,4 +1,11 @@
-from imdbinfo.locale import set_locale, get_locale, _get_country_code_from_lang_locale
+import pytest
+from pydantic import ValidationError
+
+from imdbinfo.locale import (
+    _get_country_code_from_lang_locale,
+    get_locale,
+    set_locale,
+)
 
 
 def test_set_locale_falls_back_to_default_for_unsupported_locale():
@@ -11,12 +18,18 @@ def test_set_locale_sets_supported_locale():
 
 
 def test_get_locale_returns_default_when_no_locale_is_set():
+    assert get_locale() == ""
+
+
+def test_set_locale_rejects_unsupported_locale():
+    with pytest.raises(ValidationError):
+        set_locale("unsupported-locale")
+    assert get_locale() == ""
+
+
+def test_set_locale_normalizes_case_and_whitespace():
+    set_locale(" IT ")
     assert get_locale() == "it"
-
-
-def test_set_locale_falls_back_to_default_for_unsupported_locale_again():
-    set_locale("unsupported-locale")
-    assert get_locale() == ""  # fallback to default which is "en" and returns ""
 
 
 def test_get_country_code_for_supported_locale():

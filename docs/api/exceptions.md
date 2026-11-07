@@ -4,7 +4,3 @@
     options:
       members:
         - ImdbinfoError
-        - HTTPError
-        - WAFError
-        - GraphQLError
-        - ParseError

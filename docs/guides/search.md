@@ -2,8 +2,8 @@
 
 ## Search titles and people
 
-`search_title` searches IMDb titles and names in one request. Results expose
-separate `titles` and `names` collections.
+`search_title` searches for titles and names. Results expose separate `titles`
+and `names` collections.
 
 ```python
 from imdbinfo import search_title

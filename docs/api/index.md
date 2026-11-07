@@ -8,5 +8,5 @@ hierarchy.
 - [Services](services.md) contains functions re-exported by `imdbinfo`.
 - [Models](models.md) lists the structured response types.
 - [Locale](locale.md) describes global locale configuration.
-- [Exceptions](exceptions.md) describes errors raised by the transports and
-  parsers.
+- [Exceptions](exceptions.md) describes the base exception raised by the
+  library.

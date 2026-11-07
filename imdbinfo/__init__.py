@@ -47,6 +47,8 @@ Main Functions
 Configuration
 --------------
 - :func:`.set_locale` — Set global language locale for requests
+- :func:`.configure` — Update library configuration
+- :func:`.set_proxy` — Configure HTTP proxies
 - :class:`.TitleType` — Enum for filtering titles by type
 
 Data Models
@@ -110,6 +112,15 @@ from .exceptions import (
     GraphQLError,
     ParseError,
 )
+from .config import Settings, config, configure, reset_config
+from .helpers import (
+    get_locale,
+    get_max_items,
+    get_proxy,
+    set_locale,
+    set_max_items,
+    set_proxy,
+)
 
 __all__ = [
     "__version__",
@@ -129,6 +140,16 @@ __all__ = [
     "get_media_gallery",
     "get_quotes",
     "TitleType",
+    "Settings",
+    "config",
+    "configure",
+    "reset_config",
+    "set_max_items",
+    "get_max_items",
+    "set_locale",
+    "get_locale",
+    "set_proxy",
+    "get_proxy",
     # award models
     "Award",
     "AwardInfo",

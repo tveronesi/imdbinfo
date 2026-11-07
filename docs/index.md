@@ -44,4 +44,4 @@ prefix. The library normalizes them before making a request.
 
 !!! note
     imdbinfo retrieves data from IMDb at runtime. Returned data can vary as
-    IMDb changes its public pages and GraphQL responses.
+    IMDb updates or changes its data.

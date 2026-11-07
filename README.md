@@ -32,7 +32,7 @@ The published documentation is available at
 - 📝 **Reviews & Trivia** — User reviews with ratings and behind-the-scenes trivia via `get_reviews` and `get_trivia`.
 - 🏢 **Company Credits** — Distribution, production, sales, VFX, and miscellaneous companies.
 - 🧩 **Type Safety** — Clean [Pydantic](https://docs.pydantic.dev/) models with full IDE autocompletion.
-- ⚡ **High Performance** — Native CPython AWS WAF solver, built-in LRU caching, and HTTP/2 transport.
+- ⚡ **High Performance** — Built-in LRU caching and efficient data access.
 - 🔓 **No API Keys Required** — Out-of-the-box operation with zero authentication setup.
 
 ---
@@ -193,6 +193,50 @@ results = search_title("The Matrix", locale="it")
 for item in results.titles:
     print(f"Original: {item.title} -> Localized: {item.title_localized}")
 ```
+
+---
+
+### ⚙️ Runtime configuration, limits & proxies
+
+Configure settings globally with `config` or `configure()`, or set them through
+`IMDBINFO_` environment variables (a `.env` file is also supported):
+
+```python
+from imdbinfo import (
+    config,
+    get_akas,
+    get_max_items,
+    search_title,
+    set_max_items,
+    set_proxy,
+)
+
+config.locale = "it"
+set_max_items(search=25, akas=300)
+set_proxy("http://proxy.example:8080")  # also accepts {"https": "..."}
+
+results = search_title("The Matrix", max_items=10)  # per-call override
+akas = get_akas("tt0133093", max_items=500)
+print(get_max_items("akas"))  # 300
+```
+
+Each result type has its own configurable limit and retains its current default:
+
+| Setting | Results | Default |
+|---|---|---:|
+| `max_items_search` | Search | 50 |
+| `max_items_images` | Gallery images | 50 |
+| `max_items_interests` | Interests | 20 |
+| `max_items_akas` | Alternate titles | 200 |
+| `max_items_trivia` | Trivia | 50 |
+| `max_items_reviews` | Reviews | 50 |
+| `max_items_guide_items` | Parental-guide entries | 10 |
+| `max_items_quotes` | Quotes | 100 |
+| `max_items_credits` | Filmography credits | 250 |
+
+For example, set `IMDBINFO_MAX_ITEMS_AKAS=300` or
+`IMDBINFO_PROXIES=http://proxy.example:8080`. Limits must be greater than zero;
+per-call `max_items` overrides only the requested result type.
 
 ---
 
@@ -386,30 +430,15 @@ print("Interests / Themes:", interests)
 
 ## 🛠️ Error Handling
 
-`imdbinfo` provides a structured exception hierarchy for resilient integration:
+`imdbinfo` provides a base exception for handling library errors:
 
 ```python
-from imdbinfo import get_movie
-from imdbinfo.exceptions import (
-    ImdbinfoError,
-    HTTPError,
-    WAFError,
-    GraphQLError,
-    ParseError,
-)
+from imdbinfo import ImdbinfoError, get_movie
 
 try:
     movie = get_movie("tt0133093")
-except WAFError as e:
-    print(f"AWS WAF challenge blocked request ({e.status_code}): {e.url}")
-except HTTPError as e:
-    print(f"HTTP request error ({e.status_code}) for URL: {e.url}")
-except GraphQLError as e:
-    print(f"IMDb GraphQL query error for {e.query_term}: {e.errors}")
-except ParseError as e:
-    print(f"Failed to parse page content: {e}")
 except ImdbinfoError as e:
-    print(f"Generic imdbinfo error: {e}")
+    print(f"imdbinfo error: {e}")
 ```
 
 ---
@@ -423,8 +452,7 @@ Looking for a production-ready HTTP REST API powered by `imdbinfo`? Check out [*
 ## ❓ Why Choose imdbinfo?
 
 - ⚡ **Zero Setup & Keyless** — Works instantly without registering API accounts or managing API tokens.
-- 🚀 **CPython WAF Solver** — Built-in AWS WAF token solving via `imdbinfo-aws` ensures high reliability.
-- 🏎️ **Fast & Lightweight** — Utilizes HTTP/2-enabled requests via `niquests`, fast parsing with `lxml`, and in-memory LRU caching.
+- 🏎️ **Fast & Lightweight** — In-memory LRU caching keeps repeated lookups responsive.
 - 🛡️ **Fully Typed** — Pydantic models guarantee consistent structures, field validation, and rich editor autocompletion.
 - 🧪 **Thoroughly Tested** — Reliable test suite covering real-world IMDb structures and edge cases.
 
