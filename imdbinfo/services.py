@@ -37,6 +37,8 @@ from .config import (
     validate_max_items,
 )
 from .exceptions import HTTPError, WAFError, GraphQLError, ParseError
+from .graphql_queries import MOVIE_QUERY
+from .graphql_adapter import graphql_title_to_next_data
 
 from .models import (
     SearchResult,
@@ -432,6 +434,23 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
     movie = parse_json_movie(raw_json)
     logger.debug("Fetched url %s", url)
     return movie
+
+
+@lru_cache(maxsize=128)
+def get_movie_graphql(
+    imdb_id: str, locale: Optional[str] = None
+) -> Optional[MovieDetail]:
+    """Fetch detailed information for a movie, TV series, or episode."""
+    imdb_id, _ = normalize_imdb_id(imdb_id, locale)
+    country = _get_country_code_from_lang_locale(locale)
+    headers = {"Content-Type": "application/json", "x-imdb-user-country": country}
+    payload = {"query": MOVIE_QUERY, "variables": {"id": f"tt{imdb_id}"}}
+    logger.info("Fetching movie %s", imdb_id)
+    data = request_graphql_url(headers, f"tt{imdb_id}", payload, GRAPHQL_URL)
+    title = (data.get("data") or {}).get("title")
+    if not title:
+        raise ParseError(f"Title tt{imdb_id} not found in response", url=GRAPHQL_URL)
+    return parse_json_movie(graphql_title_to_next_data(title))
 
 
 @lru_cache(maxsize=128)
@@ -1666,6 +1685,7 @@ def get_media_gallery(
 def _clear_service_caches() -> None:
     for service in (
         get_movie,
+        get_movie_graphql,
         get_awards,
         search_title,
         get_name,

@@ -81,6 +81,7 @@ except PackageNotFoundError:  # source tree that isn't installed
 
 from .services import (
     get_movie,
+    get_movie_graphql,
     get_awards,
     search_title,
     get_name,
@@ -125,6 +126,7 @@ from .helpers import (
 __all__ = [
     "__version__",
     "get_movie",
+    "get_movie_graphql",
     "get_awards",
     "search_title",
     "get_name",
