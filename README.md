@@ -15,8 +15,6 @@
 The published documentation is available at
 [tveronesi.github.io/imdbinfo](https://tveronesi.github.io/imdbinfo/).
 
-
-
 ## ✨ Features
 
 - 🔍 **Title & Person Search** — Search movies, series, miniseries, episodes, and people with exact-match, year, and type filters.
@@ -70,6 +68,84 @@ print(f"Known For: {', '.join(person.knownfor)}")
 ```
 
 ---
+
+
+## ⚙️ Configuration
+
+Configure the default locale, proxies, and result limits through the shared
+`config`, helper functions, or `IMDBINFO_` environment variables (including a
+`.env` file):
+
+```python
+from imdbinfo import (
+    config,
+    configure,
+    get_locale,
+    get_max_items,
+    get_proxy,
+    set_locale,
+    set_max_items,
+    set_proxy,
+)
+
+set_locale("it")
+set_proxy("http://proxy.example:8080")
+set_max_items(search=25, akas=300)
+
+print(get_locale())             # "it"; English is returned as ""
+print(get_proxy())              # mapping for HTTP and HTTPS
+print(get_max_items("akas"))    # 300; get_max_items() returns all limits
+
+# Alternative runtime access:
+config.locale = "it"
+config.proxies = {"https": "http://proxy.example:8080"}
+configure(max_items_search=25, max_items_akas=300)
+print(config.max_items_akas)
+```
+
+The helpers can also be imported from `imdbinfo.helpers`. For **backward
+compatibility**, `from imdbinfo.locale import set_locale, get_locale` still
+works. Pass `locale=` to a supported function to override the global locale
+for one call.
+
+A proxy URL applies to both HTTP and HTTPS; use a mapping for individual
+protocols or `set_proxy(None)` to clear it. Reassign `config.proxies` instead
+of modifying its mapping in place so validation and cache invalidation run.
+Changing global settings clears dependent caches.
+
+Environment variables such as `IMDBINFO_LOCALE=it`,
+`IMDBINFO_PROXIES=http://proxy.example:8080`, and
+`IMDBINFO_MAX_ITEMS_AKAS=300` are read when the configuration is initialized.
+`reset_config()` restores those initial values.
+
+Each result type has an independent positive-integer limit. The functions below
+also accept `max_items=` to override their own limit for one call without
+changing the global configuration:
+
+| Function | Setting | Default |
+|---|---|---:|
+| `search_title` | `max_items_search` | 50 |
+| `get_media_gallery` | `max_items_images` | 50 |
+| `get_all_interests` | `max_items_interests` | 20 |
+| `get_akas` | `max_items_akas` | 200 |
+| `get_trivia` | `max_items_trivia` | 50 |
+| `get_reviews` | `max_items_reviews` | 50 |
+| `get_parental_guide` | `max_items_guide_items` | 10 |
+| `get_quotes` | `max_items_quotes` | 100 |
+| `get_filmography` | `max_items_credits` | 250 |
+
+```python
+from imdbinfo import get_akas, search_title
+
+results = search_title("The Matrix", max_items=10)
+akas = get_akas("tt0133093", max_items=500)
+```
+
+See the [configuration guide](docs/guides/locales-and-caching.md) for supported
+locales and more details.
+
+---
+
 
 ## 📖 Usage Guide
 
@@ -193,50 +269,6 @@ results = search_title("The Matrix", locale="it")
 for item in results.titles:
     print(f"Original: {item.title} -> Localized: {item.title_localized}")
 ```
-
----
-
-### ⚙️ Runtime configuration, limits & proxies
-
-Configure settings globally with `config` or `configure()`, or set them through
-`IMDBINFO_` environment variables (a `.env` file is also supported):
-
-```python
-from imdbinfo import (
-    config,
-    get_akas,
-    get_max_items,
-    search_title,
-    set_max_items,
-    set_proxy,
-)
-
-config.locale = "it"
-set_max_items(search=25, akas=300)
-set_proxy("http://proxy.example:8080")  # also accepts {"https": "..."}
-
-results = search_title("The Matrix", max_items=10)  # per-call override
-akas = get_akas("tt0133093", max_items=500)
-print(get_max_items("akas"))  # 300
-```
-
-Each result type has its own configurable limit and retains its current default:
-
-| Setting | Results | Default |
-|---|---|---:|
-| `max_items_search` | Search | 50 |
-| `max_items_images` | Gallery images | 50 |
-| `max_items_interests` | Interests | 20 |
-| `max_items_akas` | Alternate titles | 200 |
-| `max_items_trivia` | Trivia | 50 |
-| `max_items_reviews` | Reviews | 50 |
-| `max_items_guide_items` | Parental-guide entries | 10 |
-| `max_items_quotes` | Quotes | 100 |
-| `max_items_credits` | Filmography credits | 250 |
-
-For example, set `IMDBINFO_MAX_ITEMS_AKAS=300` or
-`IMDBINFO_PROXIES=http://proxy.example:8080`. Limits must be greater than zero;
-per-call `max_items` overrides only the requested result type.
 
 ---
 
