@@ -603,6 +603,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
     year: Optional[int] = None
     kind: Optional[str] = None  # e.g. 'movie', 'tvSeries', 'tvSeriesEpisode' ...
     rating: Optional[float] = None  # e.g. 8.7
+    runtime: Optional[int] = None
 
     @classmethod
     def from_movie_search(cls, data: dict):
@@ -627,6 +628,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             year=year,
             kind=data.get("titleType", {}).get("id"),
             rating=data.get("ratingsSummary", {}).get("aggregateRating"),
+            runtime=data.get('runtime',{}).get('seconds')/60 if data.get('runtime',{}).get('seconds') else None
         )
 
     @classmethod
