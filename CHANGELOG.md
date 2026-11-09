@@ -282,3 +282,14 @@
 ## v0.15.2
   - Add `imdbinfo.__version__`, read from the installed package metadata (single source of truth: `pyproject.toml`); falls back to `"unknown"` when not installed.
   - Bump version to 0.15.2.
+
+## v1.0.0
+  - Add centralized configuration (`imdbinfo/config.py`) built on `pydantic-settings`, with `Settings`, `config`, `configure()` and `reset_config()`; supports environment variables and optional `.env` files (new dependencies `pydantic-settings`, `python-dotenv`).
+  - Add `imdbinfo/helpers.py` with public accessors/setters: `set_locale`/`get_locale`, `set_proxy`/`get_proxy`, `set_max_items`/`get_max_items`; `imdbinfo/proxy.py` now re-exports them for backward compatibility and `imdbinfo/locale.py` was slimmed down.
+  - Add `get_movie_graphql(imdb_id)` to fetch movie details through the IMDb GraphQL API (`graphql_queries.py`, `graphql_adapter.py`).
+  - GraphQL query limits are configurable and included in the `lru_cache` keys together with the locale.
+  - Improve error handling in `services.py`.
+  - Fix `MovieBriefInfo.from_movie_search` crashing with `AttributeError` when `runtime`, `titleType` or `ratingsSummary` are `null` in the search response.
+  - Documentation: new configuration section in README, updated guides (errors, extended title data, locales and caching, search) and API index.
+  - Add tests: `test_config.py`, `test_graphql_movie.py`; update `test_locale.py`, `test_waf_cookie_cache.py` and `conftest.py`.
+  - Bump version to 1.0.0.
