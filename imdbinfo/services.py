@@ -1593,6 +1593,7 @@ def _get_extended_name_info(person_id, locale=None, max_items=None) -> dict:
                         releaseYear {
                           year
                         }
+                        runtime {seconds}
                       }
                     }
                   }

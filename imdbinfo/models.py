@@ -603,7 +603,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
     year: Optional[int] = None
     kind: Optional[str] = None  # e.g. 'movie', 'tvSeries', 'tvSeriesEpisode' ...
     rating: Optional[float] = None  # e.g. 8.7
-    runtime: Optional[int] = None
+    runtime: Optional[float] = None
 
     @classmethod
     def from_movie_search(cls, data: dict):
@@ -616,6 +616,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
 
         imdb_full = data["id"]
         imdb_num = str(imdb_full.replace("tt", ""))
+        seconds = (data.get("runtime") or {}).get("seconds")
 
         return cls(
             imdbId=imdb_full,
@@ -626,9 +627,9 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             cover_url=cover_url,
             url=f"https://www.imdb.com/title/{imdb_full}/",
             year=year,
-            kind=data.get("titleType", {}).get("id"),
-            rating=data.get("ratingsSummary", {}).get("aggregateRating"),
-            runtime=data.get('runtime',{}).get('seconds')/60 if data.get('runtime',{}).get('seconds') else None
+            kind=(data.get("titleType") or {}).get("id"),
+            rating=(data.get("ratingsSummary") or {}).get("aggregateRating"),
+            runtime=seconds / 60 if seconds else None,
         )
 
     @classmethod
@@ -642,6 +643,8 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
         else:
             cover_url = None
 
+        seconds = (data.get("runtime") or {}).get("seconds")
+
         return cls(
             id=str(data["id"].replace("tt", "")),
             imdb_id=str(data["id"].replace("tt", "")),
@@ -653,6 +656,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             year=year,
             kind=data.get("titleType", {}).get("id", None),
             rating=data.get("ratingsSummary", {}).get("aggregateRating", None),
+            runtime=seconds / 60 if seconds else None,
         )
 
     def __str__(self):
