@@ -281,6 +281,7 @@
 
 ## v0.15.2
   - Add `imdbinfo.__version__`, read from the installed package metadata (single source of truth: `pyproject.toml`); falls back to `"unknown"` when not installed.
+  - Removed credits categories from get_filmography, keep only most relevant ones
   - Bump version to 0.15.2.
 
 ## v1.0.0
