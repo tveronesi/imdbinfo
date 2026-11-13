@@ -74,6 +74,19 @@ IMPERSONATE = "chrome"
 logger = logging.getLogger(__name__)
 
 GRAPHQL_URL = "https://api.graphql.imdb.com/"
+GRAPHQL_MAX_ITEMS = 250
+
+
+def _warn_graphql_limit(kind: str, limit: int) -> None:
+    if limit > GRAPHQL_MAX_ITEMS:
+        logger.warning(
+            "GraphQL max_items_%s=%s exceeds IMDb's maximum of %s items per response; "
+            "the request may fail",
+            kind,
+            limit,
+            GRAPHQL_MAX_ITEMS,
+        )
+
 
 _WAF_COOKIE_FILE = Path.cwd() / ".cache" / "imdbinfo" / "waf_cookies.json"
 
@@ -607,6 +620,7 @@ def search_title(
         if max_items is not None
         else config.max_items_search
     )
+    _warn_graphql_limit("search", limit)
     query_template = """
 query {
   mainSearch(
@@ -1339,6 +1353,8 @@ def _get_extended_title_info(
             "quotes": max_items_quotes,
         }
     )
+    for kind, limit in limits.items():
+        _warn_graphql_limit(kind.removeprefix("max_items_"), limit)
     country = _get_country_code_from_lang_locale(locale)
     url = GRAPHQL_URL
     headers = {
@@ -1533,6 +1549,7 @@ def _get_extended_name_info(person_id, locale=None, max_items=None ,  roles=None
         if max_items is None
         else validate_max_items(max_items)
     )
+    _warn_graphql_limit("credits", limit)
     if roles is None:
         roles = tuple(role.value for role in MAIN_ROLES)
 

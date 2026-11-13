@@ -76,16 +76,16 @@ Set limits using one of these three methods:
 
 ```python
 # 1. Environment before starting Python:
-# IMDBINFO_MAX_ITEMS_AKAS=300
+# IMDBINFO_MAX_ITEMS_AKAS=200
 
 # 2. Shared configuration:
 from imdbinfo import config
-config.max_items_akas = 300
+config.max_items_akas = 200
 
 # 3. Named setters and getters:
 from imdbinfo import get_max_items, set_max_items
-set_max_items(akas=300, quotes=40)
-aka_limit = get_max_items("akas")  # 300
+set_max_items(akas=200, quotes=40)
+aka_limit = get_max_items("akas")  # 200
 all_limits = get_max_items()
 ```
 
@@ -96,9 +96,15 @@ environment and optional `.env` file are read when the shared configuration is
 created; changing them later does not update the running process.
 
 Each relevant public function accepts `max_items` to override only its own
-result limit for that call, for example `get_akas("tt0133093", max_items=500)`.
+result limit for that call, for example `get_akas("tt0133093", max_items=250)`.
 Other result types continue to use their configured limits.
 All configured and per-call limits must be positive integers.
+
+IMDb allows at most 250 items per GraphQL connection. For each limit above 250
+included in a request, the library logs a warning and sends the value unchanged;
+IMDb may reject the request. Extended-title requests include all configured
+title limits, not just the limit for the requested result type. A cache hit
+does not issue a request or repeat the warning.
 
 See the [locales and caching guide](locales-and-caching.md) for all setting
 names, environment variables, proxy formats, and cache behavior.

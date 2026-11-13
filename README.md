@@ -90,16 +90,16 @@ from imdbinfo import (
 
 set_locale("it")
 set_proxy("http://proxy.example:8080")
-set_max_items(search=25, akas=300)
+set_max_items(search=25, akas=200)
 
 print(get_locale())             # "it"; English is returned as ""
 print(get_proxy())              # mapping for HTTP and HTTPS
-print(get_max_items("akas"))    # 300; get_max_items() returns all limits
+print(get_max_items("akas"))    # 200; get_max_items() returns all limits
 
 # Alternative runtime access:
 config.locale = "it"
 config.proxies = {"https": "http://proxy.example:8080"}
-configure(max_items_search=25, max_items_akas=300)
+configure(max_items_search=25, max_items_akas=200)
 print(config.max_items_akas)
 ```
 
@@ -115,12 +115,17 @@ Changing global settings clears dependent caches.
 
 Environment variables such as `IMDBINFO_LOCALE=it`,
 `IMDBINFO_PROXIES=http://proxy.example:8080`, and
-`IMDBINFO_MAX_ITEMS_AKAS=300` are read when the configuration is initialized.
+`IMDBINFO_MAX_ITEMS_AKAS=200` are read when the configuration is initialized.
 `reset_config()` restores those initial values.
 
 Each result type has an independent positive-integer limit. The functions below
 also accept `max_items=` to override their own limit for one call without
-changing the global configuration:
+changing the global configuration.
+
+IMDb allows at most 250 items per GraphQL connection. When a request uses a
+limit above 250, the library logs a warning but sends the requested value
+unchanged; IMDb may reject the request. Cached calls do not issue a request
+or repeat the warning.
 
 | Function | Setting | Default |
 |---|---|---:|
@@ -138,7 +143,7 @@ changing the global configuration:
 from imdbinfo import get_akas, search_title
 
 results = search_title("The Matrix", max_items=10)
-akas = get_akas("tt0133093", max_items=500)
+akas = get_akas("tt0133093", max_items=250)
 ```
 
 See the [configuration guide](https://github.com/tveronesi/imdbinfo/blob/main/docs/guides/locales-and-caching.md) for supported

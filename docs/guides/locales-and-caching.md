@@ -93,17 +93,17 @@ named helpers:
 
 ```python
 # 1. Environment, set before starting Python:
-# IMDBINFO_MAX_ITEMS_AKAS=300
+# IMDBINFO_MAX_ITEMS_AKAS=200
 
 # 2. Direct runtime access:
 from imdbinfo import config
-config.max_items_akas = 300
-print(config.max_items_akas)  # 300
+config.max_items_akas = 200
+print(config.max_items_akas)  # 200
 
 # 3. Named helpers:
 from imdbinfo import get_max_items, set_max_items
-set_max_items(search=25, akas=300)
-print(get_max_items("akas"))  # 300
+set_max_items(search=25, akas=200)
+print(get_max_items("akas"))  # 200
 print(get_max_items())        # mapping of all limits
 ```
 
@@ -112,7 +112,7 @@ print(get_max_items())        # mapping of all limits
 validates all supplied values before applying any of them. `get_max_items()`
 returns all values keyed by type; `get_max_items("akas")` and
 `get_max_items("max_items_akas")` return the individual value. `configure()`
-also accepts full setting names such as `max_items_akas=300`.
+also accepts full setting names such as `max_items_akas=200`.
 
 | Setting | Results | Default | Environment variable |
 |---|---|---:|---|
@@ -128,8 +128,13 @@ also accepts full setting names such as `max_items_akas=300`.
 
 The corresponding public API accepts `max_items` to override only that
 result type for one call, for example
-`get_akas("tt0133093", max_items=500)`. Other result limits remain at their
+`get_akas("tt0133093", max_items=250)`. Other result limits remain at their
 configured values.
+
+IMDb allows at most 250 items per GraphQL connection. The library logs a warning
+for each higher limit included in a request, but sends it unchanged, so IMDb
+may reject the request. Extended-title requests include all configured title
+limits. Cache hits do not issue requests or repeat these warnings.
 
 ## Clear cached data
 

@@ -1,3 +1,5 @@
+import logging
+import re
 from types import SimpleNamespace
 
 import pytest
@@ -186,3 +188,80 @@ def test_search_title_uses_configured_limit_and_override(monkeypatch):
 
     assert "first: 23" in queries[0]
     assert "first: 7" in queries[1]
+
+
+@pytest.mark.parametrize(
+    "service,kind,field,argument",
+    [
+        ("search_title", "search", "mainSearch", "matrix"),
+        ("get_media_gallery", "images", "images", "tt1234567"),
+        ("get_all_interests", "interests", "interests", "tt1234567"),
+        ("get_akas", "akas", "akas", "tt1234567"),
+        ("get_trivia", "trivia", "trivia", "tt1234567"),
+        ("get_reviews", "reviews", "reviews", "tt1234567"),
+        ("get_parental_guide", "guide_items", "guideItems", "tt1234567"),
+        ("get_quotes", "quotes", "quotes", "tt1234567"),
+        ("get_filmography", "credits", "credits", "nm1234567"),
+    ],
+)
+@pytest.mark.parametrize("limit", [249, 250, 251])
+@pytest.mark.parametrize("source", ["configured", "override"])
+def test_graphql_limit_warning_for_each_public_service(
+    monkeypatch, caplog, service, kind, field, argument, limit, source
+):
+    queries = []
+
+    def fake_request(*args, **kwargs):
+        payload = kwargs["payload"] if "payload" in kwargs else args[2]
+        queries.append(payload["query"])
+        return {"data": {"title": {}, "name": {}, "mainSearch": {"edges": []}}}
+
+    monkeypatch.setattr(services, "request_graphql_url", fake_request)
+    services._clear_service_caches()
+    if source == "configured":
+        setattr(config, f"max_items_{kind}", limit)
+        kwargs = {}
+    else:
+        kwargs = {"max_items": limit}
+
+    with caplog.at_level(logging.WARNING, logger="imdbinfo.services"):
+        getattr(services, service)(argument, **kwargs)
+
+    assert len(queries) == 1
+    assert re.search(rf"\b{field}\(\s*first:\s*{limit}\b", queries[0])
+    warnings = [
+        record.message for record in caplog.records if "exceeds IMDb" in record.message
+    ]
+    if limit > 250:
+        assert len(warnings) == 1
+        assert f"max_items_{kind}={limit}" in warnings[0]
+        assert "maximum of 250" in warnings[0]
+    else:
+        assert warnings == []
+
+
+def test_shared_title_query_warns_for_all_effective_limits_and_only_on_request(
+    monkeypatch, caplog
+):
+    queries = []
+
+    def fake_request(headers, term, payload, url):
+        queries.append(payload["query"])
+        return {"data": {"title": {}}}
+
+    monkeypatch.setattr(services, "request_graphql_url", fake_request)
+    configure(max_items_akas=300, max_items_images=400, max_items_quotes=500)
+    with caplog.at_level(logging.WARNING, logger="imdbinfo.services"):
+        services.get_akas("tt1234567", max_items=250)
+        services.get_akas("tt1234567", max_items=250)
+
+    assert len(queries) == 1
+    assert "akas(first: 250)" in queries[0]
+    assert "images(first: 400)" in queries[0]
+    assert "quotes(first: 500)" in queries[0]
+    warnings = [
+        record.message for record in caplog.records if "exceeds IMDb" in record.message
+    ]
+    assert len(warnings) == 2
+    assert any("max_items_images=400" in message for message in warnings)
+    assert any("max_items_quotes=500" in message for message in warnings)
