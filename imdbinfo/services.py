@@ -49,7 +49,7 @@ from .models import (
     MediaGallery,
     Quote,
     Award,
-    CreditRole,
+    CreditRole, ALL_ROLES, MAIN_ROLES,
 )
 from .parsers import (
     parse_json_movie,
@@ -1277,7 +1277,6 @@ def get_filmography(
 
     if not all(role in all_roles for role in roles):
         logger.warning("One or more roles are not valid roles. Use CreditRole instead. Valid roles are %s", ALL_ROLES)
-
 
     raw_json = _get_extended_name_info(imdb_id, lang, limit, tuple(roles))
     if not raw_json:
