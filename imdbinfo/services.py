@@ -1283,6 +1283,7 @@ def get_filmography(
         return {}
     if not all(role in all_roles for role in roles):
         logger.warning("One or more roles are not valid roles. Use CreditRole instead. Valid roles are %s", ALL_ROLES)
+        return {}
 
     raw_json = _get_extended_name_info(imdb_id, lang, limit, tuple(roles))
     if not raw_json:
