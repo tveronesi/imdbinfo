@@ -133,8 +133,8 @@ configured values.
 
 ## Clear cached data
 
-Public title and person services use an LRU cache. Clear an individual
-function's cache when a long-running process needs fresh data:
+Many public title and person services use an LRU cache. Clear an individual
+cached function when a long-running process needs fresh data:
 
 ```python
 from imdbinfo import get_movie
@@ -148,3 +148,9 @@ effective result limits used to produce them.
 
 Use `reset_config()` to restore the values loaded when the package was
 initialized. It does not re-read environment variables.
+
+
+`get_filmography` uses this internal cache rather than exposing a
+`cache_clear()` method; its cache key includes the person, locale, and selected
+roles. Equivalent role lists containing enum members or their string values
+share a cache entry.

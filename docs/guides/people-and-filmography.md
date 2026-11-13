@@ -29,4 +29,32 @@ for category, titles in filmography.items():
         print("  ", title.title, title.year, title.imdbId)
 ```
 
-The categories are derived from IMDb's credit data and can vary by person.
+By default, the request selects actor, actress, cinematographer, director,
+writer, and composer credits. The returned categories are derived from IMDb's
+credit data and can vary by person.
+
+## Filter credits by role
+
+Use the `roles` parameter to select one or more categories. `CreditRole` is
+available from the top-level package and defines the supported role names:
+
+```python
+from imdbinfo import CreditRole, get_filmography
+
+filmography = get_filmography(
+    "nm0000206",
+    locale="es",
+    roles=[CreditRole.ACTOR, CreditRole.DIRECTOR],
+)
+for title in filmography.get("actor", []):
+    print(title.title, title.year)
+```
+
+Role names such as `"actor"` and `"director"` can also be supplied as strings,
+including in the same list as `CreditRole` values. See the
+[`CreditRole` API reference](../api/models.md#imdbinfo.models.CreditRole) for
+the available categories.
+
+Passing `None` uses the default roles. An empty list or a list containing an
+invalid role logs a warning and returns an empty dictionary without making a
+request.

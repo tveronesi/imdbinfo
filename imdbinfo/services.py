@@ -21,7 +21,7 @@
 import random
 import re
 from pathlib import Path
-from typing import Optional, Dict, Union, List, Tuple, Any
+from typing import Optional, Dict, Union, List, Tuple, Any, Sequence
 from functools import lru_cache
 from time import time
 import logging
@@ -1221,7 +1221,8 @@ def get_quotes(
 
 
 def get_filmography(
-    imdb_id, locale: Optional[str] = None, max_items: Optional[int] = None , roles = None
+    imdb_id, locale: Optional[str] = None, max_items: Optional[int] = None , roles: Optional[Sequence[Union[CreditRole, str]]] = None
+,
 ) -> dict:
     """Fetch complete filmography for a person.
 
@@ -1235,8 +1236,10 @@ def get_filmography(
     locale : str, optional
         Language locale code. Defaults to global locale setting (see :func:`set_locale`).
         Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
-    roles : list of str, optional
-        List of roles to filter the filmography by (e.g., ``[CreditRole.ACTOR, CreditRole.DIRECTOR]``). If None, main roles are included.
+    roles : sequence of CreditRole or str, optional
+        Roles to filter by (e.g., ``[CreditRole.ACTOR, "director"]``).
+        If None, the main roles are included. An empty sequence or an invalid
+        role logs a warning and returns an empty dictionary.
 
     Returns
     -------
@@ -1275,6 +1278,9 @@ def get_filmography(
     else:
         roles = [r.value if isinstance(r, CreditRole) else r for r in roles]
 
+    if not roles:
+        logger.warning("No filmography roles selected")
+        return {}
     if not all(role in all_roles for role in roles):
         logger.warning("One or more roles are not valid roles. Use CreditRole instead. Valid roles are %s", ALL_ROLES)
 
@@ -1521,6 +1527,8 @@ def _get_extended_name_info(person_id, locale=None, max_items=None ,  roles=None
         if max_items is None
         else validate_max_items(max_items)
     )
+    if roles is None:
+        roles = tuple(role.value for role in MAIN_ROLES)
 
     query_template = """
             query {

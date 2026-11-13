@@ -283,6 +283,11 @@
   - Add `imdbinfo.__version__`, read from the installed package metadata (single source of truth: `pyproject.toml`); falls back to `"unknown"` when not installed.
   - Removed credits categories from get_filmography, keep only most relevant ones
   - Bump version to 0.15.2.
+  - Add the top-level `CreditRole` enum and a `roles` filter to `get_filmography`; role names can also be supplied as strings.
+  - By default, filmography requests include actor, actress, cinematographer, director, writer, and composer credits. Empty or invalid role selections log a warning and return an empty dictionary.
+  - Cache filmography GraphQL requests by person, locale, and selected roles; list inputs are converted to tuples for caching.
+
+
 
 ## v1.0.0
   - Add centralized configuration (`imdbinfo/config.py`) built on `pydantic-settings`, with `Settings`, `config`, `configure()` and `reset_config()`; supports environment variables and optional `.env` files (new dependencies `pydantic-settings`, `python-dotenv`).

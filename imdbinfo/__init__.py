@@ -143,6 +143,7 @@ __all__ = [
     "get_media_gallery",
     "get_quotes",
     "TitleType",
+    "CreditRole",
     "Settings",
     "config",
     "configure",
