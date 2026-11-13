@@ -31,8 +31,8 @@ Supported values are `en`, `fr-ca`, `fr`, `hi`, `de`, `it`, `es`, `pt`, and
 
 ## Clear cached data
 
-Public title and person services use an LRU cache. Clear an individual
-function's cache when a long-running process needs fresh data:
+Many public title and person services use an LRU cache. Clear an individual
+cached function when a long-running process needs fresh data:
 
 ```python
 from imdbinfo import get_movie
@@ -41,4 +41,8 @@ get_movie.cache_clear()
 ```
 
 The cache key includes the requested locale. Extended title and person data is
-also shared internally to avoid duplicate GraphQL requests within a process.
+also cached internally to avoid duplicate GraphQL requests within a process.
+`get_filmography` uses this internal cache rather than exposing a
+`cache_clear()` method; its cache key includes the person, locale, and selected
+roles. Equivalent role lists containing enum members or their string values
+share a cache entry.

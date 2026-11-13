@@ -21,7 +21,7 @@
 import random
 import re
 from pathlib import Path
-from typing import Optional, Dict, Union, List, Tuple, Any
+from typing import Optional, Dict, Union, List, Tuple, Any, Sequence
 from functools import lru_cache
 from time import time
 import logging
@@ -1153,7 +1153,10 @@ def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
     return parsed_quotes
 
 
-def get_filmography(imdb_id, locale: Optional[str] = None, roles = None) -> dict:
+def get_filmography(
+    imdb_id, locale: Optional[str] = None,
+    roles: Optional[Sequence[Union[CreditRole, str]]] = None,
+) -> dict:
     """Fetch complete filmography for a person.
 
     Retrieves all known credits for an actor, director, writer, composer, or other
@@ -1166,8 +1169,10 @@ def get_filmography(imdb_id, locale: Optional[str] = None, roles = None) -> dict
     locale : str, optional
         Language locale code. Defaults to global locale setting (see :func:`set_locale`).
         Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
-    roles : list of str, optional
-        List of roles to filter the filmography by (e.g., ``[CreditRole.ACTOR, CreditRole.DIRECTOR]``). If None, main roles are included.
+    roles : sequence of CreditRole or str, optional
+        Roles to filter by (e.g., ``[CreditRole.ACTOR, "director"]``).
+        If None, the main roles are included. An empty sequence or an invalid
+        role logs a warning and returns an empty dictionary.
 
     Returns
     -------
@@ -1200,6 +1205,9 @@ def get_filmography(imdb_id, locale: Optional[str] = None, roles = None) -> dict
     else:
         roles = [r.value if isinstance(r, CreditRole) else r for r in roles]
 
+    if not roles:
+        logger.warning("No filmography roles selected")
+        return {}
     if not all(role in all_roles for role in roles):
         logger.warning("One or more roles are not valid roles. Use CreditRole instead. Valid roles are %s", ALL_ROLES)
         return {}
@@ -1405,7 +1413,8 @@ def _get_extended_name_info(person_id, locale=None,  roles=None) -> dict:
     """
     person_id = "nm" + person_id
     country = _get_country_code_from_lang_locale(locale)
-    roles = roles or ["director", "composer", "actress", "writer", "actor"]
+    if roles is None:
+        roles = tuple(role.value for role in MAIN_ROLES)
 
     query_template = """
             query {

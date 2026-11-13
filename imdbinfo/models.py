@@ -64,6 +64,8 @@ EPISODE_IDENTIFIERS = ("tvEpisode", "podcastEpisode")
 SERIES_IDENTIFIERS = ("tvSeries", "tvMiniSeries", "podcastSeries")
 
 class CreditRole(str, Enum):
+    """Supported credit categories for filtering a person's filmography."""
+
     PRODUCTION_DESIGNER = "production_designer"
     CASTING_DEPARTMENT = "casting_department"
     DIRECTOR = "director"
