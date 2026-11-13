@@ -52,7 +52,7 @@ Model Hierarchy
 - :class:`SeasonEpisodesList` — Episodes grouped by season
 - :class:`BulkedEpisode` — Individual episode in bulk results
 """
-
+from enum import Enum
 from typing import Optional, List, Dict, Tuple, Union
 from pydantic import BaseModel, Field, field_validator
 import logging
@@ -62,6 +62,46 @@ from .transformers import _release_date
 EPISODE_IDENTIFIERS = ("tvEpisode", "podcastEpisode")
 
 SERIES_IDENTIFIERS = ("tvSeries", "tvMiniSeries", "podcastSeries")
+
+class CreditRole(str, Enum):
+    PRODUCTION_DESIGNER = "production_designer"
+    CASTING_DEPARTMENT = "casting_department"
+    DIRECTOR = "director"
+    COMPOSER = "composer"
+    CASTING_DIRECTOR = "casting_director"
+    EXECUTIVE = "executive"
+    ART_DIRECTOR = "art_director"
+    ACTRESS = "actress"
+    COSTUME_DESIGNER = "costume_designer"
+    WRITER = "writer"
+    CAMERA_DEPARTMENT = "camera_department"
+    ART_DEPARTMENT = "art_department"
+    PUBLICIST = "publicist"
+    CINEMATOGRAPHER = "cinematographer"
+    LOCATION_MANAGEMENT = "location_management"
+    SOUNDTRACK = "soundtrack"
+    SOUND_DEPARTMENT = "sound_department"
+    TALENT_AGENT = "talent_agent"
+    SET_DECORATOR = "set_decorator"
+    ANIMATION_DEPARTMENT = "animation_department"
+    MAKE_UP_DEPARTMENT = "make_up_department"
+    COSTUME_DEPARTMENT = "costume_department"
+    SCRIPT_DEPARTMENT = "script_department"
+    PRODUCER = "producer"
+    STUNTS = "stunts"
+    EDITOR = "editor"
+    STUNT_COORDINATOR = "stunt_coordinator"
+    SPECIAL_EFFECTS = "special_effects"
+    ASSISTANT_DIRECTOR = "assistant_director"
+    EDITORIAL_DEPARTMENT = "editorial_department"
+    MUSIC_DEPARTMENT = "music_department"
+    TRANSPORTATION_DEPARTMENT = "transportation_department"
+    ACTOR = "actor"
+    VISUAL_EFFECTS = "visual_effects"
+    PRODUCTION_MANAGER = "production_manager"
+
+MAIN_ROLES = [CreditRole.ACTOR, CreditRole.ACTRESS, CreditRole.CINEMATOGRAPHER, CreditRole.DIRECTOR, CreditRole.WRITER, CreditRole.COMPOSER]
+ALL_ROLES = [role for role in CreditRole]
 
 logger = logging.getLogger(__name__)
 
