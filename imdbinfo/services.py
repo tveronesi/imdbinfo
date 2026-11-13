@@ -1221,8 +1221,10 @@ def get_quotes(
 
 
 def get_filmography(
-    imdb_id, locale: Optional[str] = None, max_items: Optional[int] = None , roles: Optional[Sequence[Union[CreditRole, str]]] = None
-,
+    imdb_id,
+    locale: Optional[str] = None,
+    roles: Optional[Sequence[Union[CreditRole, str]]] = None,
+    max_items: Optional[int] = None,
 ) -> dict:
     """Fetch complete filmography for a person.
 
@@ -1240,6 +1242,9 @@ def get_filmography(
         Roles to filter by (e.g., ``[CreditRole.ACTOR, "director"]``).
         If None, the main roles are included. An empty sequence or an invalid
         role logs a warning and returns an empty dictionary.
+    max_items : int, optional
+        Maximum number of credits to fetch. Defaults to the global credits limit
+        (see :func:`set_max_items`).
 
     Returns
     -------
