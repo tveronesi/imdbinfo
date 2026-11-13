@@ -102,6 +102,7 @@ from .models import (
     QuoteLine,
     QuoteCharacter,
     InterestScore,
+    CreditRole,
 )
 from .exceptions import (
     ImdbinfoError,

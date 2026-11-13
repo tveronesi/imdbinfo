@@ -40,7 +40,7 @@ from .models import (
     AkasData,
     MediaGallery,
     Quote,
-    Award,
+    Award, CreditRole, MAIN_ROLES, ALL_ROLES,
 )
 from .parsers import (
     parse_json_movie,
@@ -1153,7 +1153,7 @@ def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
     return parsed_quotes
 
 
-def get_filmography(imdb_id, locale: Optional[str] = None) -> dict:
+def get_filmography(imdb_id, locale: Optional[str] = None, roles = None) -> dict:
     """Fetch complete filmography for a person.
 
     Retrieves all known credits for an actor, director, writer, composer, or other
@@ -1166,6 +1166,8 @@ def get_filmography(imdb_id, locale: Optional[str] = None) -> dict:
     locale : str, optional
         Language locale code. Defaults to global locale setting (see :func:`set_locale`).
         Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+    roles : list of str, optional
+        List of roles to filter the filmography by (e.g., ``[CreditRole.ACTOR, CreditRole.DIRECTOR]``). If None, main roles are included.
 
     Returns
     -------
@@ -1187,12 +1189,22 @@ def get_filmography(imdb_id, locale: Optional[str] = None) -> dict:
 
     ```python
     >>> from imdbinfo import get_filmography
-    >>> filmography = get_filmography("nm0000206")  # Keanu Reeves
+    >>> filmography = get_filmography("nm0000206", roles=["actor"])  # Keanu Reeves
     >>> print(f"Acting credits: {len(filmography.get('actor', []))}")
     ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_name_info(imdb_id, lang)
+    all_roles = [r.value for r in ALL_ROLES]
+    if roles is None:
+        roles = [a.value for a in MAIN_ROLES]
+    else:
+        roles = [r.value if isinstance(r, CreditRole) else r for r in roles]
+
+    if not all(role in all_roles for role in roles):
+        logger.warning("One or more roles are not valid roles. Use CreditRole instead. Valid roles are %s", ALL_ROLES)
+        return {}
+
+    raw_json = _get_extended_name_info(imdb_id, lang, tuple(roles))
     if not raw_json:
         logger.warning("No full_credit found for name %s", imdb_id)
         return {}
@@ -1386,18 +1398,18 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
     raw_json = data.get("data", {}).get("title", {})
     return raw_json
 
-
-def _get_extended_name_info(person_id, locale=None) -> dict:
+@lru_cache(maxsize=128)
+def _get_extended_name_info(person_id, locale=None,  roles=None) -> dict:
     """
     Fetch extended person info using IMDb's GraphQL API.
     """
     person_id = "nm" + person_id
     country = _get_country_code_from_lang_locale(locale)
+    roles = roles or ["director", "composer", "actress", "writer", "actor"]
 
-    query = (
-        """
+    query_template = """
             query {
-              name(id: "%s") {
+              name(id: "__NAME_ID__") {
                 nameText {
                   text
                 }
@@ -1405,13 +1417,7 @@ def _get_extended_name_info(person_id, locale=None) -> dict:
                 credits(first: 250
                 filter: {
             categories: [
-              "director"
-              "composer"
-              "actress"
-              "writer"
-              "actor"
-              "director"
-              "composer"
+             __ROLES_LIST__
             ]
           }
                 )
@@ -1457,7 +1463,10 @@ def _get_extended_name_info(person_id, locale=None) -> dict:
             }
 
         """
-        % person_id
+    query = (
+        query_template
+        .replace("__NAME_ID__", person_id)
+        .replace("__ROLES_LIST__", ", ".join(f'"{role}"' for role in roles))
     )
     url = GRAPHQL_URL
     headers = {
