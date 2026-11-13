@@ -4,7 +4,7 @@
 [![PyPI Version](https://img.shields.io/pypi/v/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
 [![Build Status](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml/badge.svg)](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml)
 [![Python Versions](https://img.shields.io/pypi/pyversions/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://github.com/tveronesi/imdbinfo/blob/main/LICENSE)
 
 **Your personal gateway to IMDb data**. Search for movies, TV series, episodes, and people, and fetch rich structured metadata in seconds — **with no API keys or credentials required**.
 
@@ -141,7 +141,8 @@ results = search_title("The Matrix", max_items=10)
 akas = get_akas("tt0133093", max_items=500)
 ```
 
-See the [configuration guide](docs/guides/locales-and-caching.md) for supported
+See the [configuration guide](https://github.com/tveronesi/imdbinfo/blob/main/docs/guides/locales-and-caching.md) for supported
+
 locales and more details.
 
 ---
@@ -490,9 +491,13 @@ Looking for a production-ready HTTP REST API powered by `imdbinfo`? Check out [*
 
 ---
 
-## ⚠️ Disclaimer
+## ⚠️ Disclaimer & Terms of Use
 
-This project and its authors are not affiliated with, endorsed by, or sponsored by IMDb.com, Inc. or Amazon.com. All product and company names are trademarks or registered trademarks of their respective holders. For more details, see [DISCLAIMER.txt](DISCLAIMER.txt).
+`imdbinfo` is an independent, unofficial open-source tool developed strictly for **personal, educational, and non-commercial use**. This project and its authors are not affiliated with, endorsed by, or sponsored by Internet Movie Database Inc. (IMDb.com) or Amazon.com, Inc.
+
+All data retrieved through this library is the property of IMDb or its content suppliers and is subject to [IMDb’s Conditions of Use](https://www.imdb.com/conditions/). **You may not use data fetched via this library for commercial applications or commercial data redistribution** without obtaining a proper license directly from [IMDb Developer](https://developer.imdb.com/). Please respect IMDb's infrastructure and avoid aggressive or bulk scraping.
+
+For full legal details and limitation of liability, please read [DISCLAIMER.txt](https://github.com/tveronesi/imdbinfo/blob/main/DISCLAIMER.txt).
 
 ---
 
@@ -500,7 +505,7 @@ This project and its authors are not affiliated with, endorsed by, or sponsored 
 
 Contributions are warmly welcomed! Feel free to report issues, submit feature requests, or open pull requests.
 
-Please review our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before submitting contributions.
+Please review our [Contributing Guidelines](https://github.com/tveronesi/imdbinfo/blob/main/CONTRIBUTING.md) and [Code of Conduct](https://github.com/tveronesi/imdbinfo/blob/main/CODE_OF_CONDUCT.md) before submitting contributions.
 
 If you find `imdbinfo` helpful, please consider giving the repository a ⭐ on GitHub!
 
@@ -520,4 +525,4 @@ If you find `imdbinfo` helpful, please consider giving the repository a ⭐ on G
 
 ## 📄 License
 
-`imdbinfo` is distributed under the terms of the [MIT License](LICENSE).
+`imdbinfo` is distributed under the terms of the [MIT License](https://github.com/tveronesi/imdbinfo/blob/main/LICENSE).
