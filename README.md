@@ -4,7 +4,7 @@
 [![PyPI Version](https://img.shields.io/pypi/v/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
 [![Build Status](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml/badge.svg)](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml)
 [![Python Versions](https://img.shields.io/pypi/pyversions/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://github.com/tveronesi/imdbinfo/blob/main/LICENSE)
 
 **Your personal gateway to IMDb data**. Search for movies, TV series, episodes, and people, and fetch rich structured metadata in seconds — **with no API keys or credentials required**.
 
@@ -14,8 +14,6 @@
 
 The published documentation is available at
 [tveronesi.github.io/imdbinfo](https://tveronesi.github.io/imdbinfo/).
-
-
 
 ## ✨ Features
 
@@ -32,7 +30,7 @@ The published documentation is available at
 - 📝 **Reviews & Trivia** — User reviews with ratings and behind-the-scenes trivia via `get_reviews` and `get_trivia`.
 - 🏢 **Company Credits** — Distribution, production, sales, VFX, and miscellaneous companies.
 - 🧩 **Type Safety** — Clean [Pydantic](https://docs.pydantic.dev/) models with full IDE autocompletion.
-- ⚡ **High Performance** — Native CPython AWS WAF solver, built-in LRU caching, and HTTP/2 transport.
+- ⚡ **High Performance** — Built-in LRU caching and efficient data access.
 - 🔓 **No API Keys Required** — Out-of-the-box operation with zero authentication setup.
 
 ---
@@ -68,6 +66,82 @@ print(f"Name: {person.name}")
 print(f"Birth Date: {person.birth_date}")
 print(f"Known For: {', '.join(person.knownfor)}")
 ```
+
+---
+
+## ⚙️ Configuration
+
+Configure the default locale, proxies, and result limits through the shared
+`config`, helper functions, or `IMDBINFO_` environment variables (including a
+`.env` file):
+
+```python
+from imdbinfo import (
+    config,
+    configure,
+    get_locale,
+    get_max_items,
+    get_proxy,
+    set_locale,
+    set_max_items,
+    set_proxy,
+)
+
+set_locale("it")
+set_proxy("[http://proxy.example:8080](http://proxy.example:8080)")
+set_max_items(search=25, akas=300)
+
+print(get_locale())             # "it"; English is returned as ""
+print(get_proxy())              # mapping for HTTP and HTTPS
+print(get_max_items("akas"))    # 300; get_max_items() returns all limits
+
+# Alternative runtime access:
+config.locale = "it"
+config.proxies = {"https": "[http://proxy.example:8080](http://proxy.example:8080)"}
+configure(max_items_search=25, max_items_akas=300)
+print(config.max_items_akas)
+```
+
+The helpers can also be imported from `imdbinfo.helpers`. For **backward
+compatibility**, `from imdbinfo.locale import set_locale, get_locale` still
+works. Pass `locale=` to a supported function to override the global locale
+for one call.
+
+A proxy URL applies to both HTTP and HTTPS; use a mapping for individual
+protocols or `set_proxy(None)` to clear it. Reassign `config.proxies` instead
+of modifying its mapping in place so validation and cache invalidation run.
+Changing global settings clears dependent caches.
+
+Environment variables such as `IMDBINFO_LOCALE=it`,
+`IMDBINFO_PROXIES=http://proxy.example:8080`, and
+`IMDBINFO_MAX_ITEMS_AKAS=300` are read when the configuration is initialized.
+`reset_config()` restores those initial values.
+
+Each result type has an independent positive-integer limit. The functions below
+also accept `max_items=` to override their own limit for one call without
+changing the global configuration:
+
+| Function | Setting | Default |
+|---|---|---:|
+| `search_title` | `max_items_search` | 50 |
+| `get_media_gallery` | `max_items_images` | 50 |
+| `get_all_interests` | `max_items_interests` | 20 |
+| `get_akas` | `max_items_akas` | 200 |
+| `get_trivia` | `max_items_trivia` | 50 |
+| `get_reviews` | `max_items_reviews` | 50 |
+| `get_parental_guide` | `max_items_guide_items` | 10 |
+| `get_quotes` | `max_items_quotes` | 100 |
+| `get_filmography` | `max_items_credits` | 250 |
+
+```python
+from imdbinfo import get_akas, search_title
+
+results = search_title("The Matrix", max_items=10)
+akas = get_akas("tt0133093", max_items=500)
+```
+
+See the [configuration guide](https://github.com/tveronesi/imdbinfo/blob/main/docs/guides/locales-and-caching.md) for supported
+locales and more details.
 
 ---
 
@@ -386,30 +460,15 @@ print("Interests / Themes:", interests)
 
 ## 🛠️ Error Handling
 
-`imdbinfo` provides a structured exception hierarchy for resilient integration:
+`imdbinfo` provides a base exception for handling library errors:
 
 ```python
-from imdbinfo import get_movie
-from imdbinfo.exceptions import (
-    ImdbinfoError,
-    HTTPError,
-    WAFError,
-    GraphQLError,
-    ParseError,
-)
+from imdbinfo import ImdbinfoError, get_movie
 
 try:
     movie = get_movie("tt0133093")
-except WAFError as e:
-    print(f"AWS WAF challenge blocked request ({e.status_code}): {e.url}")
-except HTTPError as e:
-    print(f"HTTP request error ({e.status_code}) for URL: {e.url}")
-except GraphQLError as e:
-    print(f"IMDb GraphQL query error for {e.query_term}: {e.errors}")
-except ParseError as e:
-    print(f"Failed to parse page content: {e}")
 except ImdbinfoError as e:
-    print(f"Generic imdbinfo error: {e}")
+    print(f"imdbinfo error: {e}")
 ```
 
 ---
@@ -423,16 +482,19 @@ Looking for a production-ready HTTP REST API powered by `imdbinfo`? Check out [*
 ## ❓ Why Choose imdbinfo?
 
 - ⚡ **Zero Setup & Keyless** — Works instantly without registering API accounts or managing API tokens.
-- 🚀 **CPython WAF Solver** — Built-in AWS WAF token solving via `imdbinfo-aws` ensures high reliability.
-- 🏎️ **Fast & Lightweight** — Utilizes HTTP/2-enabled requests via `niquests`, fast parsing with `lxml`, and in-memory LRU caching.
+- 🏎️ **Fast & Lightweight** — In-memory LRU caching keeps repeated lookups responsive.
 - 🛡️ **Fully Typed** — Pydantic models guarantee consistent structures, field validation, and rich editor autocompletion.
 - 🧪 **Thoroughly Tested** — Reliable test suite covering real-world IMDb structures and edge cases.
 
 ---
 
-## ⚠️ Disclaimer
+## ⚠️ Disclaimer & Terms of Use
 
-This project and its authors are not affiliated with, endorsed by, or sponsored by IMDb.com, Inc. or Amazon.com. All product and company names are trademarks or registered trademarks of their respective holders. For more details, see [DISCLAIMER.txt](DISCLAIMER.txt).
+`imdbinfo` is an independent, unofficial open-source tool developed strictly for **personal, educational, and non-commercial use**. This project and its authors are not affiliated with, endorsed by, or sponsored by Internet Movie Database Inc. (IMDb.com) or Amazon.com, Inc.
+
+All data retrieved through this library is the property of IMDb or its content suppliers and is subject to [IMDb’s Conditions of Use](https://www.imdb.com/conditions/). **You may not use data fetched via this library for commercial applications or commercial data redistribution** without obtaining a proper license directly from [IMDb Developer](https://developer.imdb.com/). Please respect IMDb's infrastructure and avoid aggressive or bulk scraping.
+
+For full legal details and limitation of liability, please read [DISCLAIMER.txt](https://github.com/tveronesi/imdbinfo/blob/main/DISCLAIMER.txt).
 
 ---
 
@@ -440,7 +502,7 @@ This project and its authors are not affiliated with, endorsed by, or sponsored 
 
 Contributions are warmly welcomed! Feel free to report issues, submit feature requests, or open pull requests.
 
-Please review our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before submitting contributions.
+Please review our [Contributing Guidelines](https://github.com/tveronesi/imdbinfo/blob/main/CONTRIBUTING.md) and [Code of Conduct](https://github.com/tveronesi/imdbinfo/blob/main/CODE_OF_CONDUCT.md) before submitting contributions.
 
 If you find `imdbinfo` helpful, please consider giving the repository a ⭐ on GitHub!
 
@@ -460,4 +522,4 @@ If you find `imdbinfo` helpful, please consider giving the repository a ⭐ on G
 
 ## 📄 License
 
-`imdbinfo` is distributed under the terms of the [MIT License](LICENSE).
+`imdbinfo` is distributed under the terms of the [MIT License](https://github.com/tveronesi/imdbinfo/blob/main/LICENSE).
