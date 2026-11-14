@@ -21,7 +21,7 @@
 import random
 import re
 from pathlib import Path
-from typing import Optional, Dict, Union, List, Tuple, Any, Sequence
+from typing import Optional, Dict, Union, List, Tuple, Any
 from functools import lru_cache
 from time import time
 import logging
@@ -40,7 +40,7 @@ from .models import (
     AkasData,
     MediaGallery,
     Quote,
-    Award, CreditRole, MAIN_ROLES, ALL_ROLES,
+    Award, CreditRole, MAIN_ROLES,
 )
 from .parsers import (
     parse_json_movie,
@@ -1155,8 +1155,8 @@ def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
 
 def get_filmography(
     imdb_id, locale: Optional[str] = None,
-    roles: Optional[Sequence[Union[CreditRole, str]]] = None,
-) -> dict:
+    roles: Optional[List[CreditRole]] = None,
+) -> dict[str, list]:
     """Fetch complete filmography for a person.
 
     Retrieves all known credits for an actor, director, writer, composer, or other
@@ -1169,10 +1169,10 @@ def get_filmography(
     locale : str, optional
         Language locale code. Defaults to global locale setting (see :func:`set_locale`).
         Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
-    roles : sequence of CreditRole or str, optional
-        Roles to filter by (e.g., ``[CreditRole.ACTOR, "director"]``).
-        If None, the main roles are included. An empty sequence or an invalid
-        role logs a warning and returns an empty dictionary.
+    roles : list of CreditRole, optional
+        Roles to filter by (e.g., ``[CreditRole.ACTOR, CreditRole.DIRECTOR]``).
+        None or an empty list selects the main roles. Invalid entries are
+        ignored with a warning; if none remain, no request is made.
 
     Returns
     -------
@@ -1193,26 +1193,24 @@ def get_filmography(
     --------
 
     ```python
-    >>> from imdbinfo import get_filmography
-    >>> filmography = get_filmography("nm0000206", roles=["actor"])  # Keanu Reeves
+    >>> from imdbinfo import CreditRole, get_filmography
+    >>> filmography = get_filmography("nm0000206", roles=[CreditRole.ACTOR])  # Keanu Reeves
     >>> print(f"Acting credits: {len(filmography.get('actor', []))}")
     ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    all_roles = [r.value for r in ALL_ROLES]
-    if roles is None:
-        roles = [a.value for a in MAIN_ROLES]
-    else:
-        roles = [r.value if isinstance(r, CreditRole) else r for r in roles]
-
-    if not roles:
-        logger.warning("No filmography roles selected")
-        return {}
-    if not all(role in all_roles for role in roles):
-        logger.warning("One or more roles are not valid roles. Use CreditRole instead. Valid roles are %s", ALL_ROLES)
-        return {}
-
-    raw_json = _get_extended_name_info(imdb_id, lang, tuple(roles))
+    role_values = None
+    if roles:
+        valid_roles = []
+        for role in roles:
+            if isinstance(role, CreditRole):
+                valid_roles.append(role.value)
+            else:
+                logger.warning("not valid role: %s", role)
+        if not valid_roles:
+            return {}
+        role_values = tuple(valid_roles)
+    raw_json = _get_extended_name_info(imdb_id, lang, role_values)
     if not raw_json:
         logger.warning("No full_credit found for name %s", imdb_id)
         return {}
@@ -1407,7 +1405,9 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
     return raw_json
 
 @lru_cache(maxsize=128)
-def _get_extended_name_info(person_id, locale=None,  roles=None) -> dict:
+def _get_extended_name_info(
+    person_id, locale=None, roles: Optional[Tuple[str, ...]] = None,
+) -> dict:
     """
     Fetch extended person info using IMDb's GraphQL API.
     """
@@ -1415,7 +1415,6 @@ def _get_extended_name_info(person_id, locale=None,  roles=None) -> dict:
     country = _get_country_code_from_lang_locale(locale)
     if roles is None:
         roles = tuple(role.value for role in MAIN_ROLES)
-
     query_template = """
             query {
               name(id: "__NAME_ID__") {
@@ -1475,7 +1474,7 @@ def _get_extended_name_info(person_id, locale=None,  roles=None) -> dict:
     query = (
         query_template
         .replace("__NAME_ID__", person_id)
-        .replace("__ROLES_LIST__", ", ".join(f'"{role}"' for role in roles))
+        .replace("__ROLES_LIST__", ", ".join(json.dumps(role) for role in roles))
     )
     url = GRAPHQL_URL
     headers = {

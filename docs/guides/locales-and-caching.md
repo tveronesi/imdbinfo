@@ -44,5 +44,5 @@ The cache key includes the requested locale. Extended title and person data is
 also cached internally to avoid duplicate GraphQL requests within a process.
 `get_filmography` uses this internal cache rather than exposing a
 `cache_clear()` method; its cache key includes the person, locale, and selected
-roles. Equivalent role lists containing enum members or their string values
-share a cache entry.
+roles. Default roles and an empty selection share a cache entry, while an
+explicit list of the same roles uses a separate entry.

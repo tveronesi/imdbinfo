@@ -50,11 +50,9 @@ for title in filmography.get("actor", []):
     print(title.title, title.year)
 ```
 
-Role names such as `"actor"` and `"director"` can also be supplied as strings,
-including in the same list as `CreditRole` values. See the
+Only `CreditRole` members are accepted; see the
 [`CreditRole` API reference](../api/models.md#imdbinfo.models.CreditRole) for
-the available categories.
-
-Passing `None` uses the default roles. An empty list or a list containing an
-invalid role logs a warning and returns an empty dictionary without making a
-request.
+the available categories. Passing `None` or an empty list uses the default
+roles. Invalid entries, including strings, are ignored with a warning. If no
+valid entries remain, the function returns an empty dictionary without making
+a request.
