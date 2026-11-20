@@ -289,5 +289,5 @@
   - Add the top-level `CreditRole` enum and a `roles` filter to `get_filmography`; role names can also be supplied as strings.
   - By default, filmography requests include actor, actress, cinematographer, director, writer, and composer credits. Empty or invalid role selections log a warning and return an empty dictionary.
   - Cache filmography GraphQL requests by person, locale, and selected roles; list inputs are converted to tuples for caching.
-
+  - Fix series stars being incorrectly reported as creators when no creator group exists. Thanks to @at1as for reporting the issue and providing tests.
 
