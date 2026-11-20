@@ -526,7 +526,6 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             else:
                 category_person["jobTitle"] = jobtitle
                 person = Person.from_category(category_person)
-            person = person
 
             data["categories"].setdefault(category_id, [])
             data["categories"][category_id].append(person)
@@ -656,7 +655,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if data["knownfor"] is None:
         # fallback to old knownForFeature if knownForFeatureV2 is empty
-        logger.debug("******** Falling back to old  knownForFeature path")
+        logger.debug("Falling back to legacy knownForFeature path")
         data["knownfor"] = pjmespatch(
             "props.pageProps.mainColumnData.knownForFeature.edges[].node.title.titleText.text",
             raw_json,
@@ -669,7 +668,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if not data["knownfor2"]:
         # fallback to old knownForFeature if knownForFeatureV2 is empty
-        logger.debug("******** Falling back to old  knownForFeature2 path")
+        logger.debug("Falling back to legacy knownForFeature2 path")
         data["knownfor2"] = pjmespatch(
             "props.pageProps.mainColumnData.knownForFeature.edges[].node.[title.id,title.titleText.text,credit.characters[].name]",
             raw_json,
@@ -711,7 +710,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if data["jobs"] is None:
         # fallback to old jobs path if professions is empty
-        logger.debug("******** Falling back to old  jobs path")
+        logger.debug("Falling back to legacy jobs path")
         data["jobs"] = pjmespatch(
             "props.pageProps.mainColumnData.jobs[].category.id", raw_json
         )
@@ -725,7 +724,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if not data["credits"]:
         # fallback to old credits path if released is empty
-        logger.debug("******** Falling back to old  credits path")
+        logger.debug("Falling back to legacy credits path")
         data["credits"] = pjmespatch(
             "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.id,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
             raw_json,
@@ -741,7 +740,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if not data["unreleased_credits"]:
         # fallback to old unreleased credits path if unreleased is empty
-        logger.debug("******** Falling back to old  unreleased credits path")
+        logger.debug("Falling back to legacy unreleased credits path")
         data["unreleased_credits"] = pjmespatch(
             "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.id,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
             raw_json,
@@ -766,7 +765,7 @@ def parse_json_season_episodes(raw_json) -> SeasonEpisodesList:
         "props.pageProps.contentData.data.title.episodes.totalEpisodes.total", raw_json
     )
     total_series_seasons = len(
-        pjmespatch("props.pageProps.contentData.data.title.episodes.seasons", raw_json)
+        pjmespatch("props.pageProps.contentData.data.title.episodes.seasons", raw_json) or []
     )
     top_ten_episodes = pjmespatch(
         "props.pageProps.contentData.data.title.episodes.topTenEpisodes.edges[].[node.id,node.ratingsSummary.aggregateRating,node.ratingsSummary.voteCount]",

@@ -18,13 +18,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import random
 import re
 import warnings
 from pathlib import Path
 from typing import Optional, Dict, Union, List, Tuple, Any
 from functools import lru_cache
-from time import time
 import logging
 import niquests
 import json
@@ -42,6 +40,7 @@ from .models import (
     MediaGallery,
     Quote,
     Award, CreditRole, MAIN_ROLES,
+    ParentalGuideList,
 )
 from .parsers import (
     parse_json_movie,
@@ -224,7 +223,7 @@ def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
     return imdb_id, lang
 
 
-def get_cookies(text, user_agent, force=False):
+def get_cookies(text, user_agent):
     logger.debug("Starting WAF challenge solver...")
     try:
         solver = AwsSolver(user_agent=user_agent, domain="www.imdb.com")
@@ -698,15 +697,10 @@ def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDet
     """
     person_id, lang = normalize_imdb_id(person_id, locale)
     url = f"https://www.imdb.com/{lang}/name/nm{person_id}/"
-    t0 = time()
     logger.info("Fetching person %s", person_id)
     raw_json = request_json_url(url)
-    t1 = time()
-    logger.debug("Fetched person %s in %.2f seconds", person_id, t1 - t0)
-    t0 = time()
     person = parse_json_person_detail(raw_json)
-    t1 = time()
-    logger.debug("Parsed person %s in %.2f seconds", person_id, t1 - t0)
+    logger.debug("Fetched url %s", url)
     return person
 
 
@@ -854,7 +848,7 @@ def get_episodes(
     return get_season_episodes(imdb_id, season, locale)
 
 
-def get_akas(imdb_id: str, locale: Optional[str] = None) -> Union[AkasData, list]:
+def get_akas(imdb_id: str, locale: Optional[str] = None) -> Optional[AkasData]:
     """Fetch alternative titles (AKAs) for a title in different regions and languages.
 
     Retrieves all known alternative titles and regional releases for a title,
@@ -870,8 +864,8 @@ def get_akas(imdb_id: str, locale: Optional[str] = None) -> Union[AkasData, list
 
     Returns
     -------
-    AkasData or list
-        A :class:`~imdbinfo.models.AkasData` object or empty list if no AKAs are found.
+    AkasData, optional
+        A :class:`~imdbinfo.models.AkasData` object or None if no AKAs are found.
 
     Raises
     ------
@@ -896,7 +890,7 @@ def get_akas(imdb_id: str, locale: Optional[str] = None) -> Union[AkasData, list
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No AKAs found for title %s", imdb_id)
-        return []
+        return None
     akas = parse_json_akas(raw_json)
     logger.debug("Fetched %d AKAs for title %s", len(akas), imdb_id)
     return akas
@@ -1061,7 +1055,9 @@ def get_reviews(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
     return reviews_list
 
 
-def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
+def get_parental_guide(
+    imdb_id: str, locale: Optional[str] = None
+) -> Optional[ParentalGuideList]:
     """Fetch parental guide information for a title.
 
     Retrieves content warnings for violence, profanity, sex, drugs, and other
@@ -1077,9 +1073,8 @@ def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
 
     Returns
     -------
-    Dict
-        A :class:`~imdbinfo.models.ParentalGuideList` object or dict with categories
-        and content warnings. Empty dict if no parental guide is found.
+    ParentalGuideList, optional
+        A :class:`~imdbinfo.models.ParentalGuideList` object or None if no parental guide is found.
 
     Raises
     ------
@@ -1096,15 +1091,16 @@ def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
     ```python
     >>> from imdbinfo import get_parental_guide
     >>> guide = get_parental_guide("tt0137523")  # Fight Club
-    >>> for category in guide.get('categories', []):
-    ...     print(f"{category['name']}: {category['severity']}")
+    >>> if guide:
+    ...     for category in guide.categories:
+    ...         print(f"{category.text}: {category.severity}")
     ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No parental guide found for title %s", imdb_id)
-        return {}
+        return None
     parental_guide = parse_json_parental_guide(raw_json)
     logger.debug("Fetched parental guide for title %s", imdb_id)
     return parental_guide
@@ -1546,9 +1542,24 @@ def get_media_gallery(
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No media_gallery found for title %s", imdb_id)
-        return []
+        return None
     media_gallery = parse_json_media_gallery(raw_json)
     logger.debug(
         "Fetched %d media_gallery for title %s", len(media_gallery or []), imdb_id
     )
     return media_gallery
+
+
+def clear_all_caches() -> None:
+    """Clear all LRU caches in services."""
+    get_movie.cache_clear()
+    get_awards.cache_clear()
+    search_title.cache_clear()
+    get_name.cache_clear()
+    get_season_episodes.cache_clear()
+    get_all_episodes.cache_clear()
+    get_episodes.cache_clear()
+    get_media_gallery.cache_clear()
+    _get_extended_title_info.cache_clear()
+    _get_extended_name_info.cache_clear()
+

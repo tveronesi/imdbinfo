@@ -63,6 +63,7 @@ EPISODE_IDENTIFIERS = ("tvEpisode", "podcastEpisode")
 
 SERIES_IDENTIFIERS = ("tvSeries", "tvMiniSeries", "podcastSeries")
 
+
 class CreditRole(str, Enum):
     """Supported credit categories for filtering a person's filmography."""
 
@@ -951,7 +952,7 @@ class AkaInfo(BaseModel):
 
     @classmethod
     def from_data(
-        self, title, country_code, country_name, language_code=None, language_name=None
+        cls, title, country_code, country_name, language_code=None, language_name=None
     ):
         # if country_code is None, set it to US
         # if country_name is None, set it to United States
@@ -959,7 +960,7 @@ class AkaInfo(BaseModel):
             country_code = "US"
         if country_name is None:
             country_name = "United States"
-        return AkaInfo(
+        return cls(
             title=title,
             country_code=country_code,
             country_name=country_name,
