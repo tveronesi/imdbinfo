@@ -282,7 +282,7 @@
 ## v0.15.2
   - add x-imdb-client-name header to GraphQL requests and test for client headers inclusion
 
-## v0.16
+## v0.16.0
   - Add `imdbinfo.__version__`, read from the installed package metadata (single source of truth: `pyproject.toml`); falls back to `"unknown"` when not installed.
   - Removed credits categories from get_filmography, keep only most relevant ones
   - Bump version to 0.16.
