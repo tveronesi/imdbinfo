@@ -290,4 +290,5 @@
   - By default, filmography requests include actor, actress, cinematographer, director, writer, and composer credits. Empty or invalid role selections log a warning and return an empty dictionary.
   - Cache filmography GraphQL requests by person, locale, and selected roles; list inputs are converted to tuples for caching.
   - Fix series stars being incorrectly reported as creators when no creator group exists. Thanks to @at1as for reporting the issue and providing tests.
+  - Replace get_episodes with get_season_episodes in examples and add deprecation warning
 

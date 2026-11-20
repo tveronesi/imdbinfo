@@ -20,6 +20,7 @@
 # SOFTWARE.
 import random
 import re
+import warnings
 from pathlib import Path
 from typing import Optional, Dict, Union, List, Tuple, Any
 from functools import lru_cache
@@ -845,8 +846,10 @@ def get_episodes(
     This function is deprecated. Use :func:`get_season_episodes` for a single
     season or :func:`get_all_episodes` for all episodes instead.
     """
-    logger.warning(
-        "get_episodes is deprecating, use get_season_episodes or get_all_episodes instead."
+    warnings.warn(
+        "get_episodes is deprecated; use get_season_episodes or get_all_episodes.",
+        DeprecationWarning,
+        stacklevel=2,
     )
     return get_season_episodes(imdb_id, season, locale)
 
