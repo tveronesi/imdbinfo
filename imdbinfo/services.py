@@ -1409,7 +1409,9 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
 
 @lru_cache(maxsize=128)
 def _get_extended_name_info(
-    person_id, locale=None, roles: Optional[Tuple[str, ...]] = None,
+    person_id,
+    locale=None,
+    roles: Optional[List[CreditRole]] = None,
 ) -> dict:
     """
     Fetch extended person info using IMDb's GraphQL API.
@@ -1417,7 +1419,7 @@ def _get_extended_name_info(
     person_id = "nm" + person_id
     country = _get_country_code_from_lang_locale(locale)
     if roles is None:
-        roles = tuple(role.value for role in MAIN_ROLES)
+        roles = tuple(role for role in MAIN_ROLES)
     query_template = """
             query {
               name(id: "__NAME_ID__") {
