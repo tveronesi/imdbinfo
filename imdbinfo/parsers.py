@@ -544,9 +544,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         "props.pageProps.mainColumnData.companyCreditCategories[]", raw_json
     )
     if company_credit_categories:
-        for company_credits_category in pjmespatch(
-            "props.pageProps.mainColumnData.companyCreditCategories[]", raw_json
-        ):
+        for company_credits_category in company_credit_categories:
             cat_id = company_credits_category.get("category").get("id")
             if not cat_id:  # sometimes there is no id, skip those
                 continue
