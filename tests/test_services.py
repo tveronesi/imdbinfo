@@ -152,6 +152,31 @@ def test_parse_error_raised_when_no_next_data(monkeypatch):
     assert isinstance(err, ImdbinfoError)
 
 
+def test_graphql_request_includes_client_headers(monkeypatch):
+    payload = {"query": "{ __typename }"}
+    response_data = {"data": {"__typename": "Query"}}
+    caller_headers = {"Content-Type": "application/json", "x-imdb-user-country": "US"}
+
+    def stub_post(url, *, headers, json):
+        assert url == services.GRAPHQL_URL
+        assert json == payload
+        assert headers == {
+            "Referer": "https://www.imdb.com/",
+            "x-imdb-client-name": "imdb-web-next",
+            **caller_headers,
+        }
+        return SimpleNamespace(status_code=200, json=lambda: response_data)
+
+    monkeypatch.setattr(services.niquests, "post", stub_post, raising=False)
+    assert services.request_graphql_url(
+        caller_headers, "test", payload, services.GRAPHQL_URL
+    ) == response_data
+    assert caller_headers == {
+        "Content-Type": "application/json",
+        "x-imdb-user-country": "US",
+    }
+
+
 def test_graphql_error_raised_on_non_200_post(monkeypatch):
     def stub_post(*args, **kwargs):
         return SimpleNamespace(
