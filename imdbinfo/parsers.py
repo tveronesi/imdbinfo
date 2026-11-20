@@ -274,24 +274,18 @@ def _parse_principal_credits_v2_stars(principal_credits_groups) -> List[Person]:
     ]
 
 
-def _parse_awards(awards_node) -> AwardInfo:
-    if awards_node is None:
-        return AwardInfo(wins=0, nominations=0)
-    awards_dict = {}
-    if len(awards_node) > 2 and awards_node[2]:
-        prestigious_award = awards_node[2]
-        award_name = prestigious_award.get("award", {}).get("text", "")
-        wins = prestigious_award.get("wins", 0)
-        nominations = prestigious_award.get("nominations", 0)
+def _parse_awards_from_data(wins, nominations, prestigious) -> AwardInfo:
+    awards_dict = {
+        "wins": wins or 0,
+        "nominations": nominations or 0,
+    }
+    if prestigious:
         awards_dict["prestigious_award"] = {
-            "wins": wins,
-            "nominations": nominations,
-            "name": award_name,
+            "wins": prestigious.get("wins", 0),
+            "nominations": prestigious.get("nominations", 0),
+            "name": prestigious.get("award", {}).get("text", ""),
         }
-    awards_dict["wins"] = awards_node[0] if len(awards_node) > 0 else 0
-    awards_dict["nominations"] = awards_node[1] if len(awards_node) > 1 else 0
-    awards = AwardInfo(**awards_dict)
-    return awards
+    return AwardInfo(**awards_dict)
 
 
 def parse_json_movie(raw_json) -> Optional[MovieDetail]:
@@ -314,10 +308,10 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data["title"] = pjmespatch(
         "props.pageProps.aboveTheFoldData.originalTitleText.text", raw_json
     )
-    data["awards"] = pjmespatch(
-        "props.pageProps.mainColumnData.[wins.total,nominationsExcludeWins.total,prestigiousAwardSummary ]",
-        raw_json,
-        _parse_awards,
+    data["awards"] = _parse_awards_from_data(
+        wins=pjmespatch("props.pageProps.mainColumnData.wins.total", raw_json),
+        nominations=pjmespatch("props.pageProps.mainColumnData.nominationsExcludeWins.total", raw_json),
+        prestigious=pjmespatch("props.pageProps.mainColumnData.prestigiousAwardSummary", raw_json),
     )
     data["title_localized"] = pjmespatch(
         "props.pageProps.aboveTheFoldData.titleText.text", raw_json
