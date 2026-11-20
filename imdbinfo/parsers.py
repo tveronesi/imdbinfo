@@ -113,6 +113,7 @@ newCreditCategoryIdToOldCategoryIdObject = {
     "amzn1.imdb.concept.name_credit_category.fcb0b804-e618-4044-8a74-79e94d17e3cd": "visual_effects",
     "amzn1.imdb.concept.name_credit_category.c84ecaff-add5-4f2e-81db-102a41881fe3": "writer",
     # group categories
+    "amzn1.imdb.concept.name_credit_group.85198717-6c2d-481e-93a5-47858774bcce": "creator",
     "amzn1.imdb.concept.name_credit_group.7510356e-fde9-438e-b3ad-0099ba6bc8ce": "stars",
 }
 
@@ -160,12 +161,15 @@ def _parse_directors_crewv2(result):
 
 
 def _parse_creators(result):
-    if result is None:
+    if not result:
         return []
     return [
-        Person.from_creators(a)
-        for a in result
-        if a.get("name") and a.get("name").get("id")
+        Person.from_creators(credit)
+        for group in result
+        if (group.get("grouping") or {}).get("groupingId")
+        == OldCategoryIdToNewCategoryIdObject["creator"]
+        for credit in (group.get("credits") or [])
+        if credit.get("name") and credit["name"].get("id")
     ]
 
 
@@ -581,7 +585,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             )
             or [],
             creators=pjmespatch(
-                "props.pageProps.mainColumnData.principalCreditsV2[0].credits[]",
+                "props.pageProps.mainColumnData.principalCreditsV2",
                 raw_json,
                 _parse_creators,
             ),

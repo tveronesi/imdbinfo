@@ -160,6 +160,53 @@ def test_parse_json_series():
     assert "cast" in series.categories
 
 
+def test_series_without_creator_group_preserves_stars():
+    raw_json = load_sample("sample_series.json")
+    main_data = raw_json["props"]["pageProps"]["mainColumnData"]
+    groups = main_data["principalCreditsV2"]
+    main_data["principalCreditsV2"] = [groups[1]]
+
+    series = parsers.parse_json_movie(raw_json)
+
+    assert series.info_series.get_creators() == []
+    assert [person.name for person in series.stars] == [
+        "Andrew Lincoln",
+        "Norman Reedus",
+        "Melissa McBride",
+    ]
+
+
+def test_series_creator_group_after_stars():
+    raw_json = load_sample("sample_series.json")
+    groups = raw_json["props"]["pageProps"]["mainColumnData"]["principalCreditsV2"]
+    groups[0]["grouping"]["text"] = "Ideazione"
+    groups[0]["credits"].append(groups[1]["credits"][0])
+    groups.reverse()
+
+    series = parsers.parse_json_movie(raw_json)
+
+    assert [person.name for person in series.info_series.get_creators()] == [
+        "Frank Darabont",
+        "Andrew Lincoln",
+    ]
+    assert [person.name for person in series.stars] == [
+        "Andrew Lincoln",
+        "Norman Reedus",
+        "Melissa McBride",
+    ]
+
+
+def test_series_with_missing_creator_credits():
+    raw_json = load_sample("sample_series.json")
+    groups = raw_json["props"]["pageProps"]["mainColumnData"]["principalCreditsV2"]
+    groups[0]["credits"] = None
+
+    series = parsers.parse_json_movie(raw_json)
+
+    assert series.info_series.get_creators() == []
+    assert len(series.stars) == 3
+
+
 def test_parse_awards_with_valid_data():
     awards_node = [
         5,  # wins
