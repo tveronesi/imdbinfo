@@ -6,6 +6,7 @@ import pytest
 
 import imdbinfo
 from imdbinfo import CreditRole, get_filmography, services
+from imdbinfo.locale import set_locale
 from imdbinfo.exceptions import GraphQLError
 
 
@@ -80,9 +81,13 @@ def test_credit_role_defines_supported_categories():
 
 
 def test_filmography_selected_roles_are_sent_and_parsed(graphql_requests):
-    result = get_filmography(
-        "nm0000206", locale="es", roles=[CreditRole.ACTOR, CreditRole.DIRECTOR]
-    )
+    set_locale("es")
+    try:
+        result = get_filmography(
+            "nm0000206", roles=[CreditRole.ACTOR, CreditRole.DIRECTOR]
+        )
+    finally:
+        set_locale("en")
 
     assert requested_roles(graphql_requests[0]) == ["actor", "director"]
     assert graphql_requests[0][0]["x-imdb-user-country"] == "ES"
@@ -95,7 +100,11 @@ def test_filmography_selected_roles_are_sent_and_parsed(graphql_requests):
 
 @pytest.mark.parametrize("roles", [None, []])
 def test_filmography_default_roles(graphql_requests, roles):
-    result = get_filmography("nm0000206", locale="es", roles=roles)
+    set_locale("es")
+    try:
+        result = get_filmography("nm0000206", roles=roles)
+    finally:
+        set_locale("en")
 
     assert requested_roles(graphql_requests[0]) == [
         "actor", "actress", "cinematographer", "director", "writer", "composer"
@@ -169,15 +178,21 @@ def test_extended_name_info_accepts_and_caches_role_value_tuples(graphql_request
 
 
 def test_filmography_cache_uses_person_locale_and_role_values(graphql_requests):
-    first = get_filmography("nm0000206", locale="es", roles=[CreditRole.ACTOR])
-    repeated = get_filmography("0000206", locale="es", roles=[CreditRole.ACTOR])
-    assert first["actor"][0].imdbId == repeated["actor"][0].imdbId
-    assert len(graphql_requests) == 1
+    set_locale("es")
+    try:
+        first = get_filmography("nm0000206", roles=[CreditRole.ACTOR])
+        repeated = get_filmography("0000206", roles=[CreditRole.ACTOR])
+        assert first["actor"][0].imdbId == repeated["actor"][0].imdbId
+        assert len(graphql_requests) == 1
 
-    director = get_filmography("nm0000206", locale="es", roles=[CreditRole.DIRECTOR])
-    assert set(director) == {"director"}
-    get_filmography("nm0000206", locale="fr", roles=[CreditRole.ACTOR])
-    get_filmography("nm0000207", locale="es", roles=[CreditRole.ACTOR])
+        director = get_filmography("nm0000206", roles=[CreditRole.DIRECTOR])
+        assert set(director) == {"director"}
+        set_locale("fr")
+        get_filmography("nm0000206", roles=[CreditRole.ACTOR])
+        set_locale("es")
+        get_filmography("nm0000207", roles=[CreditRole.ACTOR])
+    finally:
+        set_locale("en")
     assert len(graphql_requests) == 4
     assert [requested_roles(request) for request in graphql_requests] == [
         ["actor"], ["director"], ["actor"], ["actor"]

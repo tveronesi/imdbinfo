@@ -2,6 +2,7 @@ import json
 import os
 from unittest.mock import patch
 from imdbinfo import parsers, get_awards, Award, clear_all_caches
+from imdbinfo.locale import set_locale
 from tests.test_parsers import load_sample
 
 
@@ -81,7 +82,11 @@ def test_get_awards_service():
     raw_json = load_sample("sample_awards.json")
     with patch("imdbinfo.services.request_json_url", return_value=raw_json) as mock_request:
         clear_all_caches()
-        awards = get_awards("5716464", locale="it")
+        set_locale("it")
+        try:
+            awards = get_awards("5716464")
+        finally:
+            set_locale("en")
         mock_request.assert_called_once_with("https://www.imdb.com/it/title/tt5716464/awards/")
         assert isinstance(awards, list)
         assert len(awards) == 27
