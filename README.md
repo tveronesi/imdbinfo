@@ -10,6 +10,23 @@
 
 ---
 
+## 📢 Highlights in This Release
+
+> [!IMPORTANT]
+> ### 🌟 Key Updates
+> - **Smart Filmography Role Filtering (`CreditRole`)**:
+>   `get_filmography` now extracts **only main credits by default** (actor, actress, cinematographer, director, writer, composer) instead of fetching all miscellaneous categories.
+>   - **Why this matters**: IMDb imposes a hard limit of 250 items per GraphQL response. When querying all categories indiscriminately, dozens of minor roles (e.g. self appearances, thanks, soundtrack, archive footage) easily exhaust the 250-item quota and "ghost" career-defining masterworks — for example, *Citizen Kane* was previously crowded out of Orson Welles' filmography!
+>   - **Custom selection**: You can selectively request any specific roles using the new `CreditRole` enum (e.g. `roles=[CreditRole.ACTOR, CreditRole.DIRECTOR]`).
+>
+> ### ⚠️ Deprecations Notice
+> - **`locale` Method Parameter Deprecated**:
+>   Passing `locale` as a parameter directly to method calls (e.g. `get_movie("tt0133093", locale="it")`) is deprecated and will be removed in a future release. Always call `set_locale()` before calling library functions.
+> - **`get_episodes()` Function Deprecated**:
+>   The legacy `get_episodes()` function is deprecated. Use `get_season_episodes()` for a specific season or `get_all_episodes()` to retrieve all episodes across seasons.
+
+---
+
 ## Documentation
 
 The published documentation is available at
@@ -150,7 +167,7 @@ for ep in all_episodes[:5]:
 Fetch comprehensive details and complete credit histories for actors, directors, writers, and crew:
 
 ```python
-from imdbinfo import get_name, get_filmography
+from imdbinfo import get_name, get_filmography, CreditRole
 
 # Detailed person profile
 person = get_name("nm0000206")  # Keanu Reeves
@@ -159,12 +176,18 @@ print(f"Birth: {person.birth_date} in {person.birth_place}")
 print(f"Bio: {person.bio}")
 print(f"Professions: {', '.join(person.primary_profession)}")
 
-# Full filmography categorized by role
+# 1. Main filmography by default (actor, director, writer, etc.)
 filmography = get_filmography("nm0000206")
 for role, titles in filmography.items():
     print(f"\nRole: {role} ({len(titles)} titles)")
     for t in titles[:3]:
         print(f"  - {t.title} ({t.year}) [{t.kind}] - {t.imdbId}")
+
+# 2. Filter specific roles using CreditRole enum
+credits = get_filmography(
+    "nm0000206",
+    roles=[CreditRole.ACTOR, CreditRole.DIRECTOR],
+)
 ```
 
 ---

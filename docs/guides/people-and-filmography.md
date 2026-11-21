@@ -40,10 +40,11 @@ available from the top-level package and defines the supported role names:
 
 ```python
 from imdbinfo import CreditRole, get_filmography
+from imdbinfo.locale import set_locale
 
+set_locale("es")
 filmography = get_filmography(
     "nm0000206",
-    locale="es",
     roles=[CreditRole.ACTOR, CreditRole.DIRECTOR],
 )
 for title in filmography.get("actor", []):
