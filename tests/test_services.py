@@ -351,3 +351,31 @@ def test_request_json_url_caches(monkeypatch):
     services.clear_all_caches()
     data3 = services.request_json_url(url)
     assert len(calls) == 2
+
+
+def test_locale_param_deprecation_warning(monkeypatch):
+    import warnings
+    monkeypatch.setattr(services, "request_json_url", lambda url: {})
+    monkeypatch.setattr(services, "parse_json_movie", lambda raw: None)
+
+    # get_movie (via normalize_imdb_id)
+    with pytest.deprecated_call(match="Passing 'locale' as a parameter is deprecated"):
+        services.get_movie("tt0133093", locale="it")
+
+    # search_title
+    monkeypatch.setattr(
+        services, "request_graphql_url", lambda *args, **kwargs: {"data": {"mainSearch": {"edges": []}}}
+    )
+    with pytest.deprecated_call(match="Passing 'locale' as a parameter is deprecated"):
+        services.search_title("Matrix", locale="it")
+
+    # normalize_imdb_id directly
+    with pytest.deprecated_call(match="Passing 'locale' as a parameter is deprecated"):
+        services.normalize_imdb_id("tt0133093", locale="it")
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        # Without locale param, no warning is emitted
+        services.get_movie("tt0133093")
+        services.search_title("Matrix")
+        services.normalize_imdb_id("tt0133093")

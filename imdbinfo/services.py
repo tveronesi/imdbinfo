@@ -19,6 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import re
+import sys
 import warnings
 from pathlib import Path
 from typing import Optional, Dict, Union, List, Tuple, Any
@@ -216,6 +217,13 @@ def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
     ('0133093', 'it')
     ```
     """
+    if locale is not None:
+        stacklevel = 3 if sys._getframe(1).f_globals.get("__name__") == __name__ else 2
+        warnings.warn(
+            "Passing 'locale' as a parameter is deprecated and will be removed in a future release; use set_locale() instead.",
+            DeprecationWarning,
+            stacklevel=stacklevel,
+        )
     imdb_id = str(imdb_id)
     num = int(re.sub(r"\D", "", imdb_id))
     lang = _retrieve_url_lang(locale)
@@ -538,6 +546,12 @@ def search_title(
     >>> print(f"Found {len(movies.titles)} result(s)")
     ```
     """
+    if locale is not None:
+        warnings.warn(
+            "Passing 'locale' as a parameter is deprecated and will be removed in a future release; use set_locale() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     lang = _retrieve_url_lang(locale)
     country_code = _get_country_code_from_lang_locale(lang)
 
