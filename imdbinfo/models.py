@@ -636,7 +636,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
         IMDb rating (0-10).
     """
 
-    id: str  # id withouyt 'tt' prefix, e.g. '0133093', same as imdb_id
+    id: str  # id without 'tt' prefix, e.g. '0133093', same as imdb_id
     imdb_id: str
     imdbId: str
     title: str
