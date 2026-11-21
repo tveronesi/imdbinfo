@@ -237,7 +237,12 @@ def get_cookies(text, user_agent):
         raise
 
 
+@lru_cache(maxsize=1024)
 def request_json_url(url: str) -> Any:
+    """Fetch and parse __NEXT_DATA__ JSON from an IMDb URL.
+
+    Results are cached with :func:`functools.lru_cache` (maxsize=1024).
+    """
     resp = request_handler(url)
     if resp.status_code != 200:
         logger.error("Error fetching %s: %s", url, resp.status_code)
@@ -359,7 +364,6 @@ def request_graphql_url(headers, search_term, payload, url) -> Any:
     return data
 
 
-@lru_cache(maxsize=128)
 def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetail]:
     """Fetch detailed information for a movie, TV series, or episode.
 
@@ -390,11 +394,6 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
     ParseError
         If the HTML response lacks the ``__NEXT_DATA__`` JSON script tag.
 
-    Notes
-    -----
-    Results are cached with :func:`functools.lru_cache` (maxsize=128).
-    To clear the cache, call ``get_movie.cache_clear()``.
-
     Examples
     --------
 
@@ -424,7 +423,6 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
     return movie
 
 
-@lru_cache(maxsize=128)
 def get_awards(imdb_id: str, locale: Optional[str] = None) -> List[Award]:
     """Fetch awards and nominations for a title.
 
@@ -453,10 +451,6 @@ def get_awards(imdb_id: str, locale: Optional[str] = None) -> List[Award]:
         If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
     ParseError
         If the HTML response lacks the ``__NEXT_DATA__`` JSON script tag.
-
-    Notes
-    -----
-    Results are cached with :func:`functools.lru_cache` (maxsize=128).
 
     Examples
     --------
@@ -648,7 +642,6 @@ query {
     return result
 
 
-@lru_cache(maxsize=128)
 def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDetail]:
     """Fetch detailed information for a person (actor, director, writer, etc.).
 
@@ -680,7 +673,6 @@ def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDet
 
     Notes
     -----
-    Results are cached with :func:`functools.lru_cache` (maxsize=128).
     For full filmography, use :func:`get_filmography` separately.
 
     Examples
@@ -704,7 +696,6 @@ def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDet
     return person
 
 
-@lru_cache(maxsize=128)
 def get_season_episodes(
     imdb_id: str, season=1, locale: Optional[str] = None
 ) -> SeasonEpisodesList:
@@ -737,7 +728,6 @@ def get_season_episodes(
 
     Notes
     -----
-    Results are cached with :func:`functools.lru_cache` (maxsize=128).
     To get all episodes at once, use :func:`get_all_episodes`.
 
     Examples
@@ -759,7 +749,6 @@ def get_season_episodes(
     return episodes
 
 
-@lru_cache(maxsize=128)
 def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
     """Fetch all episodes for a TV series (across all seasons).
 
@@ -790,7 +779,6 @@ def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
 
     Notes
     -----
-    Results are cached with :func:`functools.lru_cache` (maxsize=128).
     For a single season, use :func:`get_season_episodes` instead.
     This function may be slower for long-running series.
 
@@ -812,7 +800,6 @@ def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
     return episodes
 
 
-@lru_cache(maxsize=128)
 def get_episodes(
     imdb_id: str, season=1, locale: Optional[str] = None
 ) -> SeasonEpisodesList:
@@ -1525,10 +1512,6 @@ def get_media_gallery(
     GraphQLError
         If the GraphQL endpoint returns an error.
 
-    Notes
-    -----
-    Results are cached with :func:`functools.lru_cache` (maxsize=128).
-
     Examples
     --------
 
@@ -1552,13 +1535,9 @@ def get_media_gallery(
 
 def clear_all_caches() -> None:
     """Clear all LRU caches in services."""
-    get_movie.cache_clear()
-    get_awards.cache_clear()
+    if hasattr(request_json_url, "cache_clear"):
+        request_json_url.cache_clear()
     search_title.cache_clear()
-    get_name.cache_clear()
-    get_season_episodes.cache_clear()
-    get_all_episodes.cache_clear()
-    get_episodes.cache_clear()
     get_media_gallery.cache_clear()
     _get_extended_title_info.cache_clear()
     _get_extended_name_info.cache_clear()

@@ -21,7 +21,7 @@ The published documentation is available at
 - 🎬 **Comprehensive Title Details** — Cast, crew, ratings, box office, release dates, runtime, plot summaries, and technical specs.
 - 👤 **Detailed Person Information** — Biographies, personal details, jobs, and full filmographies with poster images.
 - 📺 **TV Series & Episode Management** — Season-by-season breakdowns, episode info, and bulk episode retrieval.
-- 🌐 **Multi-Language Localization** — Fetch localized titles and metadata (set globally or per request).
+- 🌐 **Multi-Language Localization** — Fetch localized titles and metadata (configured globally via `set_locale`).
 - 🗺️ **Alternate Titles (AKAs)** — Country-specific and international release titles via `get_akas`.
 - 🏆 **Awards & Nominations** — Complete award event histories, nominees, and summary counts via `get_awards`.
 - 💬 **Character Quotes** — Dialogue lines, character speaker attributions, and interest scores via `get_quotes`.
@@ -171,23 +171,27 @@ for role, titles in filmography.items():
 
 ### 🌐 Multi-Language Localization
 
-Localize search results and title metadata per request or globally across the library:
+> [!WARNING]
+> **Deprecation Notice**: Passing the `locale` parameter directly to method calls (e.g. `get_movie("tt0133093", locale="it")`) will soon be deprecated and removed in a future release. Always call `set_locale()` before invoking library methods to set the desired locale.
+
+Localize search results and title metadata globally across the library by calling `set_locale()` before making requests:
 
 ```python
 from imdbinfo import get_movie, search_title, get_awards
 from imdbinfo.locale import set_locale
 
-# 1. Per-request locale
-movie_it = get_movie("tt0133093", locale="it")  # Italian title & metadata
-results_es = search_title("Money Heist", locale="es")  # Spanish search
-awards_it = get_awards("tt0034583", locale="it")
-
-# 2. Set default locale globally
+# 1. Set locale before calling methods
 set_locale("it")
-movie = get_movie("tt0133093")  # Automatically fetched in Italian
+movie_it = get_movie("tt0133093")  # Italian title & metadata
+awards_it = get_awards("tt0034583")  # Italian awards
+
+# 2. Switch locale for other requests
+set_locale("es")
+results_es = search_title("Money Heist")  # Spanish search
 
 # 3. Access localized title properties
-results = search_title("The Matrix", locale="it")
+set_locale("it")
+results = search_title("The Matrix")
 for item in results.titles:
     print(f"Original: {item.title} -> Localized: {item.title_localized}")
 ```

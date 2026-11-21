@@ -63,15 +63,12 @@ def test_get_all_episodes_with_missing_numbers(monkeypatch):
     payload = {
         "props": {"pageProps": {"searchResults": {"titleResults": {"titleListItems": items}}}}
     }
+    services.clear_all_caches()
     monkeypatch.setattr(services, "request_json_url", lambda url: payload)
-    services.get_all_episodes.cache_clear()
-    try:
-        episodes = services.get_all_episodes("tt0815353")
-        assert len(episodes) == 2
-        assert (episodes[0].season_number, episodes[0].episode_number) == (None, None)
-        assert (episodes[1].season_number, episodes[1].episode_number) == (1, 2)
-    finally:
-        services.get_all_episodes.cache_clear()
+    episodes = services.get_all_episodes("tt0815353")
+    assert len(episodes) == 2
+    assert (episodes[0].season_number, episodes[0].episode_number) == (None, None)
+    assert (episodes[1].season_number, episodes[1].episode_number) == (1, 2)
 
 
 def test_search_title(monkeypatch):
@@ -136,7 +133,7 @@ def _make_get_stub(status_code: int, text: str = "", content: bytes = b""):
 def test_http_error_raised_on_non_200(monkeypatch):
     monkeypatch.setattr(services.niquests, "get", _make_get_stub(404, text="not found"))
     with pytest.raises(HTTPError) as exc_info:
-        services.get_movie.cache_clear()
+        services.clear_all_caches()
         services.get_movie("tt9999999")
     err = exc_info.value
     assert err.status_code == 404
@@ -149,7 +146,7 @@ def test_waf_error_raised_on_202(monkeypatch):
         services.niquests, "get", _make_get_stub(202, text="waf challenge")
     )
     with pytest.raises(WAFError) as exc_info:
-        services.get_movie.cache_clear()
+        services.clear_all_caches()
         services.get_movie("tt9999998")
     err = exc_info.value
     assert err.status_code == 202
@@ -174,7 +171,7 @@ def test_parse_error_raised_when_no_next_data(monkeypatch):
         _make_get_stub(200, content=b"<html><body>nothing here</body></html>"),
     )
     with pytest.raises(ParseError) as exc_info:
-        services.get_movie.cache_clear()
+        services.clear_all_caches()
         services.get_movie("tt9999997")
     err = exc_info.value
     assert "tt9999997" in err.url
@@ -326,3 +323,31 @@ def test_get_media_gallery_caches(monkeypatch):
     g2 = services.get_media_gallery("tt0133093")
     assert g1.total == g2.total
     assert call_count == 1
+
+
+def test_request_json_url_caches(monkeypatch):
+    calls = []
+    def fake_handler(url):
+        calls.append(url)
+        class FakeResp:
+            status_code = 200
+            content = b'<html><script id="__NEXT_DATA__">{"title": "Matrix"}</script></html>'
+        return FakeResp()
+
+    monkeypatch.setattr(services, "request_handler", fake_handler)
+    services.clear_all_caches()
+    url = "https://www.imdb.com/title/tt0133093/reference"
+
+    data1 = services.request_json_url(url)
+    assert len(calls) == 1
+    assert data1 == {"title": "Matrix"}
+
+    # Second call should hit LRU cache without calling request_handler
+    data2 = services.request_json_url(url)
+    assert len(calls) == 1
+    assert data2 == data1
+
+    # clear_all_caches should invalidate request_json_url cache
+    services.clear_all_caches()
+    data3 = services.request_json_url(url)
+    assert len(calls) == 2
