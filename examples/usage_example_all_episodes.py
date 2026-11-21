@@ -8,6 +8,7 @@ series_ids = [
     "tt4574334",  # The Mandalorian
     "tt0071007",  # little house on the prairie
     "tt35373097",  # seires with no episodes
+    "tt0815353"
 ]
 
 for series_id in series_ids:
