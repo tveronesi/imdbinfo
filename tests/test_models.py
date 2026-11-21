@@ -1,4 +1,7 @@
-from imdbinfo.models import Person, CastMember, MovieBriefInfo, MovieDetail
+import pytest
+from pydantic import ValidationError
+
+from imdbinfo.models import Person, CastMember, MovieBriefInfo, MovieDetail, BulkedEpisode
 from imdbinfo.models import SeriesMixin
 from imdbinfo.models import InfoSeries, InfoEpisode
 from imdbinfo.models import (
@@ -6,6 +9,42 @@ from imdbinfo.models import (
     ParentalGuideCategory,
     ParentalGuideList,
 )
+
+
+@pytest.mark.parametrize(
+    ("season", "episode", "expected_season", "expected_episode"),
+    [
+        ("", "", None, None),
+        ("", "2", None, 2),
+        ("1", "", 1, None),
+        ("1", "2", 1, 2),
+        (0, 0, 0, 0),
+        (None, None, None, None),
+    ],
+)
+def test_bulked_episode_numbers(season, episode, expected_season, expected_episode):
+    data = {
+        "titleId": "tt14136640",
+        "titleText": "Joseph Losey",
+        "series": {"seasonNumber": season, "episodeNumber": episode},
+        "releaseDate": None,
+    }
+
+    result = BulkedEpisode.from_bulked_episode_data(data)
+    assert result.season_number == expected_season
+    assert result.episode_number == expected_episode
+
+
+def test_bulked_episode_invalid_number_is_not_silently_discarded():
+    data = {
+        "titleId": "tt14136640",
+        "titleText": "Joseph Losey",
+        "series": {"seasonNumber": "invalid", "episodeNumber": "2"},
+        "releaseDate": None,
+    }
+
+    with pytest.raises(ValidationError):
+        BulkedEpisode.from_bulked_episode_data(data)
 
 
 def test_person_from_directors():

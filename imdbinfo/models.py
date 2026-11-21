@@ -883,12 +883,15 @@ class BulkedEpisode(BaseModel):
         Create an EpisodeData instance from bulked episode data dictionary.
         This is used when fetching episodes in bulk from a series.
         """
+        series = data.get("series", {})
+        season_number = series.get("seasonNumber")
+        episode_number = series.get("episodeNumber")
         return cls(
             id=data["titleId"].replace("tt", ""),
             imdbId=data["titleId"],
             imdb_id=data["titleId"].replace("tt", ""),
-            season_number=data.get("series", {}).get("seasonNumber", None),
-            episode_number=data.get("series", {}).get("episodeNumber", None),
+            season_number=None if season_number == "" else season_number,
+            episode_number=None if episode_number == "" else episode_number,
             title=data["titleText"],
             genres=data.get("genres") or [],
             plot=data.get("plot", ""),

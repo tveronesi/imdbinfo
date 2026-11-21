@@ -45,6 +45,35 @@ def test_get_movie(monkeypatch):
     assert movie.duration == 136
 
 
+def test_get_all_episodes_with_missing_numbers(monkeypatch):
+    items = [
+        {
+            "titleId": "tt14136640",
+            "titleText": "Joseph Losey",
+            "series": {"seasonNumber": "", "episodeNumber": ""},
+            "releaseDate": None,
+        },
+        {
+            "titleId": "tt1234567",
+            "titleText": "Numbered episode",
+            "series": {"seasonNumber": "1", "episodeNumber": "2"},
+            "releaseDate": None,
+        },
+    ]
+    payload = {
+        "props": {"pageProps": {"searchResults": {"titleResults": {"titleListItems": items}}}}
+    }
+    monkeypatch.setattr(services, "request_json_url", lambda url: payload)
+    services.get_all_episodes.cache_clear()
+    try:
+        episodes = services.get_all_episodes("tt0815353")
+        assert len(episodes) == 2
+        assert (episodes[0].season_number, episodes[0].episode_number) == (None, None)
+        assert (episodes[1].season_number, episodes[1].episode_number) == (1, 2)
+    finally:
+        services.get_all_episodes.cache_clear()
+
+
 def test_search_title(monkeypatch):
     # Use POST mock for GraphQL-style search responses
     # allow setting 'post' even if the niquests stub doesn't define it by default
