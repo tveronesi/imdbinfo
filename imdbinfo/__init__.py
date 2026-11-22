@@ -70,6 +70,12 @@ See Also
 """
 
 import logging
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
+
+try:
+    __version__ = _pkg_version("imdbinfo")
+except PackageNotFoundError:  # source tree that isn't installed
+    __version__ = "unknown"
 
 from .services import (
     get_movie,
@@ -87,6 +93,7 @@ from .services import (
     get_all_interests,
     get_media_gallery,
     get_quotes,
+    clear_all_caches,
     TitleType,
 )
 from .models import (
@@ -96,6 +103,7 @@ from .models import (
     QuoteLine,
     QuoteCharacter,
     InterestScore,
+    CreditRole,
 )
 from .exceptions import (
     ImdbinfoError,
@@ -106,6 +114,7 @@ from .exceptions import (
 )
 
 __all__ = [
+    "__version__",
     "get_movie",
     "get_awards",
     "search_title",
@@ -121,7 +130,9 @@ __all__ = [
     "get_all_interests",
     "get_media_gallery",
     "get_quotes",
+    "clear_all_caches",
     "TitleType",
+    "CreditRole",
     # award models
     "Award",
     "AwardInfo",

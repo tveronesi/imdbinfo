@@ -52,7 +52,7 @@ Model Hierarchy
 - :class:`SeasonEpisodesList` — Episodes grouped by season
 - :class:`BulkedEpisode` — Individual episode in bulk results
 """
-
+from enum import Enum
 from typing import Optional, List, Dict, Tuple, Union
 from pydantic import BaseModel, Field, field_validator
 import logging
@@ -62,6 +62,49 @@ from .transformers import _release_date
 EPISODE_IDENTIFIERS = ("tvEpisode", "podcastEpisode")
 
 SERIES_IDENTIFIERS = ("tvSeries", "tvMiniSeries", "podcastSeries")
+
+
+class CreditRole(str, Enum):
+    """Supported credit categories for filtering a person's filmography."""
+
+    PRODUCTION_DESIGNER = "production_designer"
+    CASTING_DEPARTMENT = "casting_department"
+    DIRECTOR = "director"
+    COMPOSER = "composer"
+    CASTING_DIRECTOR = "casting_director"
+    EXECUTIVE = "executive"
+    ART_DIRECTOR = "art_director"
+    ACTRESS = "actress"
+    COSTUME_DESIGNER = "costume_designer"
+    WRITER = "writer"
+    CAMERA_DEPARTMENT = "camera_department"
+    ART_DEPARTMENT = "art_department"
+    PUBLICIST = "publicist"
+    CINEMATOGRAPHER = "cinematographer"
+    LOCATION_MANAGEMENT = "location_management"
+    SOUNDTRACK = "soundtrack"
+    SOUND_DEPARTMENT = "sound_department"
+    TALENT_AGENT = "talent_agent"
+    SET_DECORATOR = "set_decorator"
+    ANIMATION_DEPARTMENT = "animation_department"
+    MAKE_UP_DEPARTMENT = "make_up_department"
+    COSTUME_DEPARTMENT = "costume_department"
+    SCRIPT_DEPARTMENT = "script_department"
+    PRODUCER = "producer"
+    STUNTS = "stunts"
+    EDITOR = "editor"
+    STUNT_COORDINATOR = "stunt_coordinator"
+    SPECIAL_EFFECTS = "special_effects"
+    ASSISTANT_DIRECTOR = "assistant_director"
+    EDITORIAL_DEPARTMENT = "editorial_department"
+    MUSIC_DEPARTMENT = "music_department"
+    TRANSPORTATION_DEPARTMENT = "transportation_department"
+    ACTOR = "actor"
+    VISUAL_EFFECTS = "visual_effects"
+    PRODUCTION_MANAGER = "production_manager"
+
+MAIN_ROLES = [CreditRole.ACTOR, CreditRole.ACTRESS, CreditRole.CINEMATOGRAPHER, CreditRole.DIRECTOR, CreditRole.WRITER, CreditRole.COMPOSER]
+ALL_ROLES = [role for role in CreditRole]
 
 logger = logging.getLogger(__name__)
 
@@ -593,7 +636,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
         IMDb rating (0-10).
     """
 
-    id: str  # id withouyt 'tt' prefix, e.g. '0133093', same as imdb_id
+    id: str  # id without 'tt' prefix, e.g. '0133093', same as imdb_id
     imdb_id: str
     imdbId: str
     title: str
@@ -603,6 +646,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
     year: Optional[int] = None
     kind: Optional[str] = None  # e.g. 'movie', 'tvSeries', 'tvSeriesEpisode' ...
     rating: Optional[float] = None  # e.g. 8.7
+    runtime: Optional[float] = None
 
     @classmethod
     def from_movie_search(cls, data: dict):
@@ -615,6 +659,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
 
         imdb_full = data["id"]
         imdb_num = str(imdb_full.replace("tt", ""))
+        seconds = (data.get("runtime") or {}).get("seconds")
 
         return cls(
             imdbId=imdb_full,
@@ -625,8 +670,9 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             cover_url=cover_url,
             url=f"https://www.imdb.com/title/{imdb_full}/",
             year=year,
-            kind=data.get("titleType", {}).get("id"),
-            rating=data.get("ratingsSummary", {}).get("aggregateRating"),
+            kind=(data.get("titleType") or {}).get("id"),
+            rating=(data.get("ratingsSummary") or {}).get("aggregateRating"),
+            runtime=seconds / 60 if seconds else None,
         )
 
     @classmethod
@@ -640,6 +686,8 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
         else:
             cover_url = None
 
+        seconds = (data.get("runtime") or {}).get("seconds")
+
         return cls(
             id=str(data["id"].replace("tt", "")),
             imdb_id=str(data["id"].replace("tt", "")),
@@ -651,6 +699,7 @@ class MovieBriefInfo(SeriesMixin, BaseModel):
             year=year,
             kind=data.get("titleType", {}).get("id", None),
             rating=data.get("ratingsSummary", {}).get("aggregateRating", None),
+            runtime=seconds / 60 if seconds else None,
         )
 
     def __str__(self):
@@ -834,12 +883,15 @@ class BulkedEpisode(BaseModel):
         Create an EpisodeData instance from bulked episode data dictionary.
         This is used when fetching episodes in bulk from a series.
         """
+        series = data.get("series", {})
+        season_number = series.get("seasonNumber")
+        episode_number = series.get("episodeNumber")
         return cls(
             id=data["titleId"].replace("tt", ""),
             imdbId=data["titleId"],
             imdb_id=data["titleId"].replace("tt", ""),
-            season_number=data.get("series", {}).get("seasonNumber", None),
-            episode_number=data.get("series", {}).get("episodeNumber", None),
+            season_number=None if season_number == "" else season_number,
+            episode_number=None if episode_number == "" else episode_number,
             title=data["titleText"],
             genres=data.get("genres") or [],
             plot=data.get("plot", ""),
@@ -903,7 +955,7 @@ class AkaInfo(BaseModel):
 
     @classmethod
     def from_data(
-        self, title, country_code, country_name, language_code=None, language_name=None
+        cls, title, country_code, country_name, language_code=None, language_name=None
     ):
         # if country_code is None, set it to US
         # if country_name is None, set it to United States
@@ -911,7 +963,7 @@ class AkaInfo(BaseModel):
             country_code = "US"
         if country_name is None:
             country_name = "United States"
-        return AkaInfo(
+        return cls(
             title=title,
             country_code=country_code,
             country_name=country_name,

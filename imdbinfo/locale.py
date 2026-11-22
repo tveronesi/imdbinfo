@@ -115,6 +115,7 @@ def set_locale(locale: str):
             DEFAULT_LOCALE,
         )
         _configured_locale = DEFAULT_LOCALE
+        _clear_services_cache()
         return
 
     l = locale.strip()
@@ -125,9 +126,19 @@ def set_locale(locale: str):
             DEFAULT_LOCALE,
         )
         _configured_locale = DEFAULT_LOCALE
+        _clear_services_cache()
         return
 
     _configured_locale = l
+    _clear_services_cache()
+
+
+def _clear_services_cache():
+    try:
+        from .services import clear_all_caches
+        clear_all_caches()
+    except (ImportError, AttributeError):
+        pass
 
 
 def _normalize_locale(lcl: str):

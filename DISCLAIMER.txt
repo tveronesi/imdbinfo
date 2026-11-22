@@ -1,20 +1,20 @@
 Disclaimer
 
-The Author is not affiliated with Internet Movie Database Inc.
+The Author(s) and this project are not affiliated with, endorsed by, or sponsored by Internet Movie Database Inc. (IMDb.com, Inc.) or Amazon.com, Inc.
 
-This library provides functionality to access and work with movie-related data that may originate from IMDb (www.imdb.com).
-IMDb is a trademark of Internet Movie Database Inc., and all content and data
-included on the IMDb's site is the property of IMDb or its content suppliers
-and protected by the United States and international copyright laws.
+This library is an independent, unofficial open-source tool developed strictly for educational, research, and personal non-commercial use. It provides functionality to access and work with movie-related metadata that originates from IMDb (https://www.imdb.com/).
 
-Use of IMDb data through this library is subject to IMDb’s Terms and Conditions of Use (https://www.imdb.com/conditions/).
-By using this library, you acknowledge and agree that:
+IMDb is a registered trademark of Internet Movie Database Inc. All content and data included on the IMDb site are the property of IMDb or its content suppliers and are protected by United States and international copyright and database laws.
 
-1. You are solely responsible for ensuring that your use of IMDb data complies with IMDb’s Terms of Service and any applicable laws.
-2. This library is provided "as is" without any warranty or guarantee of compliance with IMDb’s terms.
-3. The author(s) of this library do not endorse or encourage any use of IMDb data that violates IMDb’s Terms of Service.
-4. The author(s) of this library assume no liability for any misuse of the library, including but not limited to violations of IMDb’s Terms of Service.
+Use of IMDb data retrieved through this library is strictly subject to IMDb’s Conditions of Use (https://www.imdb.com/conditions/). By using this library, you acknowledge and agree that:
 
-If you require IMDb data for commercial or public-facing projects, you must obtain proper licensing directly from IMDb (https://developer.imdb.com/).
+1. Non-Commercial & Personal Use Only: You may not use the data fetched through this library for commercial purposes, commercial applications, or large-scale data redistribution.
+2. Compliance with Terms: You are solely responsible for ensuring that your use of IMDb data complies with IMDb’s Conditions of Use and any applicable local, national, or international laws.
+3. Fair Use & Rate Limiting: You will respect IMDb's infrastructure and will not use this tool for aggressive scraping, bulk downloading, automated spamming, or any activity that places an unreasonable load on IMDb’s servers.
+4. No Warranty: This library is provided "as is", without any warranty or guarantee of functionality, availability, or compliance with IMDb’s terms.
+5. No Endorsement of Misuse: The author(s) of this library do not endorse or encourage any use of IMDb data that violates IMDb’s Conditions of Use.
+6. Limitation of Liability: The author(s) of this library assume no liability for any misuse of this software, IP bans, data inaccuracies, or legal consequences resulting from its use, including but not limited to violations of IMDb’s Conditions of Use.
 
-Please read any other notice on the https://www.imdb.com/ site.
+If you require IMDb data for commercial projects, enterprise applications, or public-facing commercial services, you must obtain a proper commercial license directly from IMDb (https://developer.imdb.com/).
+
+Please read all additional legal notices and conditions on https://www.imdb.com/.

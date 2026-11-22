@@ -29,3 +29,8 @@ def test_get_country_code_for_supported_locale():
     assert _get_country_code_from_lang_locale("fr") == "FR"
     assert _get_country_code_from_lang_locale("hi") == "IN"
     assert _get_country_code_from_lang_locale("es-es") == "ES"
+
+
+def test_locale_as_parameter_emits_deprecation_warning():
+    from imdbinfo.services import normalize_imdb_id
+    normalize_imdb_id("tt0133093", locale="it")

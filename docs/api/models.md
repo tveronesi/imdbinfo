@@ -3,6 +3,7 @@
 ::: imdbinfo.models
     options:
       members:
+        - CreditRole
         - Person
         - InfoSeries
         - InfoEpisode

@@ -113,6 +113,7 @@ newCreditCategoryIdToOldCategoryIdObject = {
     "amzn1.imdb.concept.name_credit_category.fcb0b804-e618-4044-8a74-79e94d17e3cd": "visual_effects",
     "amzn1.imdb.concept.name_credit_category.c84ecaff-add5-4f2e-81db-102a41881fe3": "writer",
     # group categories
+    "amzn1.imdb.concept.name_credit_group.85198717-6c2d-481e-93a5-47858774bcce": "creator",
     "amzn1.imdb.concept.name_credit_group.7510356e-fde9-438e-b3ad-0099ba6bc8ce": "stars",
 }
 
@@ -160,12 +161,15 @@ def _parse_directors_crewv2(result):
 
 
 def _parse_creators(result):
-    if result is None:
+    if not result:
         return []
     return [
-        Person.from_creators(a)
-        for a in result
-        if a.get("name") and a.get("name").get("id")
+        Person.from_creators(credit)
+        for group in result
+        if (group.get("grouping") or {}).get("groupingId")
+        == OldCategoryIdToNewCategoryIdObject["creator"]
+        for credit in (group.get("credits") or [])
+        if credit.get("name") and credit["name"].get("id")
     ]
 
 
@@ -270,24 +274,18 @@ def _parse_principal_credits_v2_stars(principal_credits_groups) -> List[Person]:
     ]
 
 
-def _parse_awards(awards_node) -> AwardInfo:
-    if awards_node is None:
-        return AwardInfo(wins=0, nominations=0)
-    awards_dict = {}
-    if len(awards_node) > 2 and awards_node[2]:
-        prestigious_award = awards_node[2]
-        award_name = prestigious_award.get("award", {}).get("text", "")
-        wins = prestigious_award.get("wins", 0)
-        nominations = prestigious_award.get("nominations", 0)
+def _parse_awards_from_data(wins, nominations, prestigious) -> AwardInfo:
+    awards_dict = {
+        "wins": wins or 0,
+        "nominations": nominations or 0,
+    }
+    if prestigious:
         awards_dict["prestigious_award"] = {
-            "wins": wins,
-            "nominations": nominations,
-            "name": award_name,
+            "wins": prestigious.get("wins", 0),
+            "nominations": prestigious.get("nominations", 0),
+            "name": prestigious.get("award", {}).get("text", ""),
         }
-    awards_dict["wins"] = awards_node[0] if len(awards_node) > 0 else 0
-    awards_dict["nominations"] = awards_node[1] if len(awards_node) > 1 else 0
-    awards = AwardInfo(**awards_dict)
-    return awards
+    return AwardInfo(**awards_dict)
 
 
 def parse_json_movie(raw_json) -> Optional[MovieDetail]:
@@ -310,10 +308,10 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
     data["title"] = pjmespatch(
         "props.pageProps.aboveTheFoldData.originalTitleText.text", raw_json
     )
-    data["awards"] = pjmespatch(
-        "props.pageProps.mainColumnData.[wins.total,nominationsExcludeWins.total,prestigiousAwardSummary ]",
-        raw_json,
-        _parse_awards,
+    data["awards"] = _parse_awards_from_data(
+        wins=pjmespatch("props.pageProps.mainColumnData.wins.total", raw_json),
+        nominations=pjmespatch("props.pageProps.mainColumnData.nominationsExcludeWins.total", raw_json),
+        prestigious=pjmespatch("props.pageProps.mainColumnData.prestigiousAwardSummary", raw_json),
     )
     data["title_localized"] = pjmespatch(
         "props.pageProps.aboveTheFoldData.titleText.text", raw_json
@@ -528,7 +526,6 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             else:
                 category_person["jobTitle"] = jobtitle
                 person = Person.from_category(category_person)
-            person = person
 
             data["categories"].setdefault(category_id, [])
             data["categories"][category_id].append(person)
@@ -540,9 +537,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
         "props.pageProps.mainColumnData.companyCreditCategories[]", raw_json
     )
     if company_credit_categories:
-        for company_credits_category in pjmespatch(
-            "props.pageProps.mainColumnData.companyCreditCategories[]", raw_json
-        ):
+        for company_credits_category in company_credit_categories:
             cat_id = company_credits_category.get("category").get("id")
             if not cat_id:  # sometimes there is no id, skip those
                 continue
@@ -581,7 +576,7 @@ def parse_json_movie(raw_json) -> Optional[MovieDetail]:
             )
             or [],
             creators=pjmespatch(
-                "props.pageProps.mainColumnData.principalCreditsV2[0].credits[]",
+                "props.pageProps.mainColumnData.principalCreditsV2",
                 raw_json,
                 _parse_creators,
             ),
@@ -660,7 +655,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if data["knownfor"] is None:
         # fallback to old knownForFeature if knownForFeatureV2 is empty
-        logger.debug("******** Falling back to old  knownForFeature path")
+        logger.debug("Falling back to legacy knownForFeature path")
         data["knownfor"] = pjmespatch(
             "props.pageProps.mainColumnData.knownForFeature.edges[].node.title.titleText.text",
             raw_json,
@@ -673,7 +668,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if not data["knownfor2"]:
         # fallback to old knownForFeature if knownForFeatureV2 is empty
-        logger.debug("******** Falling back to old  knownForFeature2 path")
+        logger.debug("Falling back to legacy knownForFeature2 path")
         data["knownfor2"] = pjmespatch(
             "props.pageProps.mainColumnData.knownForFeature.edges[].node.[title.id,title.titleText.text,credit.characters[].name]",
             raw_json,
@@ -715,7 +710,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if data["jobs"] is None:
         # fallback to old jobs path if professions is empty
-        logger.debug("******** Falling back to old  jobs path")
+        logger.debug("Falling back to legacy jobs path")
         data["jobs"] = pjmespatch(
             "props.pageProps.mainColumnData.jobs[].category.id", raw_json
         )
@@ -729,7 +724,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if not data["credits"]:
         # fallback to old credits path if released is empty
-        logger.debug("******** Falling back to old  credits path")
+        logger.debug("Falling back to legacy credits path")
         data["credits"] = pjmespatch(
             "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.id,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
             raw_json,
@@ -745,7 +740,7 @@ def parse_json_person_detail(raw_json) -> PersonDetail:
 
     if not data["unreleased_credits"]:
         # fallback to old unreleased credits path if unreleased is empty
-        logger.debug("******** Falling back to old  unreleased credits path")
+        logger.debug("Falling back to legacy unreleased credits path")
         data["unreleased_credits"] = pjmespatch(
             "props.pageProps.mainColumnData.releasedPrimaryCredits[].credits[].edges[].node[].[category.id,title.id,title.originalTitleText.text,title.titleType.id,title.primaryImage.url,title.releaseYear.year,titleGenres.genres[].genre.text]",
             raw_json,
@@ -770,7 +765,7 @@ def parse_json_season_episodes(raw_json) -> SeasonEpisodesList:
         "props.pageProps.contentData.data.title.episodes.totalEpisodes.total", raw_json
     )
     total_series_seasons = len(
-        pjmespatch("props.pageProps.contentData.data.title.episodes.seasons", raw_json)
+        pjmespatch("props.pageProps.contentData.data.title.episodes.seasons", raw_json) or []
     )
     top_ten_episodes = pjmespatch(
         "props.pageProps.contentData.data.title.episodes.topTenEpisodes.edges[].[node.id,node.ratingsSummary.aggregateRating,node.ratingsSummary.voteCount]",

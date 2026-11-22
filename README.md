@@ -4,9 +4,26 @@
 [![PyPI Version](https://img.shields.io/pypi/v/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
 [![Build Status](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml/badge.svg)](https://github.com/tveronesi/imdbinfo/actions/workflows/pypi-publish.yml)
 [![Python Versions](https://img.shields.io/pypi/pyversions/imdbinfo?style=flat-square)](https://pypi.org/project/imdbinfo/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://github.com/tveronesi/imdbinfo/blob/main/LICENSE)
 
 **Your personal gateway to IMDb data**. Search for movies, TV series, episodes, and people, and fetch rich structured metadata in seconds — **with no API keys or credentials required**.
+
+---
+
+## 📢 Highlights in This Release
+
+> [!IMPORTANT]
+> ### 🌟 Key Updates
+> - **Smart Filmography Role Filtering (`CreditRole`)**:
+>   `get_filmography` now extracts **only main credits by default** (actor, actress, cinematographer, director, writer, composer) instead of fetching all miscellaneous categories.
+>   - **Why this matters**: IMDb imposes a hard limit of 250 items per GraphQL response. When querying all categories indiscriminately, dozens of minor roles (e.g. self appearances, thanks, soundtrack, archive footage) easily exhaust the 250-item quota and "ghost" career-defining masterworks — for example, *Citizen Kane* was previously crowded out of Orson Welles' filmography!
+>   - **Custom selection**: You can selectively request any specific roles using the new `CreditRole` enum (e.g. `roles=[CreditRole.ACTOR, CreditRole.DIRECTOR]`).
+>
+> ### ⚠️ Deprecations Notice
+> - **`locale` Method Parameter Deprecated**:
+>   Passing `locale` as a parameter directly to method calls (e.g. `get_movie("tt0133093", locale="it")`) is deprecated and will be removed in a future release. Always call `set_locale()` before calling library functions.
+> - **`get_episodes()` Function Deprecated**:
+>   The legacy `get_episodes()` function is deprecated. Use `get_season_episodes()` for a specific season or `get_all_episodes()` to retrieve all episodes across seasons.
 
 ---
 
@@ -15,30 +32,13 @@
 The published documentation is available at
 [tveronesi.github.io/imdbinfo](https://tveronesi.github.io/imdbinfo/).
 
-To work on it locally:
-
-```bash
-pip install -e ".[docs]"
-mkdocs serve
-```
-
-Build the deployable site and fail on broken documentation configuration with:
-
-```bash
-mkdocs build --strict
-```
-
-Pushes to `develop` publish the generated documentation through GitHub Pages.
-
----
-
 ## ✨ Features
 
 - 🔍 **Title & Person Search** — Search movies, series, miniseries, episodes, and people with exact-match, year, and type filters.
 - 🎬 **Comprehensive Title Details** — Cast, crew, ratings, box office, release dates, runtime, plot summaries, and technical specs.
 - 👤 **Detailed Person Information** — Biographies, personal details, jobs, and full filmographies with poster images.
 - 📺 **TV Series & Episode Management** — Season-by-season breakdowns, episode info, and bulk episode retrieval.
-- 🌐 **Multi-Language Localization** — Fetch localized titles and metadata (set globally or per request).
+- 🌐 **Multi-Language Localization** — Fetch localized titles and metadata (configured globally via `set_locale`).
 - 🗺️ **Alternate Titles (AKAs)** — Country-specific and international release titles via `get_akas`.
 - 🏆 **Awards & Nominations** — Complete award event histories, nominees, and summary counts via `get_awards`.
 - 💬 **Character Quotes** — Dialogue lines, character speaker attributions, and interest scores via `get_quotes`.
@@ -47,7 +47,7 @@ Pushes to `develop` publish the generated documentation through GitHub Pages.
 - 📝 **Reviews & Trivia** — User reviews with ratings and behind-the-scenes trivia via `get_reviews` and `get_trivia`.
 - 🏢 **Company Credits** — Distribution, production, sales, VFX, and miscellaneous companies.
 - 🧩 **Type Safety** — Clean [Pydantic](https://docs.pydantic.dev/) models with full IDE autocompletion.
-- ⚡ **High Performance** — Native CPython AWS WAF solver, built-in LRU caching, and HTTP/2 transport.
+- ⚡ **High Performance** — Built-in LRU caching and efficient data access.
 - 🔓 **No API Keys Required** — Out-of-the-box operation with zero authentication setup.
 
 ---
@@ -167,7 +167,7 @@ for ep in all_episodes[:5]:
 Fetch comprehensive details and complete credit histories for actors, directors, writers, and crew:
 
 ```python
-from imdbinfo import get_name, get_filmography
+from imdbinfo import get_name, get_filmography, CreditRole
 
 # Detailed person profile
 person = get_name("nm0000206")  # Keanu Reeves
@@ -176,35 +176,45 @@ print(f"Birth: {person.birth_date} in {person.birth_place}")
 print(f"Bio: {person.bio}")
 print(f"Professions: {', '.join(person.primary_profession)}")
 
-# Full filmography categorized by role
+# 1. Main filmography by default (actor, director, writer, etc.)
 filmography = get_filmography("nm0000206")
 for role, titles in filmography.items():
     print(f"\nRole: {role} ({len(titles)} titles)")
     for t in titles[:3]:
         print(f"  - {t.title} ({t.year}) [{t.kind}] - {t.imdbId}")
+
+# 2. Filter specific roles using CreditRole enum
+credits = get_filmography(
+    "nm0000206",
+    roles=[CreditRole.ACTOR, CreditRole.DIRECTOR],
+)
 ```
 
 ---
 
 ### 🌐 Multi-Language Localization
 
-Localize search results and title metadata per request or globally across the library:
+> [!WARNING]
+> **Deprecation Notice**: Passing the `locale` parameter directly to method calls (e.g. `get_movie("tt0133093", locale="it")`) will soon be deprecated and removed in a future release. Always call `set_locale()` before invoking library methods to set the desired locale.
+
+Localize search results and title metadata globally across the library by calling `set_locale()` before making requests:
 
 ```python
 from imdbinfo import get_movie, search_title, get_awards
 from imdbinfo.locale import set_locale
 
-# 1. Per-request locale
-movie_it = get_movie("tt0133093", locale="it")  # Italian title & metadata
-results_es = search_title("Money Heist", locale="es")  # Spanish search
-awards_it = get_awards("tt0034583", locale="it")
-
-# 2. Set default locale globally
+# 1. Set locale before calling methods
 set_locale("it")
-movie = get_movie("tt0133093")  # Automatically fetched in Italian
+movie_it = get_movie("tt0133093")  # Italian title & metadata
+awards_it = get_awards("tt0034583")  # Italian awards
+
+# 2. Switch locale for other requests
+set_locale("es")
+results_es = search_title("Money Heist")  # Spanish search
 
 # 3. Access localized title properties
-results = search_title("The Matrix", locale="it")
+set_locale("it")
+results = search_title("The Matrix")
 for item in results.titles:
     print(f"Original: {item.title} -> Localized: {item.title_localized}")
 ```
@@ -401,30 +411,15 @@ print("Interests / Themes:", interests)
 
 ## 🛠️ Error Handling
 
-`imdbinfo` provides a structured exception hierarchy for resilient integration:
+`imdbinfo` provides a base exception for handling library errors:
 
 ```python
-from imdbinfo import get_movie
-from imdbinfo.exceptions import (
-    ImdbinfoError,
-    HTTPError,
-    WAFError,
-    GraphQLError,
-    ParseError,
-)
+from imdbinfo import ImdbinfoError, get_movie
 
 try:
     movie = get_movie("tt0133093")
-except WAFError as e:
-    print(f"AWS WAF challenge blocked request ({e.status_code}): {e.url}")
-except HTTPError as e:
-    print(f"HTTP request error ({e.status_code}) for URL: {e.url}")
-except GraphQLError as e:
-    print(f"IMDb GraphQL query error for {e.query_term}: {e.errors}")
-except ParseError as e:
-    print(f"Failed to parse page content: {e}")
 except ImdbinfoError as e:
-    print(f"Generic imdbinfo error: {e}")
+    print(f"imdbinfo error: {e}")
 ```
 
 ---
@@ -438,16 +433,19 @@ Looking for a production-ready HTTP REST API powered by `imdbinfo`? Check out [*
 ## ❓ Why Choose imdbinfo?
 
 - ⚡ **Zero Setup & Keyless** — Works instantly without registering API accounts or managing API tokens.
-- 🚀 **CPython WAF Solver** — Built-in AWS WAF token solving via `imdbinfo-aws` ensures high reliability.
-- 🏎️ **Fast & Lightweight** — Utilizes HTTP/2-enabled requests via `niquests`, fast parsing with `lxml`, and in-memory LRU caching.
+- 🏎️ **Fast & Lightweight** — In-memory LRU caching keeps repeated lookups responsive.
 - 🛡️ **Fully Typed** — Pydantic models guarantee consistent structures, field validation, and rich editor autocompletion.
 - 🧪 **Thoroughly Tested** — Reliable test suite covering real-world IMDb structures and edge cases.
 
 ---
 
-## ⚠️ Disclaimer
+## ⚠️ Disclaimer & Terms of Use
 
-This project and its authors are not affiliated with, endorsed by, or sponsored by IMDb.com, Inc. or Amazon.com. All product and company names are trademarks or registered trademarks of their respective holders. For more details, see [DISCLAIMER.txt](DISCLAIMER.txt).
+`imdbinfo` is an independent, unofficial open-source tool developed strictly for **personal, educational, and non-commercial use**. This project and its authors are not affiliated with, endorsed by, or sponsored by Internet Movie Database Inc. (IMDb.com) or Amazon.com, Inc.
+
+All data retrieved through this library is the property of IMDb or its content suppliers and is subject to [IMDb’s Conditions of Use](https://www.imdb.com/conditions/). **You may not use data fetched via this library for commercial applications or commercial data redistribution** without obtaining a proper license directly from [IMDb Developer](https://developer.imdb.com/). Please respect IMDb's infrastructure and avoid aggressive or bulk scraping.
+
+For full legal details and limitation of liability, please read [DISCLAIMER.txt](https://github.com/tveronesi/imdbinfo/blob/main/DISCLAIMER.txt).
 
 ---
 
@@ -455,7 +453,7 @@ This project and its authors are not affiliated with, endorsed by, or sponsored 
 
 Contributions are warmly welcomed! Feel free to report issues, submit feature requests, or open pull requests.
 
-Please review our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before submitting contributions.
+Please review our [Contributing Guidelines](https://github.com/tveronesi/imdbinfo/blob/main/CONTRIBUTING.md) and [Code of Conduct](https://github.com/tveronesi/imdbinfo/blob/main/CODE_OF_CONDUCT.md) before submitting contributions.
 
 If you find `imdbinfo` helpful, please consider giving the repository a ⭐ on GitHub!
 
@@ -475,4 +473,4 @@ If you find `imdbinfo` helpful, please consider giving the repository a ⭐ on G
 
 ## 📄 License
 
-`imdbinfo` is distributed under the terms of the [MIT License](LICENSE).
+`imdbinfo` is distributed under the terms of the [MIT License](https://github.com/tveronesi/imdbinfo/blob/main/LICENSE).

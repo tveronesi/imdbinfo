@@ -18,12 +18,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import random
 import re
+import sys
+import warnings
 from pathlib import Path
 from typing import Optional, Dict, Union, List, Tuple, Any
 from functools import lru_cache
-from time import time
 import logging
 import niquests
 import json
@@ -40,7 +40,8 @@ from .models import (
     AkasData,
     MediaGallery,
     Quote,
-    Award,
+    Award, CreditRole, MAIN_ROLES,
+    ParentalGuideList,
 )
 from .parsers import (
     parse_json_movie,
@@ -216,6 +217,13 @@ def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
     ('0133093', 'it')
     ```
     """
+    if locale is not None:
+        stacklevel = 3 if sys._getframe(1).f_globals.get("__name__") == __name__ else 2
+        warnings.warn(
+            "Passing 'locale' as a parameter is deprecated and will be removed in a future release; use set_locale() instead.",
+            DeprecationWarning,
+            stacklevel=stacklevel,
+        )
     imdb_id = str(imdb_id)
     num = int(re.sub(r"\D", "", imdb_id))
     lang = _retrieve_url_lang(locale)
@@ -223,7 +231,7 @@ def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
     return imdb_id, lang
 
 
-def get_cookies(text, user_agent, force=False):
+def get_cookies(text, user_agent):
     logger.debug("Starting WAF challenge solver...")
     try:
         solver = AwsSolver(user_agent=user_agent, domain="www.imdb.com")
@@ -237,7 +245,12 @@ def get_cookies(text, user_agent, force=False):
         raise
 
 
+@lru_cache(maxsize=1024)
 def request_json_url(url: str) -> Any:
+    """Fetch and parse __NEXT_DATA__ JSON from an IMDb URL.
+
+    Results are cached with :func:`functools.lru_cache` (maxsize=1024).
+    """
     resp = request_handler(url)
     if resp.status_code != 200:
         logger.error("Error fetching %s: %s", url, resp.status_code)
@@ -359,7 +372,6 @@ def request_graphql_url(headers, search_term, payload, url) -> Any:
     return data
 
 
-@lru_cache(maxsize=128)
 def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetail]:
     """Fetch detailed information for a movie, TV series, or episode.
 
@@ -390,11 +402,6 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
     ParseError
         If the HTML response lacks the ``__NEXT_DATA__`` JSON script tag.
 
-    Notes
-    -----
-    Results are cached with :func:`functools.lru_cache` (maxsize=128).
-    To clear the cache, call ``get_movie.cache_clear()``.
-
     Examples
     --------
 
@@ -424,7 +431,6 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
     return movie
 
 
-@lru_cache(maxsize=128)
 def get_awards(imdb_id: str, locale: Optional[str] = None) -> List[Award]:
     """Fetch awards and nominations for a title.
 
@@ -453,10 +459,6 @@ def get_awards(imdb_id: str, locale: Optional[str] = None) -> List[Award]:
         If AWS WAF blocks the request (HTTP 202). Retry later or use a different IP/proxy.
     ParseError
         If the HTML response lacks the ``__NEXT_DATA__`` JSON script tag.
-
-    Notes
-    -----
-    Results are cached with :func:`functools.lru_cache` (maxsize=128).
 
     Examples
     --------
@@ -544,6 +546,12 @@ def search_title(
     >>> print(f"Found {len(movies.titles)} result(s)")
     ```
     """
+    if locale is not None:
+        warnings.warn(
+            "Passing 'locale' as a parameter is deprecated and will be removed in a future release; use set_locale() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     lang = _retrieve_url_lang(locale)
     country_code = _get_country_code_from_lang_locale(lang)
 
@@ -648,7 +656,6 @@ query {
     return result
 
 
-@lru_cache(maxsize=128)
 def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDetail]:
     """Fetch detailed information for a person (actor, director, writer, etc.).
 
@@ -680,7 +687,6 @@ def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDet
 
     Notes
     -----
-    Results are cached with :func:`functools.lru_cache` (maxsize=128).
     For full filmography, use :func:`get_filmography` separately.
 
     Examples
@@ -697,19 +703,13 @@ def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDet
     """
     person_id, lang = normalize_imdb_id(person_id, locale)
     url = f"https://www.imdb.com/{lang}/name/nm{person_id}/"
-    t0 = time()
     logger.info("Fetching person %s", person_id)
     raw_json = request_json_url(url)
-    t1 = time()
-    logger.debug("Fetched person %s in %.2f seconds", person_id, t1 - t0)
-    t0 = time()
     person = parse_json_person_detail(raw_json)
-    t1 = time()
-    logger.debug("Parsed person %s in %.2f seconds", person_id, t1 - t0)
+    logger.debug("Fetched url %s", url)
     return person
 
 
-@lru_cache(maxsize=128)
 def get_season_episodes(
     imdb_id: str, season=1, locale: Optional[str] = None
 ) -> SeasonEpisodesList:
@@ -742,7 +742,6 @@ def get_season_episodes(
 
     Notes
     -----
-    Results are cached with :func:`functools.lru_cache` (maxsize=128).
     To get all episodes at once, use :func:`get_all_episodes`.
 
     Examples
@@ -764,7 +763,6 @@ def get_season_episodes(
     return episodes
 
 
-@lru_cache(maxsize=128)
 def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
     """Fetch all episodes for a TV series (across all seasons).
 
@@ -795,7 +793,6 @@ def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
 
     Notes
     -----
-    Results are cached with :func:`functools.lru_cache` (maxsize=128).
     For a single season, use :func:`get_season_episodes` instead.
     This function may be slower for long-running series.
 
@@ -817,7 +814,6 @@ def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
     return episodes
 
 
-@lru_cache(maxsize=128)
 def get_episodes(
     imdb_id: str, season=1, locale: Optional[str] = None
 ) -> SeasonEpisodesList:
@@ -845,13 +841,15 @@ def get_episodes(
     This function is deprecated. Use :func:`get_season_episodes` for a single
     season or :func:`get_all_episodes` for all episodes instead.
     """
-    logger.warning(
-        "get_episodes is deprecating, use get_season_episodes or get_all_episodes instead."
+    warnings.warn(
+        "get_episodes is deprecated; use get_season_episodes or get_all_episodes.",
+        DeprecationWarning,
+        stacklevel=2,
     )
     return get_season_episodes(imdb_id, season, locale)
 
 
-def get_akas(imdb_id: str, locale: Optional[str] = None) -> Union[AkasData, list]:
+def get_akas(imdb_id: str, locale: Optional[str] = None) -> Optional[AkasData]:
     """Fetch alternative titles (AKAs) for a title in different regions and languages.
 
     Retrieves all known alternative titles and regional releases for a title,
@@ -867,8 +865,8 @@ def get_akas(imdb_id: str, locale: Optional[str] = None) -> Union[AkasData, list
 
     Returns
     -------
-    AkasData or list
-        A :class:`~imdbinfo.models.AkasData` object or empty list if no AKAs are found.
+    AkasData, optional
+        A :class:`~imdbinfo.models.AkasData` object or None if no AKAs are found.
 
     Raises
     ------
@@ -893,7 +891,7 @@ def get_akas(imdb_id: str, locale: Optional[str] = None) -> Union[AkasData, list
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No AKAs found for title %s", imdb_id)
-        return []
+        return None
     akas = parse_json_akas(raw_json)
     logger.debug("Fetched %d AKAs for title %s", len(akas), imdb_id)
     return akas
@@ -1058,7 +1056,9 @@ def get_reviews(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
     return reviews_list
 
 
-def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
+def get_parental_guide(
+    imdb_id: str, locale: Optional[str] = None
+) -> Optional[ParentalGuideList]:
     """Fetch parental guide information for a title.
 
     Retrieves content warnings for violence, profanity, sex, drugs, and other
@@ -1074,9 +1074,8 @@ def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
 
     Returns
     -------
-    Dict
-        A :class:`~imdbinfo.models.ParentalGuideList` object or dict with categories
-        and content warnings. Empty dict if no parental guide is found.
+    ParentalGuideList, optional
+        A :class:`~imdbinfo.models.ParentalGuideList` object or None if no parental guide is found.
 
     Raises
     ------
@@ -1093,15 +1092,16 @@ def get_parental_guide(imdb_id: str, locale: Optional[str] = None) -> Dict:
     ```python
     >>> from imdbinfo import get_parental_guide
     >>> guide = get_parental_guide("tt0137523")  # Fight Club
-    >>> for category in guide.get('categories', []):
-    ...     print(f"{category['name']}: {category['severity']}")
+    >>> if guide:
+    ...     for category in guide.categories:
+    ...         print(f"{category.text}: {category.severity}")
     ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No parental guide found for title %s", imdb_id)
-        return {}
+        return None
     parental_guide = parse_json_parental_guide(raw_json)
     logger.debug("Fetched parental guide for title %s", imdb_id)
     return parental_guide
@@ -1156,7 +1156,10 @@ def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
     return parsed_quotes
 
 
-def get_filmography(imdb_id, locale: Optional[str] = None) -> dict:
+def get_filmography(
+    imdb_id, locale: Optional[str] = None,
+    roles: Optional[List[CreditRole]] = None,
+) -> dict[str, list]:
     """Fetch complete filmography for a person.
 
     Retrieves all known credits for an actor, director, writer, composer, or other
@@ -1169,6 +1172,10 @@ def get_filmography(imdb_id, locale: Optional[str] = None) -> dict:
     locale : str, optional
         Language locale code. Defaults to global locale setting (see :func:`set_locale`).
         Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+    roles : list of CreditRole, optional
+        Roles to filter by (e.g., ``[CreditRole.ACTOR, CreditRole.DIRECTOR]``).
+        None or an empty list selects the main roles. Invalid entries are
+        ignored with a warning; if none remain, no request is made.
 
     Returns
     -------
@@ -1189,13 +1196,24 @@ def get_filmography(imdb_id, locale: Optional[str] = None) -> dict:
     --------
 
     ```python
-    >>> from imdbinfo import get_filmography
-    >>> filmography = get_filmography("nm0000206")  # Keanu Reeves
+    >>> from imdbinfo import CreditRole, get_filmography
+    >>> filmography = get_filmography("nm0000206", roles=[CreditRole.ACTOR])  # Keanu Reeves
     >>> print(f"Acting credits: {len(filmography.get('actor', []))}")
     ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_name_info(imdb_id, lang)
+    role_values = None
+    if roles:
+        valid_roles = []
+        for role in roles:
+            if isinstance(role, CreditRole):
+                valid_roles.append(role.value)
+            else:
+                logger.warning("not valid role: %s", role)
+        if not valid_roles:
+            return {}
+        role_values = tuple(valid_roles)
+    raw_json = _get_extended_name_info(imdb_id, lang, role_values)
     if not raw_json:
         logger.warning("No full_credit found for name %s", imdb_id)
         return {}
@@ -1389,18 +1407,22 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
     raw_json = data.get("data", {}).get("title", {})
     return raw_json
 
-
-def _get_extended_name_info(person_id, locale=None) -> dict:
+@lru_cache(maxsize=128)
+def _get_extended_name_info(
+    person_id,
+    locale=None,
+    roles: Optional[List[CreditRole]] = None,
+) -> dict:
     """
     Fetch extended person info using IMDb's GraphQL API.
     """
     person_id = "nm" + person_id
     country = _get_country_code_from_lang_locale(locale)
-
-    query = (
-        """
+    if roles is None:
+        roles = tuple(role for role in MAIN_ROLES)
+    query_template = """
             query {
-              name(id: "%s") {
+              name(id: "__NAME_ID__") {
                 nameText {
                   text
                 }
@@ -1408,48 +1430,7 @@ def _get_extended_name_info(person_id, locale=None) -> dict:
                 credits(first: 250
                 filter: {
             categories: [
-              "production_designer"
-              "casting_department"
-              "director"
-              "composer"
-              "casting_director"
-              "executive"
-              "art_director"
-              "actress"
-              "costume_designer"
-              "writer"
-              "camera_department"
-              "art_department"
-              "publicist"
-              "cinematographer"
-              "location_management"
-              "soundtrack"
-              "sound_department"
-              "talent_agent"
-              "set_decorator"
-              "animation_department"
-              "make_up_department"
-              "costume_department"
-              "script_department"
-              "producer"
-              "stunts"
-              "editor"
-              "stunt_coordinator"
-              "special_effects"
-              "assistant_director"
-              "editorial_department"
-              "music_department"
-              "transportation_department"
-              "actor"
-              "visual_effects"
-              "production_manager"
-              "production_designer"
-              "casting_department"
-              "director"
-              "composer"
-              "archive_sound"
-              "casting_director"
-              "art_director"
+             __ROLES_LIST__
             ]
           }
                 )
@@ -1481,6 +1462,7 @@ def _get_extended_name_info(person_id, locale=None) -> dict:
                         releaseYear {
                           year
                         }
+                        runtime {seconds}
                       }
                     }
                   }
@@ -1494,7 +1476,10 @@ def _get_extended_name_info(person_id, locale=None) -> dict:
             }
 
         """
-        % person_id
+    query = (
+        query_template
+        .replace("__NAME_ID__", person_id)
+        .replace("__ROLES_LIST__", ", ".join(json.dumps(role) for role in roles))
     )
     url = GRAPHQL_URL
     headers = {
@@ -1541,10 +1526,6 @@ def get_media_gallery(
     GraphQLError
         If the GraphQL endpoint returns an error.
 
-    Notes
-    -----
-    Results are cached with :func:`functools.lru_cache` (maxsize=128).
-
     Examples
     --------
 
@@ -1558,9 +1539,20 @@ def get_media_gallery(
     raw_json = _get_extended_title_info(imdb_id, lang)
     if not raw_json:
         logger.warning("No media_gallery found for title %s", imdb_id)
-        return []
+        return None
     media_gallery = parse_json_media_gallery(raw_json)
     logger.debug(
         "Fetched %d media_gallery for title %s", len(media_gallery or []), imdb_id
     )
     return media_gallery
+
+
+def clear_all_caches() -> None:
+    """Clear all LRU caches in services."""
+    if hasattr(request_json_url, "cache_clear"):
+        request_json_url.cache_clear()
+    search_title.cache_clear()
+    get_media_gallery.cache_clear()
+    _get_extended_title_info.cache_clear()
+    _get_extended_name_info.cache_clear()
+

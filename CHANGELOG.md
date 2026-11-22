@@ -281,3 +281,17 @@
 
 ## v0.15.2
   - add x-imdb-client-name header to GraphQL requests and test for client headers inclusion
+
+## v0.16.0
+  - Add `imdbinfo.__version__`, read from the installed package metadata (single source of truth: `pyproject.toml`); falls back to `"unknown"` when not installed.
+  - Removed credits categories from get_filmography, keep only most relevant ones
+  - Bump version to 0.16.
+  - Add the top-level `CreditRole` enum and a `roles` filter to `get_filmography`; role names can also be supplied as strings.
+  - By default, filmography requests include actor, actress, cinematographer, director, writer, and composer credits. Empty or invalid role selections log a warning and return an empty dictionary.
+  - Cache filmography GraphQL requests by person, locale, and selected roles; list inputs are converted to tuples for caching.
+  - Fix series stars being incorrectly reported as creators when no creator group exists. Thanks to @at1as for reporting the issue and providing tests.
+  - Replace get_episodes with get_season_episodes in examples and add deprecation warning
+  - Centralize in-memory LRU caching on `request_json_url` (`maxsize=1024`) keyed by URL (including locale), removing redundant `@lru_cache` from individual HTML service methods.
+  - Update `clear_all_caches()` to clear `request_json_url` and existing GraphQL caches.
+  - Document deprecation of the `locale` method call parameter in favor of global `set_locale()`.
+
