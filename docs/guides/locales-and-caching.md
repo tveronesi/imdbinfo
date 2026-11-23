@@ -1,8 +1,5 @@
 # Locales and caching
 
-> [!WARNING]
-> **Deprecation Notice**: Passing the `locale` parameter directly to method calls is deprecated and will be removed in a future release. Always use `set_locale()` before calling library functions.
-
 ## Set a process-wide locale
 
 Use `set_locale` before calling service functions to retrieve localized IMDb data:

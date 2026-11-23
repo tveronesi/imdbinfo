@@ -297,6 +297,9 @@
 
 
 ## v0.17.0
+  - **Breaking change**: Remove deprecated `get_episodes()` function. Use `get_season_episodes()` for a specific season or `get_all_episodes()` for all episodes.
+  - **Breaking change**: Remove deprecated `locale` parameter from all service method signatures (`get_movie`, `search_title`, `get_name`, `get_awards`, `get_season_episodes`, `get_all_episodes`, `get_akas`, `get_trivia`, `get_reviews`, `get_parental_guide`, `get_quotes`, `get_filmography`, `get_media_gallery`, `normalize_imdb_id`). Locale is now configured exclusively via `set_locale()`.
+  - Remove unused `deprecated` package dependency from `pyproject.toml`.
   - Centralize GraphQL caching at the transport layer (`request_graphql_url`) using `@lru_cache(maxsize=1024)`, mirroring `request_json_url`.
   - Serialise GraphQL query payload and request headers (including `x-imdb-user-country`) to form the LRU cache key, ensuring natural multi-locale awareness.
   - Remove scattered `@lru_cache` decorators from `search_title`, `get_media_gallery`, `_get_extended_title_info`, and `_get_extended_name_info`.
@@ -304,5 +307,5 @@
   - Add optional `clear_cache: bool = False` parameter to `set_locale(locale, clear_cache=False)` for explicit cache invalidation when required.
   - Deduplicate GraphQL cache queries: identical queries (e.g. default main roles vs explicitly selected main roles in `get_filmography`) now share the same cached response.
   - Streamline `clear_all_caches()` to bust both centralized transport caches (`request_json_url` and `request_graphql_url`).
-  - Update documentation and test suite for the new centralized caching architecture.
+  - Update documentation, examples, and test suite for the new centralized caching architecture and clean method signatures.
   - Bump version to 0.17.0.

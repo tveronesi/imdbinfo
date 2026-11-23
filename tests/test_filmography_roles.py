@@ -116,7 +116,7 @@ def test_filmography_default_roles(graphql_requests, roles):
 def test_filmography_passes_default_selection_as_none(monkeypatch, roles):
     received = []
 
-    def get_info(person_id, locale, selected_roles):
+    def get_info(person_id, selected_roles):
         received.append(selected_roles)
         return {}
 
@@ -128,7 +128,7 @@ def test_filmography_passes_default_selection_as_none(monkeypatch, roles):
 def test_filmography_passes_role_values_as_tuple(monkeypatch):
     received = []
 
-    def get_info(person_id, locale, selected_roles):
+    def get_info(person_id, selected_roles):
         received.append(selected_roles)
         return {}
 
@@ -170,10 +170,10 @@ def test_filmography_filters_invalid_roles_before_cache_lookup(graphql_requests,
 
 
 def test_extended_name_info_accepts_and_caches_role_value_tuples(graphql_requests):
-    result = services._get_extended_name_info("0000206", "en", ("actor", "director"))
+    result = services._get_extended_name_info("0000206", ("actor", "director"))
     assert requested_roles(graphql_requests[0]) == ["actor", "director"]
     assert result["credits"]["edges"][0]["node"]["category"]["id"] == "actor"
-    assert services._get_extended_name_info("0000206", "en", ("actor", "director")) == result
+    assert services._get_extended_name_info("0000206", ("actor", "director")) == result
     assert len(graphql_requests) == 1
 
 

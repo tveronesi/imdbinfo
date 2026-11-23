@@ -19,8 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import re
-import sys
-import warnings
 from pathlib import Path
 from typing import Optional, Dict, Union, List, Tuple, Any
 from functools import lru_cache
@@ -180,7 +178,7 @@ title_type_search_type = {
 TitleFilter = Union[TitleType, Tuple[TitleType, ...]]
 
 
-def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
+def normalize_imdb_id(imdb_id: str) -> Tuple[str, str]:
     """Normalize IMDb IDs to a standard 7-digit numeric format.
 
     Accepts both prefixed (e.g., ``"tt0133093"``) and unprefixed (e.g., ``"0133093"``)
@@ -191,9 +189,6 @@ def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
     imdb_id : str
         IMDb ID with or without prefix. E.g. ``"tt0133093"``, ``"0133093"``, ``"nm0000206"``.
         The function strips all non-digit characters and formats the result as a 7-digit ID.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
 
     Returns
     -------
@@ -212,21 +207,11 @@ def normalize_imdb_id(imdb_id: str, locale: Optional[str] = None):
 
     >>> normalize_imdb_id("0133093")
     ('0133093', '')
-
-    >>> normalize_imdb_id("tt0133093", locale="it")
-    ('0133093', 'it')
     ```
     """
-    if locale is not None:
-        stacklevel = 3 if sys._getframe(1).f_globals.get("__name__") == __name__ else 2
-        warnings.warn(
-            "Passing 'locale' as a parameter is deprecated and will be removed in a future release; use set_locale() instead.",
-            DeprecationWarning,
-            stacklevel=stacklevel,
-        )
     imdb_id = str(imdb_id)
     num = int(re.sub(r"\D", "", imdb_id))
-    lang = _retrieve_url_lang(locale)
+    lang = _retrieve_url_lang()
     imdb_id = f"{num:07d}"
     return imdb_id, lang
 
@@ -405,7 +390,7 @@ request_graphql_url.cache_clear = _request_graphql_cached.cache_clear
 request_graphql_url.cache_info = _request_graphql_cached.cache_info
 
 
-def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetail]:
+def get_movie(imdb_id: str) -> Optional[MovieDetail]:
     """Fetch detailed information for a movie, TV series, or episode.
 
     Retrieves comprehensive title details including cast, crew, ratings, plot,
@@ -415,9 +400,6 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
     ----------
     imdb_id : str
         IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
 
     Returns
     -------
@@ -455,7 +437,7 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
     ...     print(f"Seasons: {series.info_series.display_seasons}")
     ```
     """
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
+    imdb_id, lang = normalize_imdb_id(imdb_id)
     url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/reference"
     logger.info("Fetching movie %s", imdb_id)
     raw_json = request_json_url(url)
@@ -464,7 +446,7 @@ def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetai
     return movie
 
 
-def get_awards(imdb_id: str, locale: Optional[str] = None) -> List[Award]:
+def get_awards(imdb_id: str) -> List[Award]:
     """Fetch awards and nominations for a title.
 
     Retrieves all award nominations and wins for a movie, TV series, or episode,
@@ -474,9 +456,6 @@ def get_awards(imdb_id: str, locale: Optional[str] = None) -> List[Award]:
     ----------
     imdb_id : str
         IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
 
     Returns
     -------
@@ -503,7 +482,7 @@ def get_awards(imdb_id: str, locale: Optional[str] = None) -> List[Award]:
     ...     print(f"{award.name}: {len(award.nominations)} nominations")
     ```
     """
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
+    imdb_id, lang = normalize_imdb_id(imdb_id)
     url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/awards/"
     logger.info("Fetching awards for movie %s", imdb_id)
     raw_json = request_json_url(url)
@@ -516,7 +495,6 @@ def search_title(
     search_term: str,
     year: int | None = None,
     exact_match: bool = False,
-    locale: Optional[str] = None,
     title_type: Optional[TitleFilter] = None,
 ) -> Optional[SearchResult]:
     """Search for movies, TV series, episodes, and people on IMDb.
@@ -532,9 +510,6 @@ def search_title(
         Filter results to titles released in a specific year.
     exact_match : bool, default False
         If True, match titles exactly by name. If False, allow partial/fuzzy matches.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
     title_type : TitleType or tuple of TitleType, optional
         Filter by title kind. E.g. ``TitleType.Movies``, ``TitleType.TVSeries``,
         or ``(TitleType.Movies, TitleType.TVSeries)`` for multiple types.
@@ -553,7 +528,7 @@ def search_title(
 
     Notes
     -----
-    Results are cached with :func:`functools.lru_cache` (maxsize=128).
+    Results are cached at GraphQL transport layer with :func:`functools.lru_cache` (maxsize=1024).
     The API returns up to 50 results per query.
 
     Examples
@@ -578,13 +553,7 @@ def search_title(
     >>> print(f"Found {len(movies.titles)} result(s)")
     ```
     """
-    if locale is not None:
-        warnings.warn(
-            "Passing 'locale' as a parameter is deprecated and will be removed in a future release; use set_locale() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-    lang = _retrieve_url_lang(locale)
+    lang = _retrieve_url_lang()
     country_code = _get_country_code_from_lang_locale(lang)
 
     search_options_types = ""
@@ -688,7 +657,7 @@ query {
     return result
 
 
-def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDetail]:
+def get_name(person_id: str) -> Optional[PersonDetail]:
     """Fetch detailed information for a person (actor, director, writer, etc.).
 
     Retrieves comprehensive person details including biography, filmography,
@@ -698,9 +667,6 @@ def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDet
     ----------
     person_id : str
         IMDb person ID, with or without the ``nm`` prefix. E.g. ``"nm0000206"`` or ``"0000206"``.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
 
     Returns
     -------
@@ -733,7 +699,7 @@ def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDet
     actor
     ```
     """
-    person_id, lang = normalize_imdb_id(person_id, locale)
+    person_id, lang = normalize_imdb_id(person_id)
     url = f"https://www.imdb.com/{lang}/name/nm{person_id}/"
     logger.info("Fetching person %s", person_id)
     raw_json = request_json_url(url)
@@ -743,7 +709,7 @@ def get_name(person_id: str, locale: Optional[str] = None) -> Optional[PersonDet
 
 
 def get_season_episodes(
-    imdb_id: str, season=1, locale: Optional[str] = None
+    imdb_id: str, season=1
 ) -> SeasonEpisodesList:
     """Fetch all episodes for a specific season of a TV series.
 
@@ -753,9 +719,6 @@ def get_season_episodes(
         IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt1520211"`` or ``"1520211"``.
     season : int, default 1
         Season number to retrieve. E.g. 1 for season 1, 2 for season 2, etc.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
 
     Returns
     -------
@@ -786,7 +749,7 @@ def get_season_episodes(
     ...     print(f"S01E{ep.episode:02d}: {ep.title}")
     ```
     """
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
+    imdb_id, lang = normalize_imdb_id(imdb_id)
     url = f"https://www.imdb.com/{lang}/title/tt{imdb_id}/episodes/?season={season}"
     logger.info("Fetching episodes for movie %s", imdb_id)
     raw_json = request_json_url(url)
@@ -795,7 +758,7 @@ def get_season_episodes(
     return episodes
 
 
-def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
+def get_all_episodes(imdb_id: str):
     """Fetch all episodes for a TV series (across all seasons).
 
     Retrieves the complete episode list for a series in chronological order.
@@ -804,9 +767,6 @@ def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
     ----------
     imdb_id : str
         IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt1520211"`` or ``"1520211"``.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
 
     Returns
     -------
@@ -837,7 +797,7 @@ def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
     >>> print(f"Total episodes: {len(all_eps)}")
     ```
     """
-    series_id, lang = normalize_imdb_id(imdb_id, locale)
+    series_id, lang = normalize_imdb_id(imdb_id)
     url = f"https://www.imdb.com/{lang}/search/title/?count=250&series=tt{series_id}&sort=release_date,asc"
     logger.info("Fetching bulk episodes for series %s", imdb_id)
     raw_json = request_json_url(url)
@@ -846,42 +806,8 @@ def get_all_episodes(imdb_id: str, locale: Optional[str] = None):
     return episodes
 
 
-def get_episodes(
-    imdb_id: str, season=1, locale: Optional[str] = None
-) -> SeasonEpisodesList:
-    """Deprecated: Use :func:`get_season_episodes` or :func:`get_all_episodes` instead.
 
-    This function is kept for backward compatibility and forwards calls to
-    :func:`get_season_episodes`.
-
-    Parameters
-    ----------
-    imdb_id : str
-        IMDb title ID, with or without the ``tt`` prefix.
-    season : int, default 1
-        Season number to retrieve.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting.
-
-    Returns
-    -------
-    SeasonEpisodesList
-        List of episodes for the specified season.
-
-    Warnings
-    --------
-    This function is deprecated. Use :func:`get_season_episodes` for a single
-    season or :func:`get_all_episodes` for all episodes instead.
-    """
-    warnings.warn(
-        "get_episodes is deprecated; use get_season_episodes or get_all_episodes.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return get_season_episodes(imdb_id, season, locale)
-
-
-def get_akas(imdb_id: str, locale: Optional[str] = None) -> Optional[AkasData]:
+def get_akas(imdb_id: str) -> Optional[AkasData]:
     """Fetch alternative titles (AKAs) for a title in different regions and languages.
 
     Retrieves all known alternative titles and regional releases for a title,
@@ -891,9 +817,6 @@ def get_akas(imdb_id: str, locale: Optional[str] = None) -> Optional[AkasData]:
     ----------
     imdb_id : str
         IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
 
     Returns
     -------
@@ -919,8 +842,8 @@ def get_akas(imdb_id: str, locale: Optional[str] = None) -> Optional[AkasData]:
     ...     print(f"{aka.title} ({aka.country_code})")
     ```
     """
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_title_info(imdb_id, lang)
+    imdb_id, _ = normalize_imdb_id(imdb_id)
+    raw_json = _get_extended_title_info(imdb_id)
     if not raw_json:
         logger.warning("No AKAs found for title %s", imdb_id)
         return None
@@ -929,7 +852,7 @@ def get_akas(imdb_id: str, locale: Optional[str] = None) -> Optional[AkasData]:
     return akas
 
 
-def get_all_interests(imdb_id: str, locale: Optional[str] = None):
+def get_all_interests(imdb_id: str):
     """Fetch all interest tags and thematic topics for a title.
 
     In the context of IMDb data, 'interests' are thematic tags, topics, or metadata
@@ -939,10 +862,7 @@ def get_all_interests(imdb_id: str, locale: Optional[str] = None):
     Parameters
     ----------
     imdb_id : str
-        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``. 
 
     Returns
     -------
@@ -975,8 +895,8 @@ def get_all_interests(imdb_id: str, locale: Optional[str] = None):
     ['cyberpunk', 'hacker', 'action', ...]
     ```
     """
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_title_info(imdb_id, lang)
+    imdb_id, _ = normalize_imdb_id(imdb_id)
+    raw_json = _get_extended_title_info(imdb_id)
     if not raw_json:
         logger.warning("No interests found for title %s", imdb_id)
         return []
@@ -991,7 +911,7 @@ def get_all_interests(imdb_id: str, locale: Optional[str] = None):
     return interests
 
 
-def get_trivia(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
+def get_trivia(imdb_id: str) -> List[Dict]:
     """Fetch trivia facts for a title.
 
     Retrieves interesting behind-the-scenes facts, production trivia, and
@@ -1000,10 +920,7 @@ def get_trivia(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
     Parameters
     ----------
     imdb_id : str
-        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``. 
 
     Returns
     -------
@@ -1029,8 +946,8 @@ def get_trivia(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
     >>> print(f"Found {len(trivia)} trivia facts")
     ```
     """
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_title_info(imdb_id, lang)
+    imdb_id, _ = normalize_imdb_id(imdb_id)
+    raw_json = _get_extended_title_info(imdb_id)
     if not raw_json:
         logger.warning("No trivia found for title %s", imdb_id)
         return []
@@ -1039,7 +956,7 @@ def get_trivia(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
     return trivia_list
 
 
-def get_reviews(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
+def get_reviews(imdb_id: str) -> List[Dict]:
     """Fetch user reviews for a title.
 
     Retrieves top user reviews and comments about a movie or TV series,
@@ -1048,10 +965,7 @@ def get_reviews(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
     Parameters
     ----------
     imdb_id : str
-        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``. 
 
     Returns
     -------
@@ -1078,8 +992,8 @@ def get_reviews(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
     ...     print(f"By {review['author']}: {review['summary']}")
     ```
     """
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_title_info(imdb_id, lang)
+    imdb_id, _ = normalize_imdb_id(imdb_id)
+    raw_json = _get_extended_title_info(imdb_id)
     if not raw_json:
         logger.warning("No reviews found for title %s", imdb_id)
         return []
@@ -1089,7 +1003,7 @@ def get_reviews(imdb_id: str, locale: Optional[str] = None) -> List[Dict]:
 
 
 def get_parental_guide(
-    imdb_id: str, locale: Optional[str] = None
+    imdb_id: str
 ) -> Optional[ParentalGuideList]:
     """Fetch parental guide information for a title.
 
@@ -1099,10 +1013,7 @@ def get_parental_guide(
     Parameters
     ----------
     imdb_id : str
-        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``. 
 
     Returns
     -------
@@ -1129,8 +1040,8 @@ def get_parental_guide(
     ...         print(f"{category.text}: {category.severity}")
     ```
     """
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_title_info(imdb_id, lang)
+    imdb_id, _ = normalize_imdb_id(imdb_id)
+    raw_json = _get_extended_title_info(imdb_id)
     if not raw_json:
         logger.warning("No parental guide found for title %s", imdb_id)
         return None
@@ -1139,7 +1050,7 @@ def get_parental_guide(
     return parental_guide
 
 
-def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
+def get_quotes(imdb_id: str) -> List[Quote]:
     """Fetch character quotes and dialogue from a title.
 
     Returns a list of memorable movie or TV quotes, including speaker attribution,
@@ -1148,10 +1059,7 @@ def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
     Parameters
     ----------
     imdb_id : str
-        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
+        IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``. 
 
     Returns
     -------
@@ -1178,8 +1086,8 @@ def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
     ...     print(f"{quote.characters[0].character}: {quote.lines[0].text}")
     ```
     """
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_title_info(imdb_id, lang)
+    imdb_id, _ = normalize_imdb_id(imdb_id)
+    raw_json = _get_extended_title_info(imdb_id)
     if not raw_json:
         logger.warning("No quotes found for title %s", imdb_id)
         return []
@@ -1189,7 +1097,7 @@ def get_quotes(imdb_id: str, locale: Optional[str] = None) -> List[Quote]:
 
 
 def get_filmography(
-    imdb_id, locale: Optional[str] = None,
+    imdb_id: str,
     roles: Optional[List[CreditRole]] = None,
 ) -> dict[str, list]:
     """Fetch complete filmography for a person.
@@ -1201,9 +1109,6 @@ def get_filmography(
     ----------
     imdb_id : str
         IMDb person ID, with or without the ``nm`` prefix. E.g. ``"nm0000206"`` or ``"0000206"``.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
     roles : list of CreditRole, optional
         Roles to filter by (e.g., ``[CreditRole.ACTOR, CreditRole.DIRECTOR]``).
         None or an empty list selects the main roles. Invalid entries are
@@ -1233,7 +1138,7 @@ def get_filmography(
     >>> print(f"Acting credits: {len(filmography.get('actor', []))}")
     ```
     """
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
+    imdb_id, _ = normalize_imdb_id(imdb_id)
     role_values = None
     if roles:
         valid_roles = []
@@ -1245,7 +1150,7 @@ def get_filmography(
         if not valid_roles:
             return {}
         role_values = tuple(valid_roles)
-    raw_json = _get_extended_name_info(imdb_id, lang, role_values)
+    raw_json = _get_extended_name_info(imdb_id, role_values)
     if not raw_json:
         logger.warning("No full_credit found for name %s", imdb_id)
         return {}
@@ -1254,13 +1159,13 @@ def get_filmography(
     return full_credits_list
 
 
-def _get_extended_title_info(imdb_id, locale=None) -> dict:
+def _get_extended_title_info(imdb_id: str) -> dict:
     """
     Fetch extended info using IMDb's GraphQL API:
     including akas, trivia, reviews, interests, and parental guide.
     """
     imdbId = "tt" + imdb_id
-    country = _get_country_code_from_lang_locale(locale)
+    country = _get_country_code_from_lang_locale()
     url = GRAPHQL_URL
     headers = {
         "Content-Type": "application/json",
@@ -1439,15 +1344,14 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
     return raw_json
 
 def _get_extended_name_info(
-    person_id,
-    locale=None,
-    roles: Optional[List[CreditRole]] = None,
+    person_id: str,
+    roles: Optional[Any] = None,
 ) -> dict:
     """
     Fetch extended person info using IMDb's GraphQL API.
     """
     person_id = "nm" + person_id
-    country = _get_country_code_from_lang_locale(locale)
+    country = _get_country_code_from_lang_locale()
     if roles is None:
         roles = tuple(role for role in MAIN_ROLES)
     query_template = """
@@ -1525,7 +1429,6 @@ def _get_extended_name_info(
 
 def get_media_gallery(
     imdb_id: str,
-    locale: Optional[str] = None,
 ) -> Optional[MediaGallery]:
     """Fetch media gallery (images and videos) for a title.
 
@@ -1536,9 +1439,6 @@ def get_media_gallery(
     ----------
     imdb_id : str
         IMDb title ID, with or without the ``tt`` prefix. E.g. ``"tt0133093"`` or ``"0133093"``.
-    locale : str, optional
-        Language locale code. Defaults to global locale setting (see :func:`set_locale`).
-        Supported: ``"en"``, ``"it"``, ``"fr"``, ``"es"``, ``"de"``, ``"pt"``, ``"hi"``, ``"fr-ca"``, ``"es-es"``.
 
     Returns
     -------
@@ -1564,8 +1464,8 @@ def get_media_gallery(
     >>> print(f"Found {len(media or [])} media items")
     ```
     """
-    imdb_id, lang = normalize_imdb_id(imdb_id, locale)
-    raw_json = _get_extended_title_info(imdb_id, lang)
+    imdb_id, _ = normalize_imdb_id(imdb_id)
+    raw_json = _get_extended_title_info(imdb_id)
     if not raw_json:
         logger.warning("No media_gallery found for title %s", imdb_id)
         return None

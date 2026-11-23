@@ -18,12 +18,6 @@
 >   `get_filmography` now extracts **only main credits by default** (actor, actress, cinematographer, director, writer, composer) instead of fetching all miscellaneous categories.
 >   - **Why this matters**: IMDb imposes a hard limit of 250 items per GraphQL response. When querying all categories indiscriminately, dozens of minor roles (e.g. self appearances, thanks, soundtrack, archive footage) easily exhaust the 250-item quota and "ghost" career-defining masterworks — for example, *Citizen Kane* was previously crowded out of Orson Welles' filmography!
 >   - **Custom selection**: You can selectively request any specific roles using the new `CreditRole` enum (e.g. `roles=[CreditRole.ACTOR, CreditRole.DIRECTOR]`).
->
-> ### ⚠️ Deprecations Notice
-> - **`locale` Method Parameter Deprecated**:
->   Passing `locale` as a parameter directly to method calls (e.g. `get_movie("tt0133093", locale="it")`) is deprecated and will be removed in a future release. Always call `set_locale()` before calling library functions.
-> - **`get_episodes()` Function Deprecated**:
->   The legacy `get_episodes()` function is deprecated. Use `get_season_episodes()` for a specific season or `get_all_episodes()` to retrieve all episodes across seasons.
 
 ---
 
@@ -193,9 +187,6 @@ credits = get_filmography(
 ---
 
 ### 🌐 Multi-Language Localization
-
-> [!WARNING]
-> **Deprecation Notice**: Passing the `locale` parameter directly to method calls (e.g. `get_movie("tt0133093", locale="it")`) will soon be deprecated and removed in a future release. Always call `set_locale()` before invoking library methods to set the desired locale.
 
 Localize search results and title metadata globally across the library by calling `set_locale()` before making requests. Responses for different locales are cached independently in memory, so switching locales does not cause cache thrashing:
 

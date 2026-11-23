@@ -51,5 +51,3 @@ for episode in episodes[:5]:
     `BulkedEpisode.duration` is measured in seconds, unlike
     `MovieDetail.duration`, which is in minutes.
 
-`get_episodes` remains available for compatibility, but is deprecated. Use
-`get_season_episodes` for one season or `get_all_episodes` for a full series.

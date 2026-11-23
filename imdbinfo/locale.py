@@ -44,13 +44,6 @@ Examples
 >>> set_locale("it")  # Set global locale to Italian
 >>> movie = get_movie("tt0133093")  # All requests now use Italian
 ```
-
-Override locale per-request:
-
-```python
->>> from imdbinfo import get_movie
->>> movie = get_movie("tt0133093", locale="it")  # Italian for this call only
-```
 """
 
 import logging
@@ -77,7 +70,7 @@ def set_locale(locale: str, clear_cache: bool = False):
     """Set the global locale for all IMDb API requests.
 
     Once set, all subsequent calls to imdbinfo functions will use the configured
-    locale unless overridden with a per-call ``locale`` parameter.
+    locale.
 
     Parameters
     ----------
