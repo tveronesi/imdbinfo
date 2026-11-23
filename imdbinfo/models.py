@@ -65,7 +65,22 @@ SERIES_IDENTIFIERS = ("tvSeries", "tvMiniSeries", "podcastSeries")
 
 
 class CreditRole(str, Enum):
-    """Supported credit categories for filtering a person's filmography."""
+    """Supported credit categories for filtering a person's filmography.
+
+    Used with :func:`~imdbinfo.services.get_filmography` via the ``roles``
+    parameter to filter the credits returned by IMDb's GraphQL API.
+
+    Common roles include:
+    - ``CreditRole.ACTOR`` / ``CreditRole.ACTRESS``: Acting roles
+    - ``CreditRole.DIRECTOR``: Directorial credits
+    - ``CreditRole.WRITER``: Writing and screenplay credits
+    - ``CreditRole.PRODUCER``: Producing credits
+    - ``CreditRole.COMPOSER`` / ``CreditRole.MUSIC_DEPARTMENT``: Music credits
+    - ``CreditRole.CINEMATOGRAPHER``: Camera / cinematography credits
+    - ``CreditRole.EDITOR``: Film editing credits
+
+    See :data:`MAIN_ROLES` for the default subset of major roles.
+    """
 
     PRODUCTION_DESIGNER = "production_designer"
     CASTING_DEPARTMENT = "casting_department"
@@ -317,9 +332,19 @@ class InfoEpisode(BaseModel):
 
 
 class CastMember(Person):
-    """Cast member model for cast members in a movie.
-    This model extends the Person model to include additional information specific to cast members.
-    It includes the characters they played in the movie and their picture URL.
+    """Cast member details for an actor in a movie or TV title.
+
+    Extends :class:`Person` to include played characters, character headshot URL,
+    and credit attributes.
+
+    Attributes
+    ----------
+    characters : List[str]
+        Character name(s) portrayed by the actor (e.g., ``["Neo", "Thomas A. Anderson"]``).
+    picture_url : str, optional
+        URL of the actor's headshot or character photo.
+    attributes : str, optional
+        Additional credit notes (e.g., ``"(as John Doe)"`` or ``"(uncredited)"``).
     """
 
     characters: List[str] = Field(default_factory=list)
@@ -347,9 +372,24 @@ class CastMember(Person):
 
 
 class CompanyInfo(BaseModel):
-    """
-    CompanyInfo model for production companies and other companies involved in a movie.
-    This model contains basic information about a company such as name, id, imdb_id, imdbId, url, attributes and countries.
+    """Production company or distributor associated with a title.
+
+    Attributes
+    ----------
+    id : str
+        IMDb company ID without ``co`` prefix (e.g., ``"0133093"``).
+    imdb_id : str
+        IMDb company ID without ``co`` prefix. Same as ``id``.
+    imdbId : str
+        IMDb company ID with ``co`` prefix (e.g., ``"co0133093"``).
+    name : str
+        Company name (e.g., ``"Warner Bros."``).
+    url : str
+        IMDb company page URL.
+    attributes : List[str], optional
+        Role notes or distribution rights (e.g., ``["presents", "theatrical"]``).
+    countries : List[str], optional
+        Countries where this company operated for this title.
     """
 
     id: str  # id without 'co' prefix, e.g. '0133093', same as imdb_id
@@ -496,11 +536,63 @@ class MovieDetail(SeriesMixin, BaseModel):
     year_end : int, optional
         End year (for TV series).
     duration : int, optional
-        Runtime in minutes.
+        Runtime in minutes (note: distinct from BulkedEpisode.duration in seconds).
+    country_codes : List[str]
+        List of ISO country codes of origin (e.g., ``["US", "AU"]``).
+    countries : List[str]
+        List of country names of origin (e.g., ``["United States", "Australia"]``).
     rating : float, optional
         IMDb rating (0-10).
+    metacritic_rating : int, optional
+        Metascore rating (0-100) if available.
     votes : int, optional
         Number of user votes.
+    awards : AwardInfo, optional
+        Summary of awards won and nominated.
+    mpaa : str, optional
+        MPAA rating certification (e.g., ``"Rated R for sci-fi violence"``).
+    languages_text : List[str]
+        Descriptive names of spoken languages (e.g., ``["English"]``).
+    genres : List[str]
+        List of genres (e.g., ``["Action", "Sci-Fi"]``).
+    interests : List[str]
+        Thematic interests and tags.
+    trailers : List[str]
+        Video URLs or IDs for official trailers.
+    worldwide_gross : str, optional
+        Worldwide box office gross earnings.
+    production_budget : str, optional
+        Estimated production budget.
+    storyline_keywords : List[str]
+        Plot and storyline keywords.
+    filming_locations : List[str]
+        Real-world filming locations.
+    sound_mixes : List[str]
+        Audio specifications (e.g., ``["Dolby Digital", "DTS"]``).
+    processes : List[str]
+        Cinematographic processes used.
+    printed_formats : List[str]
+        Printed film formats (e.g., ``["35 mm"]``).
+    negative_formats : List[str]
+        Negative film formats used.
+    laboratories : List[str]
+        Film laboratories involved in post-production.
+    colorations : List[str]
+        Coloration details (e.g., ``["Color"]``).
+    cameras : List[str]
+        Camera models and lenses used.
+    aspect_ratios : List[Tuple[Optional[str], Optional[str]]]
+        List of aspect ratio pairs (e.g., ``[("2.39:1", "theatrical")]``).
+    summaries : List[str]
+        Short plot summaries from various contributors.
+    synopses : List[str]
+        Comprehensive plot synopses.
+    production : List[str]
+        Production company names as raw strings.
+    categories : Dict[str, List[Union[Person, CastMember]]]
+        Credits grouped by category name (e.g., ``"cast"``, ``"director"``, ``"writer"``).
+    company_credits : Dict[str, List[CompanyInfo]]
+        Production, distribution, and special effects companies grouped by type.
     info_series : InfoSeries, optional
         Series-specific metadata. Present only if ``is_series()`` returns ``True``.
     info_episode : InfoEpisode, optional
@@ -821,6 +913,40 @@ class PersonDetail(BaseModel):
 
 
 class SeasonEpisode(BaseModel):
+    """Details for a single episode within a specific TV series season.
+
+    Returned as part of :class:`SeasonEpisodesList` by :func:`~imdbinfo.services.get_season_episodes`.
+
+    Attributes
+    ----------
+    id : str
+        IMDb episode ID without ``tt`` prefix (e.g., ``"1234567"``).
+    imdb_id : str
+        IMDb episode ID without ``tt`` prefix. Same as ``id``.
+    imdbId : str
+        IMDb episode ID with ``tt`` prefix (e.g., ``"tt1234567"``).
+    title : str
+        Episode title.
+    season : int
+        Season number (1-indexed).
+    episode : int
+        Episode number within the season (1-indexed).
+    plot : str
+        Short episode plot summary.
+    image_url : str, optional
+        URL to an episode still thumbnail.
+    rating : float, optional
+        IMDb user rating (0-10).
+    votes : int, optional
+        Number of user ratings.
+    year : int, optional
+        Year the episode was released.
+    release_date : str, optional
+        Full release date in ISO format (``YYYY-MM-DD``).
+    kind : str, optional
+        Title kind (e.g., ``"tvEpisode"``).
+    """
+
     id: str  # id without 'tt' prefix, e.g. '1234567'
     imdbId: str
     imdb_id: str
@@ -861,6 +987,44 @@ class SeasonEpisode(BaseModel):
 
 
 class BulkedEpisode(BaseModel):
+    """Episode metadata returned when retrieving all episodes for a series in bulk.
+
+    Returned by :func:`~imdbinfo.services.get_all_episodes`.
+
+    Attributes
+    ----------
+    id : str
+        IMDb episode ID without ``tt`` prefix (e.g., ``"1234567"``).
+    imdb_id : str
+        IMDb episode ID without ``tt`` prefix. Same as ``id``.
+    imdbId : str
+        IMDb episode ID with ``tt`` prefix (e.g., ``"tt1234567"``).
+    season_number : int, optional
+        Season number (1-indexed).
+    episode_number : int, optional
+        Episode number within season (1-indexed).
+    title : str
+        Episode title.
+    plot : str
+        Short plot summary.
+    image_url : str, optional
+        URL of the primary episode still thumbnail.
+    rating : float, optional
+        IMDb user rating (0-10).
+    votes : int, optional
+        Number of user votes.
+    year : int, optional
+        Release year.
+    release_date : str, optional
+        Full release date in ISO format (``YYYY-MM-DD``).
+    kind : str, optional
+        Title kind (e.g., ``"tvEpisode"``).
+    genres : List[str], optional
+        List of episode genres.
+    duration : int, optional
+        Episode runtime in **seconds** (note: differs from :attr:`MovieDetail.duration` which is in minutes).
+    """
+
     id: str  # id without 'tt' prefix, e.g. '1234567'
     imdbId: str
     imdb_id: str
@@ -909,10 +1073,26 @@ class BulkedEpisode(BaseModel):
 
 
 class SeasonEpisodesList(BaseModel):
-    """
-    EpisodesList model for a list of episodes.
-    This model contains a list of EpisodeInfo objects representing the episodes of a series.
-    It can be used to represent the episodes of a series in a specific season.
+    """Collection of episodes for a single season of a TV series.
+
+    Returned by :func:`~imdbinfo.services.get_season_episodes`.
+
+    Attributes
+    ----------
+    series_imdbId : str
+        IMDb ID of the parent series with ``tt`` prefix (e.g., ``"tt1520211"``).
+    season_number : int
+        The season number.
+    top_rating_episode : float, optional
+        Highest episode rating within this season.
+    total_series_episodes : int, optional
+        Total episode count across all seasons of the series.
+    total_series_seasons : int, optional
+        Total season count of the series.
+    top_ten_episodes : List[dict], optional
+        List of top-rated episodes in the series.
+    episodes : List[SeasonEpisode]
+        Ordered list of episodes belonging to this season.
     """
 
     series_imdbId: str  # The IMDb ID of the series, e.g. 'tt1234567'
@@ -947,6 +1127,22 @@ class SeasonEpisodesList(BaseModel):
 
 
 class AkaInfo(BaseModel):
+    """Alternative title (AKA) in a specific region and language.
+
+    Attributes
+    ----------
+    title : str
+        The localized or alternative title text.
+    country_code : str
+        ISO 3166-1 alpha-2 country code (e.g., ``"US"``, ``"IT"``).
+    country_name : str
+        Full country name (e.g., ``"United States"``, ``"Italy"``).
+    language_code : str, optional
+        ISO language code if specified.
+    language_name : str, optional
+        Full language name if specified.
+    """
+
     title: str
     country_code: str
     country_name: str
@@ -979,6 +1175,18 @@ class AkaInfo(BaseModel):
 
 
 class AkasData(BaseModel):
+    """Collection of alternative titles (AKAs) for a title across regions.
+
+    Returned by :func:`~imdbinfo.services.get_akas`.
+
+    Attributes
+    ----------
+    imdbId : str
+        IMDb title ID with ``tt`` prefix (e.g., ``"tt0133093"``).
+    akas : List[AkaInfo]
+        List of regional and alternate release titles.
+    """
+
     imdbId: str
     akas: List[AkaInfo]
 
@@ -996,6 +1204,16 @@ class AkasData(BaseModel):
 
 
 class ParentalGuideContentDescription(BaseModel):
+    """Individual advisory item within a parental guide category.
+
+    Attributes
+    ----------
+    is_spoiler : bool
+        Whether this advisory contains plot spoilers.
+    text : str
+        Descriptive explanation of the content advisory.
+    """
+
     is_spoiler: bool = False
     text: str = ""
 
@@ -1008,6 +1226,20 @@ class ParentalGuideContentDescription(BaseModel):
 
 
 class ParentalGuideCategory(BaseModel):
+    """Parental guide category (e.g., Sex & Nudity, Violence, Profanity).
+
+    Attributes
+    ----------
+    id : str
+        Category identifier (e.g., ``"nudity"``, ``"violence"``, ``"profanity"``).
+    text : str
+        Human-readable category name.
+    content_descriptions : List[ParentalGuideContentDescription]
+        User-submitted descriptions of specific scenes or content.
+    severity : str
+        Voted severity level: ``"NONE"``, ``"MILD"``, ``"MODERATE"``, or ``"SEVERE"``.
+    """
+
     id: str = ""
     text: str = ""
     content_descriptions: List[ParentalGuideContentDescription] = Field(
@@ -1056,6 +1288,15 @@ class ParentalGuideCategory(BaseModel):
 
 
 class ParentalGuideList(BaseModel):
+    """Complete parental guide content advisory for a title.
+
+    Returned by :func:`~imdbinfo.services.get_parental_guide`.
+
+    Attributes
+    ----------
+    categories : List[ParentalGuideCategory]
+        List of content categories with severities and specific advisories.
+    """
     categories: List[ParentalGuideCategory] = Field(default_factory=list)
 
     @classmethod
@@ -1081,6 +1322,36 @@ class ParentalGuideList(BaseModel):
 
 
 class MediaItem(BaseModel):
+    """An image or media entry in a title's gallery.
+
+    Attributes
+    ----------
+    id : str
+        Media item ID (e.g., ``"rm12345678"``).
+    url : str
+        Direct URL to the image file.
+    width : int, optional
+        Image width in pixels.
+    height : int, optional
+        Image height in pixels.
+    caption : str, optional
+        Image caption or title.
+    type : str, optional
+        Media type (e.g., ``"still_frame"``, ``"poster"``).
+    copyright : str, optional
+        Copyright notice or attribution.
+    created_by : str, optional
+        Photographer or creator name.
+    source_name : str, optional
+        Name of the publishing or distribution source.
+    source_url : str, optional
+        Source web page URL.
+    names : List[Dict[str, str]]
+        People tagged in this media item.
+    titles : List[Dict[str, str]]
+        Titles associated with this media item.
+    """
+
     id: str
     url: str
     width: Optional[int] = None
@@ -1102,6 +1373,20 @@ class MediaItem(BaseModel):
 
 
 class MediaGallery(BaseModel):
+    """Gallery of photos and promotional media for a title.
+
+    Returned by :func:`~imdbinfo.services.get_media_gallery`.
+
+    Attributes
+    ----------
+    imdb_id : str
+        IMDb title ID.
+    total : int
+        Total number of media items available on IMDb.
+    items : List[MediaItem]
+        Retrieved media items.
+    """
+
     imdb_id: str
     total: int = 0
     items: List[MediaItem] = Field(default_factory=list)
@@ -1126,9 +1411,12 @@ class MediaGallery(BaseModel):
 class InterestScore(BaseModel):
     """Community interest and voting counts for a quote or trivia item.
 
-    Fields:
-        users_interested (int): Number of users who marked this item as interesting.
-        users_voted (int): Total number of users who voted on this item.
+    Attributes
+    ----------
+    users_interested : int
+        Number of users who marked this item as interesting.
+    users_voted : int
+        Total number of users who voted on this item.
     """
 
     users_interested: int = 0

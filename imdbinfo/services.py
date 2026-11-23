@@ -18,6 +18,41 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+"""Service functions and HTTP transport for imdbinfo.
+
+This module is the primary entry point for all IMDb data retrieval. It provides:
+
+- **Title functions** — :func:`get_movie`, :func:`get_awards`, :func:`search_title`,
+  :func:`get_season_episodes`, :func:`get_all_episodes`, :func:`get_episodes`
+- **Person functions** — :func:`get_name`, :func:`get_filmography`
+- **Extended metadata** — :func:`get_akas`, :func:`get_trivia`, :func:`get_reviews`,
+  :func:`get_parental_guide`, :func:`get_quotes`, :func:`get_all_interests`,
+  :func:`get_media_gallery`
+- **Utilities** — :func:`normalize_imdb_id`, :func:`clear_all_caches`
+
+Transport
+---------
+HTML scraping requests go through :func:`request_json_url` (cached with
+:func:`~functools.lru_cache`, maxsize=1024, keyed on the full URL including locale).
+GraphQL API requests go through :func:`request_graphql_url` (cached by serialized
+payload + country-code header tuple).
+
+WAF handling is automatic: on any non-200 response the AWS WAF solver is invoked,
+the token is saved to ``.cache/imdbinfo/waf_cookies.json``, and the request is retried.
+
+Examples
+--------
+
+```python
+>>> from imdbinfo import get_movie, search_title
+>>> movie = get_movie("tt0133093")
+>>> print(movie.title, movie.rating)
+The Matrix 8.7
+>>> results = search_title("Inception", year=2010)
+>>> print(results.titles[0].imdbId)
+tt1375666
+```
+"""
 import re
 from pathlib import Path
 from typing import Optional, Dict, Union, List, Tuple, Any
@@ -478,8 +513,8 @@ def get_awards(imdb_id: str) -> List[Award]:
     ```python
     >>> from imdbinfo import get_awards
     >>> awards = get_awards("tt0111161")  # The Shawshank Redemption
-    >>> for award in awards:
-    ...     print(f"{award.name}: {len(award.nominations)} nominations")
+    >>> for award in awards[:5]:
+    ...     print(f"{award.event}: {award.category} ({award.status})")
     ```
     """
     imdb_id, lang = normalize_imdb_id(imdb_id)
@@ -838,8 +873,8 @@ def get_akas(imdb_id: str) -> Optional[AkasData]:
     ```python
     >>> from imdbinfo import get_akas
     >>> akas = get_akas("tt0133093")  # The Matrix
-    >>> for aka in akas:
-    ...     print(f"{aka.title} ({aka.country_code})")
+    >>> for aka in akas.akas:
+    ...     print(f"{aka.title} ({aka.country_code}) — {aka.country_name}")
     ```
     """
     imdb_id, _ = normalize_imdb_id(imdb_id)
@@ -1477,7 +1512,24 @@ def get_media_gallery(
 
 
 def clear_all_caches() -> None:
-    """Clear all LRU caches in services."""
+    """Clear all in-memory LRU caches across the library.
+
+    Purges the cached responses for both:
+    - HTML/Next.js scraping requests (:func:`request_json_url`)
+    - GraphQL queries (:func:`request_graphql_url`)
+
+    Use this when memory conservation is critical in long-running processes,
+    or after testing cache-sensitive behavior. Note that cache keys incorporate
+    locale segments, so switching locales does not require clearing caches
+    unless you explicitly wish to reclaim memory.
+
+    Examples
+    --------
+    ```python
+    >>> from imdbinfo import clear_all_caches
+    >>> clear_all_caches()
+    ```
+    """
     if hasattr(request_json_url, "cache_clear"):
         request_json_url.cache_clear()
     if hasattr(request_graphql_url, "cache_clear"):

@@ -309,3 +309,4 @@
   - Streamline `clear_all_caches()` to bust both centralized transport caches (`request_json_url` and `request_graphql_url`).
   - Update documentation, examples, and test suite for the new centralized caching architecture and clean method signatures.
   - Bump version to 0.17.0.
+  - Update documentation and models to enhance clarity and detail for IMDb data retrieval
