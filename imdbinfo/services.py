@@ -344,7 +344,7 @@ def request_handler(url: str) -> Any:
     return resp
 
 
-def request_graphql_url(headers, search_term, payload, url) -> Any:
+def _request_graphql_http(headers, search_term, payload, url) -> Any:
     headers = {
         "Referer": "https://www.imdb.com/",
         "x-imdb-client-name": "imdb-web-next",
@@ -370,6 +370,39 @@ def request_graphql_url(headers, search_term, payload, url) -> Any:
             errors=data["errors"],
         )
     return data
+
+
+@lru_cache(maxsize=1024)
+def _request_graphql_cached(
+    payload_str: str,
+    search_term: str,
+    url: str,
+    headers_tuple: tuple,
+) -> Any:
+    headers = dict(headers_tuple)
+    payload = json.loads(payload_str)
+    return _request_graphql_http(headers, search_term, payload, url)
+
+
+def request_graphql_url(headers, search_term, payload, url=GRAPHQL_URL) -> Any:
+    """Fetch and parse GraphQL response from IMDb.
+
+    Results are cached with :func:`functools.lru_cache` (maxsize=1024) based on
+    the serialized payload and country code.
+    """
+    payload_str = (
+        json.dumps(payload, sort_keys=True)
+        if isinstance(payload, dict)
+        else str(payload)
+    )
+    headers_tuple = tuple(sorted((headers or {}).items()))
+    return _request_graphql_cached(
+        payload_str, search_term, url, headers_tuple
+    )
+
+
+request_graphql_url.cache_clear = _request_graphql_cached.cache_clear
+request_graphql_url.cache_info = _request_graphql_cached.cache_info
 
 
 def get_movie(imdb_id: str, locale: Optional[str] = None) -> Optional[MovieDetail]:
@@ -479,7 +512,6 @@ def get_awards(imdb_id: str, locale: Optional[str] = None) -> List[Award]:
     return awards
 
 
-@lru_cache(maxsize=128)
 def search_title(
     search_term: str,
     year: int | None = None,
@@ -1222,7 +1254,6 @@ def get_filmography(
     return full_credits_list
 
 
-@lru_cache(maxsize=128)
 def _get_extended_title_info(imdb_id, locale=None) -> dict:
     """
     Fetch extended info using IMDb's GraphQL API:
@@ -1407,7 +1438,6 @@ def _get_extended_title_info(imdb_id, locale=None) -> dict:
     raw_json = data.get("data", {}).get("title", {})
     return raw_json
 
-@lru_cache(maxsize=128)
 def _get_extended_name_info(
     person_id,
     locale=None,
@@ -1493,7 +1523,6 @@ def _get_extended_name_info(
     return raw_json
 
 
-@lru_cache(maxsize=128)
 def get_media_gallery(
     imdb_id: str,
     locale: Optional[str] = None,
@@ -1551,8 +1580,6 @@ def clear_all_caches() -> None:
     """Clear all LRU caches in services."""
     if hasattr(request_json_url, "cache_clear"):
         request_json_url.cache_clear()
-    search_title.cache_clear()
-    get_media_gallery.cache_clear()
-    _get_extended_title_info.cache_clear()
-    _get_extended_name_info.cache_clear()
+    if hasattr(request_graphql_url, "cache_clear"):
+        request_graphql_url.cache_clear()
 

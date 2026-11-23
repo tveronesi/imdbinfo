@@ -197,7 +197,7 @@ credits = get_filmography(
 > [!WARNING]
 > **Deprecation Notice**: Passing the `locale` parameter directly to method calls (e.g. `get_movie("tt0133093", locale="it")`) will soon be deprecated and removed in a future release. Always call `set_locale()` before invoking library methods to set the desired locale.
 
-Localize search results and title metadata globally across the library by calling `set_locale()` before making requests:
+Localize search results and title metadata globally across the library by calling `set_locale()` before making requests. Responses for different locales are cached independently in memory, so switching locales does not cause cache thrashing:
 
 ```python
 from imdbinfo import get_movie, search_title, get_awards

@@ -295,3 +295,14 @@
   - Update `clear_all_caches()` to clear `request_json_url` and existing GraphQL caches.
   - Document deprecation of the `locale` method call parameter in favor of global `set_locale()`.
 
+
+## v0.17.0
+  - Centralize GraphQL caching at the transport layer (`request_graphql_url`) using `@lru_cache(maxsize=1024)`, mirroring `request_json_url`.
+  - Serialise GraphQL query payload and request headers (including `x-imdb-user-country`) to form the LRU cache key, ensuring natural multi-locale awareness.
+  - Remove scattered `@lru_cache` decorators from `search_title`, `get_media_gallery`, `_get_extended_title_info`, and `_get_extended_name_info`.
+  - Disable automatic cache clearing in `set_locale()`: changing the active locale no longer evicts cached responses, allowing multi-locale retention in memory without cache thrashing.
+  - Add optional `clear_cache: bool = False` parameter to `set_locale(locale, clear_cache=False)` for explicit cache invalidation when required.
+  - Deduplicate GraphQL cache queries: identical queries (e.g. default main roles vs explicitly selected main roles in `get_filmography`) now share the same cached response.
+  - Streamline `clear_all_caches()` to bust both centralized transport caches (`request_json_url` and `request_graphql_url`).
+  - Update documentation and test suite for the new centralized caching architecture.
+  - Bump version to 0.17.0.
