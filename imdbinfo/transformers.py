@@ -23,9 +23,7 @@ import datetime
 
 
 def _release_date(result: dict):
-    """
-    given a list of lists, convert it to a string with format 'YYYY-MM-DD'
-    """
+    """Convert a release date dictionary with year, month, and day to 'YYYY-MM-DD' string format."""
     if result is None:
         return None
     return datetime.date(

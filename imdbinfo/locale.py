@@ -44,13 +44,6 @@ Examples
 >>> set_locale("it")  # Set global locale to Italian
 >>> movie = get_movie("tt0133093")  # All requests now use Italian
 ```
-
-Override locale per-request:
-
-```python
->>> from imdbinfo import get_movie
->>> movie = get_movie("tt0133093", locale="it")  # Italian for this call only
-```
 """
 
 import logging
@@ -73,11 +66,11 @@ DEFAULT_LOCALE = "en"
 _configured_locale = None
 
 
-def set_locale(locale: str):
+def set_locale(locale: str, clear_cache: bool = False):
     """Set the global locale for all IMDb API requests.
 
     Once set, all subsequent calls to imdbinfo functions will use the configured
-    locale unless overridden with a per-call ``locale`` parameter.
+    locale.
 
     Parameters
     ----------
@@ -85,6 +78,9 @@ def set_locale(locale: str):
         Locale code. Must be one of: ``"en"``, ``"fr-ca"``, ``"fr"``, ``"hi"``,
         ``"de"``, ``"it"``, ``"es"``, ``"pt"``, ``"es-es"``.
         If an unsupported locale is provided, silently falls back to ``"en"``.
+    clear_cache : bool, default False
+        Whether to invalidate cached API responses across services. Caches are
+        locale-aware by default, so cache clearing is rarely needed.
 
     Warnings
     --------
@@ -115,7 +111,8 @@ def set_locale(locale: str):
             DEFAULT_LOCALE,
         )
         _configured_locale = DEFAULT_LOCALE
-        _clear_services_cache()
+        if clear_cache:
+            _clear_services_cache()
         return
 
     l = locale.strip()
@@ -126,11 +123,13 @@ def set_locale(locale: str):
             DEFAULT_LOCALE,
         )
         _configured_locale = DEFAULT_LOCALE
-        _clear_services_cache()
+        if clear_cache:
+            _clear_services_cache()
         return
 
     _configured_locale = l
-    _clear_services_cache()
+    if clear_cache:
+        _clear_services_cache()
 
 
 def _clear_services_cache():

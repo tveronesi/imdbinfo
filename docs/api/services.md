@@ -11,7 +11,6 @@
         - get_name
         - get_season_episodes
         - get_all_episodes
-        - get_episodes
         - get_akas
         - get_all_interests
         - get_trivia
@@ -20,3 +19,4 @@
         - get_quotes
         - get_filmography
         - get_media_gallery
+        - clear_all_caches

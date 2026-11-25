@@ -211,7 +211,7 @@ def test_graphql_error_raised_on_non_200_post(monkeypatch):
 
     monkeypatch.setattr(services.niquests, "post", stub_post, raising=False)
     with pytest.raises(GraphQLError) as exc_info:
-        services.search_title.cache_clear()
+        services.clear_all_caches()
         services.search_title("matrix_test_error")
     err = exc_info.value
     assert err.status_code == 503
@@ -233,7 +233,7 @@ def test_graphql_error_raised_on_errors_payload(monkeypatch):
 
     monkeypatch.setattr(services.niquests, "post", stub_post, raising=False)
     with pytest.raises(GraphQLError) as exc_info:
-        services.search_title.cache_clear()
+        services.clear_all_caches()
         services.search_title("matrix_test_gql_err")
     err = exc_info.value
     assert err.status_code is None
@@ -288,7 +288,7 @@ def test_get_media_gallery(monkeypatch):
         mock_post_factory("sample_media_gallery.json"),
         raising=False,
     )
-    services.get_media_gallery.cache_clear()
+    services.clear_all_caches()
     gallery = services.get_media_gallery("tt0133093")
     assert gallery is not None
     assert gallery.total == 557
@@ -316,8 +316,7 @@ def test_get_media_gallery_caches(monkeypatch):
         )
 
     monkeypatch.setattr(services.niquests, "post", counting_post, raising=False)
-    services.get_media_gallery.cache_clear()
-    services._get_extended_title_info.cache_clear()
+    services.clear_all_caches()
 
     g1 = services.get_media_gallery("tt0133093")
     g2 = services.get_media_gallery("tt0133093")
@@ -352,3 +351,89 @@ def test_request_json_url_caches(monkeypatch):
     data3 = services.request_json_url(url)
     assert len(calls) == 2
 
+
+
+def test_request_graphql_url_caches(monkeypatch):
+    calls = []
+
+    def stub_http(headers, search_term, payload, url):
+        calls.append((headers, search_term, payload, url))
+        return {"data": {"result": "ok", "country": headers.get("x-imdb-user-country", "")}}
+
+    monkeypatch.setattr(services, "_request_graphql_http", stub_http)
+    services.clear_all_caches()
+
+    headers_en = {"Content-Type": "application/json", "x-imdb-user-country": "EN"}
+    payload = {"query": '{ title(id: "tt0133093") { id } }'}
+
+    # 1. First call -> executes HTTP call
+    data1 = services.request_graphql_url(headers_en, "tt0133093", payload, services.GRAPHQL_URL)
+    assert len(calls) == 1
+    assert data1["data"]["country"] == "EN"
+
+    # 2. Second call with same payload and country -> cache hit
+    data2 = services.request_graphql_url(headers_en, "tt0133093", payload, services.GRAPHQL_URL)
+    assert len(calls) == 1
+    assert data2 == data1
+
+    # 3. Call with different country -> cache miss (locale-aware)
+    headers_it = {"Content-Type": "application/json", "x-imdb-user-country": "IT"}
+    data3 = services.request_graphql_url(headers_it, "tt0133093", payload, services.GRAPHQL_URL)
+    assert len(calls) == 2
+    assert data3["data"]["country"] == "IT"
+
+    # 4. Call back with English -> cache hit (multi-locale retention)
+    data4 = services.request_graphql_url(headers_en, "tt0133093", payload, services.GRAPHQL_URL)
+    assert len(calls) == 2
+    assert data4 == data1
+
+    # 5. cache_clear clears the GraphQL cache
+    services.request_graphql_url.cache_clear()
+    data5 = services.request_graphql_url(headers_en, "tt0133093", payload, services.GRAPHQL_URL)
+    assert len(calls) == 3
+
+
+def test_set_locale_does_not_clear_cache_by_default(monkeypatch):
+    from imdbinfo.locale import set_locale
+
+    calls_html = []
+    calls_gql = []
+
+    def fake_handler(url):
+        calls_html.append(url)
+        class FakeResp:
+            status_code = 200
+            content = b'<html><script id="__NEXT_DATA__">{"title": "Matrix"}</script></html>'
+        return FakeResp()
+
+    def fake_gql(headers, search_term, payload, url):
+        calls_gql.append((headers, payload))
+        return {"data": {"search": "matrix"}}
+
+    monkeypatch.setattr(services, "request_handler", fake_handler)
+    monkeypatch.setattr(services, "_request_graphql_http", fake_gql)
+    services.clear_all_caches()
+
+    url = "https://www.imdb.com/title/tt0133093/reference"
+    services.request_json_url(url)
+    assert len(calls_html) == 1
+
+    headers = {"Content-Type": "application/json", "x-imdb-user-country": "EN"}
+    services.request_graphql_url(headers, "test", {"query": "{ id }"}, services.GRAPHQL_URL)
+    assert len(calls_gql) == 1
+
+    # Changing locale without clear_cache=True should NOT invalidate existing caches
+    set_locale("it")
+    services.request_json_url(url)
+    assert len(calls_html) == 1  # Still 1, cache was preserved!
+
+    services.request_graphql_url(headers, "test", {"query": "{ id }"}, services.GRAPHQL_URL)
+    assert len(calls_gql) == 1  # Still 1, cache was preserved!
+
+    # Calling with clear_cache=True should invalidate caches
+    set_locale("en", clear_cache=True)
+    services.request_json_url(url)
+    assert len(calls_html) == 2
+
+    services.request_graphql_url(headers, "test", {"query": "{ id }"}, services.GRAPHQL_URL)
+    assert len(calls_gql) == 2

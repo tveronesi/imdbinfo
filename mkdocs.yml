@@ -63,3 +63,4 @@ nav:
       - Models: api/models.md
       - Locale: api/locale.md
       - Exceptions: api/exceptions.md
+  - Changelog: changelog.md

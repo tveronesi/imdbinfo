@@ -13,7 +13,7 @@ from imdbinfo.exceptions import GraphQLError
 @pytest.fixture
 def graphql_requests(monkeypatch):
     requests = []
-    services._get_extended_name_info.cache_clear()
+    services.clear_all_caches()
 
     def request(headers, person_id, payload, url):
         requests.append((headers, person_id, payload, url))
@@ -36,9 +36,9 @@ def graphql_requests(monkeypatch):
         ]
         return {"data": {"name": {"credits": {"edges": edges}}}}
 
-    monkeypatch.setattr(services, "request_graphql_url", request)
+    monkeypatch.setattr(services, "_request_graphql_http", request)
     yield requests
-    services._get_extended_name_info.cache_clear()
+    services.clear_all_caches()
 
 
 def requested_roles(request):
@@ -116,7 +116,7 @@ def test_filmography_default_roles(graphql_requests, roles):
 def test_filmography_passes_default_selection_as_none(monkeypatch, roles):
     received = []
 
-    def get_info(person_id, locale, selected_roles):
+    def get_info(person_id, selected_roles):
         received.append(selected_roles)
         return {}
 
@@ -128,7 +128,7 @@ def test_filmography_passes_default_selection_as_none(monkeypatch, roles):
 def test_filmography_passes_role_values_as_tuple(monkeypatch):
     received = []
 
-    def get_info(person_id, locale, selected_roles):
+    def get_info(person_id, selected_roles):
         received.append(selected_roles)
         return {}
 
@@ -170,10 +170,10 @@ def test_filmography_filters_invalid_roles_before_cache_lookup(graphql_requests,
 
 
 def test_extended_name_info_accepts_and_caches_role_value_tuples(graphql_requests):
-    result = services._get_extended_name_info("0000206", "en", ("actor", "director"))
+    result = services._get_extended_name_info("0000206", ("actor", "director"))
     assert requested_roles(graphql_requests[0]) == ["actor", "director"]
     assert result["credits"]["edges"][0]["node"]["category"]["id"] == "actor"
-    assert services._get_extended_name_info("0000206", "en", ("actor", "director")) == result
+    assert services._get_extended_name_info("0000206", ("actor", "director")) == result
     assert len(graphql_requests) == 1
 
 
@@ -214,7 +214,7 @@ def test_filmography_cache_tracks_mutated_role_list(graphql_requests):
 
 
 @pytest.mark.parametrize("explicit_first", [False, True])
-def test_filmography_default_and_explicit_main_roles_use_separate_cache_entries(
+def test_filmography_default_and_explicit_main_roles_share_cached_query(
     graphql_requests, explicit_first
 ):
     main_roles = [
@@ -224,17 +224,17 @@ def test_filmography_default_and_explicit_main_roles_use_separate_cache_entries(
     selections = [main_roles, None, []] if explicit_first else [None, [], main_roles]
     for roles in selections:
         get_filmography("nm0000206", roles=roles)
-    assert len(graphql_requests) == 2
-    assert requested_roles(graphql_requests[0]) == requested_roles(graphql_requests[1])
+    assert len(graphql_requests) == 1
+    assert requested_roles(graphql_requests[0]) == [role.value for role in main_roles]
 
 
 def test_filmography_graphql_errors_propagate(monkeypatch):
-    services._get_extended_name_info.cache_clear()
+    services.clear_all_caches()
 
     def fail(*args):
         raise GraphQLError("GraphQL failure", url=args[3], query_term=args[1])
 
-    monkeypatch.setattr(services, "request_graphql_url", fail)
+    monkeypatch.setattr(services, "_request_graphql_http", fail)
     with pytest.raises(GraphQLError, match="GraphQL failure"):
         get_filmography("nm0000206", roles=[CreditRole.ACTOR])
-    services._get_extended_name_info.cache_clear()
+    services.clear_all_caches()

@@ -1,8 +1,5 @@
 # Locales and caching
 
-> [!WARNING]
-> **Deprecation Notice**: Passing the `locale` parameter directly to method calls is deprecated and will be removed in a future release. Always use `set_locale()` before calling library functions.
-
 ## Set a process-wide locale
 
 Use `set_locale` before calling service functions to retrieve localized IMDb data:
@@ -23,12 +20,13 @@ locale-specific title when it is available. Supported values are `en`, `fr-ca`,
 `fr`, `hi`, `de`, `it`, `es`, `pt`, and `es-es`. Invalid values fall back to
 English.
 
-## Clear cached data
+## Caching & multi-locale retention
 
-HTTP responses and extended GraphQL queries are cached with an in-memory LRU cache
-(with underlying HTTP responses cached up to 1024 entries). The cache automatically
-keys entries by their complete URL (which embeds the requested locale), allowing
-responses for different locales to coexist without cache thrashing.
+HTTP responses (HTML scraping) and GraphQL API requests are cached in memory using `@lru_cache(maxsize=1024)` at the transport layer:
+- **HTML scraping** (`request_json_url`): Keyed by URL, which embeds the requested locale path segment (e.g. `/it/` vs `/`).
+- **GraphQL queries** (`request_graphql_url`): Keyed by the serialized query payload and request headers (including the `x-imdb-user-country` header).
+
+Because both caches naturally incorporate the locale, responses for different locales coexist in memory simultaneously without cache collisions or thrashing. Setting a new global locale with `set_locale()` does not clear the cache by default, allowing efficient multi-language workflows in long-running processes.
 
 To clear all in-memory LRU caches across services when a long-running process needs fresh data:
 
@@ -38,10 +36,10 @@ from imdbinfo import clear_all_caches
 clear_all_caches()
 ```
 
-Setting a new global locale with `set_locale()` also clears dependent caches
-automatically. Extended title and person data is cached internally to avoid
-duplicate GraphQL requests within a process. `get_filmography` uses this
-internal cache rather than exposing a `cache_clear()` method; its cache key
-includes the person and selected roles. Default roles and an empty selection
-share a cache entry, while an explicit list of the same roles uses a separate
-entry.
+You can also pass `clear_cache=True` to `set_locale()` to explicitly invalidate caches upon changing locale:
+
+```python
+from imdbinfo.locale import set_locale
+
+set_locale("it", clear_cache=True)
+```
